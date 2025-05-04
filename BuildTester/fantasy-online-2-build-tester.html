@@ -52,7 +52,7 @@
         }
         
         .middle-panel {
-            flex: 1.5;
+            flex: 1.25;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -74,15 +74,15 @@
 		}
         
         .equipment-slots {
-            flex: 0 0 70px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: grid; /* USE GRID */
+            grid-template-columns: 1fr 1fr; /* TWO COLUMNS */
+            gap: 10px; /* Gap between slots */
+            align-content: start;
         }
         
         .slot {
-            width: 50px;
-            height: 50px;
+            width: 75px;
+            height: 75px;
             background-color: var(--slot-bg);
             border-radius: 5px;
             cursor: pointer;
@@ -261,19 +261,20 @@
             margin-left: 10px;
         }
 
-		.item-search {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			background-color: var(--panel);
-			border: none;
-			padding: 15px;
-			z-index: 10;
-			display: none;
-			box-sizing: border-box;
-		}
+        .item-search {
+            position: absolute;
+            width: 350px;
+            height: 300px;
+            background-color: rgba(26, 28, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            z-index: 110;
+            box-sizing: border-box;
+            display: none;
+            flex-direction: column;
+        }
 
 		.search-input {
 			width: 100%;
@@ -285,26 +286,49 @@
 			margin-bottom: 10px;
 		}
 
-		.search-results {
-			max-height: calc(100% - 100px); /* Adjust based on input and buttons height */
-			overflow-y: auto;
-		}
+         /* Style the title */
+        .item-search #search-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+            flex-shrink: 0; /* Prevent shrinking */
+            color: var(--accent);
+        }
 
-        .search-item {
-            padding: 8px;
-            cursor: pointer;
+        /* Style the input */
+        .item-search .search-input {
+            width: 100%; /* Take full width of the small panel */
+            margin-bottom: 8px;
+            flex-shrink: 0; /* Prevent shrinking */
+            /* Inherits styles, but ensure box-sizing */
+            box-sizing: border-box;
+        }
+
+        /* Adjust search results height within the fixed panel */
+        .item-search .search-results {
+            flex-grow: 1; /* Allow results list to take remaining vertical space */
+            overflow-y: auto; /* Add scrollbar if content exceeds height */
+            margin-bottom: 10px; /* Space above buttons */
+            /* Optional: Add visual separation */
+            background-color: rgba(12, 14, 26, 0.5);
+            border: 1px solid var(--border);
             border-radius: 3px;
+            padding: 5px;
         }
 
-        .search-item:hover {
-            background-color: var(--background);
+        /* Adjust search item padding if needed */
+        .search-item {
+            padding: 5px 8px; /* Adjust padding for smaller panel */
+            /* Ensure text doesn't wrap excessively */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .search-buttons {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 10px;
-            gap: 10px;
+        /* Ensure buttons area doesn't shrink */
+        .item-search .search-buttons {
+            flex-shrink: 0;
+            justify-content: center; /* Center the cancel button */
         }
         
         .notification {
@@ -315,7 +339,7 @@
             border-left: 4px solid var(--accent);
             padding: 15px;
             border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             z-index: 100;
             display: none;
             max-width: 300px;
@@ -1017,36 +1041,36 @@
                          <div class="stat-points">
                              <div class="stat-row">
                                  <div class="stat-label AGI">AGI</div>
-                                 <input type="number" class="stat-value" id="agi-value" value="20" min="20" max="100">
+                                 <input type="number" class="stat-value" id="agi-value" value="20" min="20">
                                  <div class="stat-buttons">
-                                     <button class="stat-button decrease" data-stat="agi" title="Min (20)">-</button>
+                                     <button class="stat-button decrease" data-stat="agi" title="Min">-</button>
                                      <button class="stat-button increase" data-stat="agi" title="Max (All points)">+</button>
                                      <button class="stat-button reset" data-stat="agi" title="Reset to base">↺</button>
                                  </div>
                              </div>
                              <div class="stat-row">
                                  <div class="stat-label STR">STR</div>
-                                 <input type="number" class="stat-value" id="str-value" value="20" min="20" max="100">
+                                 <input type="number" class="stat-value" id="str-value" value="20" min="20">
                                  <div class="stat-buttons">
-                                     <button class="stat-button decrease" data-stat="str" title="Min (20)">-</button>
+                                     <button class="stat-button decrease" data-stat="str" title="Min">-</button>
                                      <button class="stat-button increase" data-stat="str" title="Max (All points)">+</button>
                                      <button class="stat-button reset" data-stat="str" title="Reset to base">↺</button>
                                  </div>
                              </div>
                              <div class="stat-row">
                                  <div class="stat-label INT">INT</div>
-                                 <input type="number" class="stat-value" id="int-value" value="20" min="20" max="100">
+                                 <input type="number" class="stat-value" id="int-value" value="20" min="20">
                                  <div class="stat-buttons">
-                                     <button class="stat-button decrease" data-stat="int" title="Min (20)">-</button>
+                                     <button class="stat-button decrease" data-stat="int" title="Min">-</button>
                                      <button class="stat-button increase" data-stat="int" title="Max (All points)">+</button>
                                      <button class="stat-button reset" data-stat="int" title="Reset to base">↺</button>
                                  </div>
                              </div>
                              <div class="stat-row">
                                  <div class="stat-label STA">STA</div>
-                                 <input type="number" class="stat-value" id="sta-value" value="20" min="20" max="100">
+                                 <input type="number" class="stat-value" id="sta-value" value="20" min="20">
                                  <div class="stat-buttons">
-                                     <button class="stat-button decrease" data-stat="sta" title="Min (20)">-</button>
+                                     <button class="stat-button decrease" data-stat="sta" title="Min">-</button>
                                      <button class="stat-button increase" data-stat="sta" title="Max (All points)">+</button>
                                      <button class="stat-button reset" data-stat="sta" title="Reset to base">↺</button>
                                  </div>
@@ -1066,38 +1090,35 @@
                          </div>
                     </div>
                     <div class="panel middle-panel">
-                          <div class="derived-stats">
-                             <div class="equipment-slots left-slots">
-                                 <div class="slot-container"><div class="slot" data-slot="head"><img src="icons/head-icon.png" alt="Head"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="face"><img src="icons/face-icon.png" alt="Face"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="back"><img src="icons/back-icon.png" alt="Back"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="shoulder"><img src="icons/shoulder-icon.png" alt="Shoulder"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="chest"><img src="icons/chest-icon.png" alt="Chest"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="legs"><img src="icons/legs-icon.png" alt="Legs"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="weapon"><img src="icons/weapon-icon.png" alt="Weapon"></div></div>
-                             </div>
-    
-                             <div class="character-display">
-                                 <div class="item-search" id="item-search-modal">
-                                     <div id="search-title">Select Item</div>
-                                     <input type="text" class="search-input" id="item-search-input" placeholder="Search items...">
-                                     <div class="search-results" id="search-results"></div>
-                                     <div class="search-buttons">
-                                         <button class="action-button" id="cancel-search">Cancel</button>
-                                     </div>
-                                 </div>
-                             </div>
-    
-                             <div class="equipment-slots right-slots">
-                                 <div class="slot-container"><div class="slot" data-slot="ring1"><img src="icons/ring-icon.png" alt="Ring 1"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="ring2"><img src="icons/ring-icon.png" alt="Ring 2"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="trinket1"><img src="icons/trinket-icon.png" alt="Trinket 1"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="trinket2"><img src="icons/trinket-icon.png" alt="Trinket 2"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="guild"><img src="icons/guild-icon.png" alt="Guild"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="faction"><img src="icons/faction-icon.png" alt="Faction"></div></div>
-                                 <div class="slot-container"><div class="slot" data-slot="offhand"><img src="icons/offhand-icon.png" alt="Offhand"></div></div>
-                             </div>
-                         </div>
+                        <div class="derived-stats">
+
+                            <div class="equipment-slots left-slots">
+                                <div class="slot" data-slot="face"><img src="icons/face-icon.png" alt="Face"></div>
+                                <div class="slot" data-slot="head"><img src="icons/head-icon.png" alt="Head"></div>
+                                <div class="slot" data-slot="shoulder"><img src="icons/shoulder-icon.png" alt="Shoulder"></div>
+                                <div class="slot" data-slot="back"><img src="icons/back-icon.png" alt="Back"></div>
+                                <div class="slot" data-slot="legs"><img src="icons/legs-icon.png" alt="Legs"></div>
+                                <div class="slot" data-slot="chest"><img src="icons/chest-icon.png" alt="Chest"></div>
+                                <div class="slot" data-slot="weapon"><img src="icons/weapon-icon.png" alt="Weapon"></div>
+                                <div class="slot" data-slot="offhand"><img src="icons/offhand-icon.png" alt="Offhand"></div>
+                            </div>
+            
+                            <div class="character-display">
+                            </div>
+            
+                            <div class="equipment-slots right-slots">
+                                <div class="slot" data-slot="ring1"><img src="icons/ring-icon.png" alt="Ring 1"></div>
+                                <div class="slot" data-slot="ring2"><img src="icons/ring-icon.png" alt="Ring 2"></div>
+                                <div class="slot" data-slot="trinket1"><img src="icons/trinket-icon.png" alt="Trinket 1"></div>
+                                <div class="slot" data-slot="trinket2"><img src="icons/trinket-icon.png" alt="Trinket 2"></div>
+                                <div class="slot placeholder"></div>
+                                <div class="slot placeholder"></div>
+                                <div class="slot" data-slot="guild"><img src="icons/guild-icon.png" alt="Guild"></div>
+                                <div class="slot" data-slot="faction"><img src="icons/faction-icon.png" alt="Faction"></div>
+                            </div>
+            
+                        </div>
+                        
                          <div class="stats-display">
                              <div class="status-bars">
                                 <div class="bar health-bar">Health: <span id="health-value">18/18</span></div> 
@@ -1114,6 +1135,10 @@
                              <div class="stat-item"> <div>Armor</div> <div id="armor-display">0</div> </div>
                              <div class="stat-item"> <div>Damage</div> <div id="damage-display">(7-10)</div> </div>
                          </div>
+                         <div class="build-section-buttons">
+                            <button class="action-button" id="save-build-button">Save Current Build</button>
+                            <button class="action-button negative" id="reset-equipment-button">Reset Current Equip</button>
+                        </div>
                     </div>
                     <div class="panel right-panel">
                         <div class="stat-item dps-row"> <div>Damage Per Second</div>
@@ -1163,8 +1188,7 @@
                         <div class="saved-builds-list" id="saved-builds-list">
                         </div>
                         <div class="build-section-buttons">
-                            <button class="action-button" id="save-build-button">Save Current Build</button>
-                            <button class="action-button negative" id="reset-equipment-button">Reset Current Equip</button>
+                            
                         </div>
                     </div>
                 </div>
@@ -1193,6 +1217,15 @@
              </div>
         </div>
     
+        <div class="item-search" id="item-search-modal">
+            <div id="search-title">Select Item</div>
+            <input type="text" class="search-input" id="item-search-input" placeholder="Search items...">
+            <div class="search-results" id="search-results"></div>
+            <div class="search-buttons">
+                <button class="action-button" id="cancel-search">Cancel</button>
+            </div>
+        </div>
+
         <div class="notification" id="notification"></div>
     
     </div>
@@ -1687,21 +1720,58 @@ function distributePoints() {
 // Equipment handling
 let currentSlot = null;
 
-function openItemSearch(slot) {
-    currentSlot = slot;
-    itemSearchModal.style.display = 'block';
-    itemSearchInput.focus();
-    itemSearchInput.value = '';
-    
-    // Update the title to show which slot we're equipping
-    const searchTitle = document.getElementById('search-title');
-    if (searchTitle) {
-        searchTitle.textContent = `Select item for ${slot.charAt(0).toUpperCase() + slot.slice(1)}`;
-    }
-    
-    // Populate search results
-    populateSearchResults();
-}
+function openItemSearch(slotElement) {
+     const slotName = slotElement.dataset.slot;
+     currentSlot = slotName; // Keep track of which slot was clicked
+
+     // Update Title
+     const searchTitle = document.getElementById('search-title');
+     if (searchTitle) {
+         searchTitle.textContent = `Select for ${slotName.charAt(0).toUpperCase() + slotName.slice(1)}`;
+     }
+
+     // --- Dynamic Positioning Logic ---
+     const slotRect = slotElement.getBoundingClientRect(); // Get position of the clicked slot
+     const panelWidth = 150; // The fixed width we set in CSS
+     const panelHeight = 300; // The fixed height we set in CSS
+     const margin = 5; // Small space between slot and panel
+
+     // Calculate initial desired position (below and slightly right of the slot)
+     let potentialTop = slotRect.bottom + margin + window.scrollY;
+     let potentialLeft = slotRect.left + window.scrollX; // Align left edge initially
+
+     // Check viewport boundaries and adjust
+     // Check Bottom boundary
+     if (potentialTop + panelHeight > (window.innerHeight + window.scrollY)) {
+         potentialTop = slotRect.top - panelHeight - margin + window.scrollY; // Move above the slot
+     }
+     // Check Top boundary (if moved above)
+     if (potentialTop < window.scrollY) {
+          potentialTop = window.scrollY + margin; // Stick near top if still out
+     }
+
+     // Check Right boundary
+     if (potentialLeft + panelWidth > (window.innerWidth + window.scrollX)) {
+          potentialLeft = window.innerWidth + window.scrollX - panelWidth - margin; // Stick near right edge
+     }
+     // Check Left boundary
+     if (potentialLeft < window.scrollX) {
+         potentialLeft = window.scrollX + margin; // Stick near left edge
+     }
+
+     // Apply the calculated position
+     itemSearchModal.style.top = `${potentialTop}px`;
+     itemSearchModal.style.left = `${potentialLeft}px`;
+     // --- End Dynamic Positioning Logic ---
+
+     // Show the panel using flex display (matches our CSS)
+     itemSearchModal.style.display = 'flex';
+     itemSearchInput.value = '';
+     itemSearchInput.focus(); // Focus after display is set
+
+     // Populate search results
+     populateSearchResults(); // Populate with relevant items
+ }
 
 function closeItemSearch() {
     itemSearchModal.style.display = 'none';
@@ -2865,22 +2935,23 @@ function setupEventListeners() {
     distributeButton.addEventListener('click', distributePoints);
 
     // Equipment slots - Attach listeners correctly within the loop
-    document.querySelectorAll('.slot').forEach(slot => { // The loop defines 'slot' for each element
-        // Click listener to open item search
-        slot.addEventListener('click', function() {
-            openItemSearch(this.dataset.slot);
-        });
+    document.querySelectorAll('.slot').forEach(slot => {
+        // Make sure it's not a placeholder before adding listeners
+        if (!slot.classList.contains('placeholder')) {
+            // CLICK LISTENER MODIFIED: pass 'this' (the clicked element)
+            slot.addEventListener('click', function() {
+                openItemSearch(this); // Pass the element itself
+            });
 
-        // Mouse enter listener for item tooltip
-        slot.addEventListener('mouseenter', function() {
-            showItemTooltip(this); // 'this' refers to the slot element being hovered
-        });
-
-        // Mouse leave listener for item tooltip
-        slot.addEventListener('mouseleave', function() {
-            hideItemTooltip();
-        });
-    }); // End of loop for equipment slots
+            // Tooltip listeners (remain the same)
+            slot.addEventListener('mouseenter', function() {
+                showItemTooltip(this);
+            });
+            slot.addEventListener('mouseleave', function() {
+                hideItemTooltip();
+            });
+        }
+    });
 
     // Item search input
     itemSearchInput.addEventListener('input', function() {
