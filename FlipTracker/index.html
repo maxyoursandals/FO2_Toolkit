@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Market Flip Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="summary-section">
+        <div class="stat-item">
+            <span class="stat-label">Total Flips</span>
+            <span class="stat-value" id="total-flips">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Total Profit</span>
+            <span class="stat-value" id="total-profit">N/A</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Biggest Flip</span>
+            <span class="stat-value" id="biggest-flip-info">
+                <img src="placeholder-icon.png" alt="Icon" class="stat-icon pixelated" id="biggest-flip-icon" style="display: none;">
+                <span id="biggest-flip-profit">N/A</span>
+            </span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Most Flipped</span>
+            <span class="stat-value" id="most-flipped-info">
+                <img src="placeholder-icon.png" alt="Icon" class="stat-icon pixelated" id="most-flipped-icon" style="display: none;">
+                <span id="most-flipped-count">N/A</span>
+            </span>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="column" id="flip-entry-column">
+            <h2>Flip Entries</h2>
+            <div class="controls-area">
+                <div class="all-controls">
+                    <button id="add-listing-btn">Add Entry</button>
+                    <button id="import-btn">Import</button>
+                    <button id="export-data-btn">Export</button>
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                </div>
+            </div>
+            <div id="listings-container">
+            </div>
+        </div>
+
+        <div class="column" id="flip-history-column">
+            <h2>Flip History</h2>
+            <div class="history-header">
+                <div data-sort="dateSold">Date Sold</div>
+                <div data-sort="icon">Icon</div>
+                <div data-sort="itemName">Item Name</div>
+                <div data-sort="buyPrice">Buy Price</div>
+                <div data-sort="sellPrice">Sell Price</div>
+                <div data-sort="profit">Profit</div>
+                <div>Action</div> 
+            </div>
+            <div id="history-container" style="overflow-y: auto; flex-grow: 1;">
+            </div>
+        </div>
+    </div> 
+    
+    <template id="listing-template">
+       <div class="listing-entry" data-id="">
+             <div class="item-icon-container"> 
+                <div class="item-icon pixelated"></div>
+                <div class="item-quantity" style="display: none;">x1</div>
+                <div class="hover-info">
+                     Last Flip: N/A<br>
+                     Previous Flips: 0<br>
+                     Avg Profit: N/A<br>
+                     Highest Margin: N/A
+                </div>
+                <div class="quantity-controls">
+                    <button class="quantity-add-btn" title="Add One">+</button>
+                    <button class="quantity-remove-btn" title="Remove One">-</button>
+                </div>
+             </div>
+             <div class="item-select-container">
+                <div class="item-select-wrapper">
+                     <input type="text" class="item-search-input" placeholder="Search/Select Item...">
+                     <select class="item-select" size="5"> </select>
+                 </div>
+             </div>
+            <input type="number" class="buy-price" placeholder="Buy Price" min="0">
+            <input type="number" class="sell-price" placeholder="Sell Price" min="0">
+            <div class="entry-actions">
+                <label class="no-fee-label">
+                    <input type="checkbox" class="no-fee-checkbox" title="Sold to NPC (No Fee)">
+                    NPC
+                </label>
+                <button class="sell-button" title="Mark as Sold">$</button>
+                <button class="remove-button" title="Remove Entry">✕</button>
+            </div>
+        </div>
+    </template>
+
+    <template id="history-template">
+        <div class="history-entry" data-id="">
+            <div class="history-cell history-date"></div>
+            <div class="history-cell history-icon">
+                <div class="item-icon-container" style="position: relative;">
+                    <img src="placeholder-icon.png" alt="Item Icon" class="history-item-icon pixelated">
+                    <div class="item-quantity" style="display: none;">x1</div>
+                </div>
+            </div>
+            <div class="history-cell history-name"></div>
+            <div class="history-cell history-buy"></div>
+            <div class="history-cell history-sell"></div>
+            <div class="history-cell history-profit"></div>
+            <div class="history-cell history-action"><button class="history-delete-button">-</button></div>
+        </div>
+    </template>
+
+    <script src="items.json"></script>
+    <script src="script.js"></script>
+</body>
+</html>

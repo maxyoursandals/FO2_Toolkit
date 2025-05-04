@@ -1,0 +1,641 @@
+{
+  "activeListings": [],
+  "flipHistory": [
+    {
+      "id": "history-m9howy67nyvo5wagwzp",
+      "itemId": "312",
+      "dateSold": 1744672424191,
+      "buyPrice": 40000,
+      "sellPrice": 46725,
+      "profit": 4388.75,
+      "itemName": "RF Satchel"
+    },
+    {
+      "id": "history-m9howyvx5o5rf5dpzpb",
+      "itemId": "312",
+      "dateSold": 1744672425117,
+      "buyPrice": 40000,
+      "sellPrice": 46725,
+      "profit": 4388.75,
+      "itemName": "RF Satchel"
+    },
+    {
+      "id": "history-m9hpmgqhu5lq62574kp",
+      "itemId": "680",
+      "dateSold": 1744552800000,
+      "buyPrice": 150000,
+      "sellPrice": 175000,
+      "profit": 16250,
+      "itemName": "Reinforced Unobtainium Plate"
+    },
+    {
+      "id": "history-m9hpmh2sp6ghcobnka",
+      "itemId": "680",
+      "dateSold": 1744552800000,
+      "buyPrice": 150000,
+      "sellPrice": 175000,
+      "profit": 16250,
+      "itemName": "Reinforced Unobtainium Plate"
+    },
+    {
+      "id": "history-m9hpmhbuf78t1bgtu98",
+      "itemId": "680",
+      "dateSold": 1744552800000,
+      "buyPrice": 150000,
+      "sellPrice": 175000,
+      "profit": 16250,
+      "itemName": "Reinforced Unobtainium Plate"
+    },
+    {
+      "id": "history-m9hri4rcq5vz7j89cmr",
+      "itemId": "579",
+      "dateSold": 1744676771736,
+      "buyPrice": 8000,
+      "sellPrice": 10530,
+      "profit": 2003.5,
+      "itemName": "Cutlass of Chaos"
+    },
+    {
+      "id": "history-m9hsk6dy8dvmxbh6o7p",
+      "itemId": "1320",
+      "dateSold": 1744678546774,
+      "buyPrice": 50000,
+      "sellPrice": 75000,
+      "profit": 21250,
+      "itemName": "Seaweed in a Bottle"
+    },
+    {
+      "id": "history-m9ilmpnt5nsfsqazynf",
+      "itemId": "312",
+      "dateSold": 1744727373929,
+      "buyPrice": 40000,
+      "sellPrice": 46725,
+      "profit": 4388.75,
+      "itemName": "RF Satchel"
+    },
+    {
+      "id": "history-m9koao8jmipc2r48ksn",
+      "itemId": "312",
+      "dateSold": 1744852783411,
+      "buyPrice": 30000,
+      "sellPrice": 45000,
+      "profit": 12750,
+      "itemName": "RF Satchel"
+    },
+    {
+      "id": "history-m9kq53wmi31f7188tkl",
+      "itemId": "313",
+      "dateSold": 1744855883014,
+      "buyPrice": 7000,
+      "sellPrice": 12000,
+      "profit": 4400,
+      "itemName": "Celestial Gem"
+    },
+    {
+      "id": "history-m9kq54l88t9z7xt55gd",
+      "itemId": "313",
+      "dateSold": 1744855883900,
+      "buyPrice": 7000,
+      "sellPrice": 12000,
+      "profit": 4400,
+      "itemName": "Celestial Gem"
+    },
+    {
+      "id": "history-m9kq5nmgska504xcgu",
+      "itemId": "313",
+      "dateSold": 1744855908568,
+      "buyPrice": 7000,
+      "sellPrice": 15000,
+      "profit": 7250,
+      "itemName": "Celestial Gem"
+    },
+    {
+      "id": "history-m9kqhallzk4x8n6z0x",
+      "itemId": "967",
+      "dateSold": 1744856451561,
+      "buyPrice": 18000,
+      "sellPrice": 20000,
+      "profit": 2000,
+      "itemName": "Axe of the Bearserker",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9kqi8n1ytfz600nihq",
+      "itemId": "1543",
+      "dateSold": 1744856495677,
+      "buyPrice": 33333,
+      "sellPrice": 50000,
+      "profit": 16667,
+      "itemName": "Fish Scale Plate",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9kqi95ewqn4wst1r6",
+      "itemId": "1543",
+      "dateSold": 1744856496338,
+      "buyPrice": 33333,
+      "sellPrice": 50000,
+      "profit": 16667,
+      "itemName": "Fish Scale Plate",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9kuddhiufbrtjrgdmh",
+      "itemId": "1506",
+      "dateSold": 1744862987142,
+      "buyPrice": 15000,
+      "sellPrice": 16000,
+      "profit": 1000,
+      "itemName": "Quiver",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9lfq78rcxz6tepfm9i",
+      "itemId": "196",
+      "dateSold": 1744898857516,
+      "buyPrice": 40000,
+      "sellPrice": 70000,
+      "profit": 26500,
+      "itemName": "Standard Pickaxe",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9ltybgy27vq25aipek",
+      "itemId": "312",
+      "dateSold": 1744922750866,
+      "buyPrice": 40000,
+      "sellPrice": 46725,
+      "profit": 4388.75,
+      "itemName": "RF Satchel",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9mysy5nyyoaqx6z0k",
+      "itemId": "611",
+      "dateSold": 1744991364587,
+      "buyPrice": 1199,
+      "sellPrice": 1750,
+      "profit": 551,
+      "itemName": "Lost Amulet",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9ojcy38kubyyg3x1l",
+      "itemId": "417",
+      "dateSold": 1745086356116,
+      "buyPrice": 5000,
+      "sellPrice": 10000,
+      "profit": 5000,
+      "itemName": "Uh Oh...",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9ojd6h32aqfwn4otea",
+      "itemId": "836",
+      "dateSold": 1745086366983,
+      "buyPrice": 6000,
+      "sellPrice": 20000,
+      "profit": 14000,
+      "itemName": "Gamer's Face",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9ojdg33du6v8il3fa8",
+      "itemId": "680",
+      "dateSold": 1745086379439,
+      "buyPrice": 139000,
+      "sellPrice": 141000,
+      "profit": -5050,
+      "itemName": "Reinforced Unobtainium Plate",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9oocu02832yqrtql0a",
+      "itemId": "1543",
+      "dateSold": 1745094748898,
+      "buyPrice": 20000,
+      "sellPrice": 50000,
+      "profit": 30000,
+      "itemName": "Fish Scale Plate",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9ooms2pvx0q7vf738o",
+      "itemId": "196",
+      "dateSold": 1745095212961,
+      "buyPrice": 49999,
+      "sellPrice": 80000,
+      "profit": 26001,
+      "itemName": "Standard Pickaxe",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9oot7sggeyh4k1zbz7",
+      "itemId": "1543",
+      "dateSold": 1745095513264,
+      "buyPrice": 20000,
+      "sellPrice": 50000,
+      "profit": 30000,
+      "itemName": "Fish Scale Plate",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9oq7ennduf0u6fgiz8",
+      "itemId": "551",
+      "dateSold": 1745097854963,
+      "buyPrice": 1999,
+      "sellPrice": 500,
+      "profit": -1499,
+      "itemName": "Clam Shucker",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9ositq3dzhgg5c7lda",
+      "itemId": "466",
+      "dateSold": 1745101746939,
+      "buyPrice": 999,
+      "sellPrice": 7500,
+      "profit": 6126,
+      "itemName": "Gold Slab",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9ospc2kazljgsjs7ja",
+      "itemId": "229",
+      "dateSold": 1745102050652,
+      "buyPrice": 10000,
+      "sellPrice": 19000,
+      "profit": 8050,
+      "itemName": "Reinforced Silver Plate",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9osrnelc1wktdxylt",
+      "itemId": "201",
+      "dateSold": 1745102158653,
+      "buyPrice": 100,
+      "sellPrice": 10000,
+      "profit": 9400,
+      "itemName": "Onyx",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9osro4ryzy89qe2wk",
+      "itemId": "201",
+      "dateSold": 1745102159595,
+      "buyPrice": 100,
+      "sellPrice": 10000,
+      "profit": 9400,
+      "itemName": "Onyx",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9ot039xpi6dxcr40o",
+      "itemId": "200",
+      "dateSold": 1745102552469,
+      "buyPrice": 100,
+      "sellPrice": 4000,
+      "profit": 3700,
+      "itemName": "Sapphire",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9p05f07x82crtnlprm",
+      "itemId": "1191",
+      "dateSold": 1745114558263,
+      "buyPrice": 100,
+      "sellPrice": 4000,
+      "profit": 3700,
+      "itemName": "Amethyst",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9pxosgbgleq6705a",
+      "itemId": "765",
+      "dateSold": 1745170889483,
+      "buyPrice": 99999,
+      "sellPrice": 120000,
+      "profit": 14001,
+      "itemName": "Warrior Ring",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9pxrat4kgrao9oqpgl",
+      "itemId": "663",
+      "dateSold": 1745171006584,
+      "buyPrice": 2199,
+      "sellPrice": 3000,
+      "profit": 801,
+      "itemName": "Alien Ring",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9pxrdiypn6xds2tb8",
+      "itemId": "663",
+      "dateSold": 1745171010106,
+      "buyPrice": 2199,
+      "sellPrice": 3000,
+      "profit": 801,
+      "itemName": "Alien Ring",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9q6t4qbgvi2j725bmj",
+      "itemId": "1454",
+      "dateSold": 1745186208563,
+      "buyPrice": 303600,
+      "sellPrice": 575000,
+      "profit": 242650,
+      "itemName": "Fusion Ingot",
+      "noFeeApplied": false
+    },
+    {
+      "id": "history-m9qav9tp1myelm4yao3",
+      "itemId": "812",
+      "dateSold": 1745193026941,
+      "buyPrice": 2500,
+      "sellPrice": 5000,
+      "profit": 2500,
+      "itemName": "Alien Mouth",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9qfxl3m8fpknfdjhsd",
+      "itemId": "972",
+      "dateSold": 1745201532946,
+      "buyPrice": 10000,
+      "sellPrice": 20000,
+      "profit": 10000,
+      "itemName": "Badger King's Staff",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9qgiuau1roh7ct8eig",
+      "itemId": "1506",
+      "dateSold": 1745202524646,
+      "buyPrice": 20000,
+      "sellPrice": 16000,
+      "profit": -4000,
+      "itemName": "Quiver",
+      "noFeeApplied": true
+    },
+    {
+      "id": "history-m9rj6xqbtfxh0jw6g2h",
+      "itemId": "679",
+      "dateSold": 1745267474243,
+      "buyPrice": 25000,
+      "sellPrice": 50000,
+      "profit": 22500,
+      "itemName": "Unobtainium Plate",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-m9rmwwfyiwm5f4bg6so",
+      "itemId": "1454",
+      "dateSold": 1745273724478,
+      "buyPrice": 303600,
+      "sellPrice": 350000,
+      "profit": 28900,
+      "itemName": "Fusion Ingot",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-m9rsrnb33i9gf9ohv8g",
+      "itemId": "925",
+      "dateSold": 1745283557055,
+      "buyPrice": 15000,
+      "sellPrice": 17000,
+      "profit": 1150,
+      "itemName": "Lost Key",
+      "noFeeApplied": false,
+      "quantity": 38
+    },
+    {
+      "id": "history-m9t55hy1ps88eq15iy",
+      "itemId": "196",
+      "dateSold": 1745364824857,
+      "buyPrice": 60000,
+      "sellPrice": 75000,
+      "profit": 11250,
+      "itemName": "Standard Pickaxe",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-m9t8lzlfhmb0ucp7s9h",
+      "itemId": "196",
+      "dateSold": 1745370633075,
+      "buyPrice": 45000,
+      "sellPrice": 80000,
+      "profit": 31000,
+      "itemName": "Standard Pickaxe",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-m9umw37st7nfmoedp3",
+      "itemId": "594",
+      "dateSold": 1745455085128,
+      "buyPrice": 20000,
+      "sellPrice": 24500,
+      "profit": 3275,
+      "itemName": "Gold Crab Relic",
+      "noFeeApplied": false,
+      "quantity": 2
+    },
+    {
+      "id": "history-ma1oru14lh4zkx29tgh",
+      "itemId": "973",
+      "dateSold": 1745881509064,
+      "buyPrice": 17999,
+      "sellPrice": 20000,
+      "profit": 2001,
+      "itemName": "Dark Elf King's Staff",
+      "noFeeApplied": true,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma1plasuagmvuxtn4s4",
+      "itemId": "1323",
+      "dateSold": 1745882883822,
+      "buyPrice": 300000,
+      "sellPrice": 500000,
+      "profit": 200000,
+      "itemName": "Mermaid King's Trident",
+      "noFeeApplied": true,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma1pnoixvgxg3gywzph",
+      "itemId": "1454",
+      "dateSold": 1745686653000,
+      "buyPrice": 303600,
+      "sellPrice": 425000,
+      "profit": 100150,
+      "itemName": "Fusion Ingot",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma1pnrjj8yxg97psk74",
+      "itemId": "1454",
+      "dateSold": 1745675853000,
+      "buyPrice": 303600,
+      "sellPrice": 500000,
+      "profit": 171400,
+      "itemName": "Fusion Ingot",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma2ysr1idojq9hfr65p",
+      "itemId": "1194",
+      "dateSold": 1745958814182,
+      "buyPrice": 50000,
+      "sellPrice": 75000,
+      "profit": 21250,
+      "itemName": "Ring of Tomorrow",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma7gld8pswqohubl1j",
+      "itemId": "1571",
+      "dateSold": 1746230567497,
+      "buyPrice": 20000,
+      "sellPrice": 100000,
+      "profit": 75000,
+      "itemName": "Shadow Paladin Body",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma7gmtfsnu8enqp7wd",
+      "itemId": "973",
+      "dateSold": 1746230635144,
+      "buyPrice": 15000,
+      "sellPrice": 20000,
+      "profit": 5000,
+      "itemName": "Dark Elf King's Staff",
+      "noFeeApplied": true,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma7gn2kv3czhrzyhr1u",
+      "itemId": "972",
+      "dateSold": 1746230646991,
+      "buyPrice": 10000,
+      "sellPrice": 20000,
+      "profit": 10000,
+      "itemName": "Badger King's Staff",
+      "noFeeApplied": true,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma8n3u4il0lm6m8ud6i",
+      "itemId": "1572",
+      "dateSold": 1746301973058,
+      "buyPrice": 20000,
+      "sellPrice": 100000,
+      "profit": 75000,
+      "itemName": "Shadow Paladin Helmet",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma8n3ukk4lz79o5vlvw",
+      "itemId": "1570",
+      "dateSold": 1746301973636,
+      "buyPrice": 20000,
+      "sellPrice": 100000,
+      "profit": 75000,
+      "itemName": "Shadow Paladin Legs",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma8n3uzkcwgofk50mcn",
+      "itemId": "1573",
+      "dateSold": 1746301974176,
+      "buyPrice": 20000,
+      "sellPrice": 100000,
+      "profit": 75000,
+      "itemName": "Shadow Paladin Shield",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma8n43akhn2yf03ngor",
+      "itemId": "1574",
+      "dateSold": 1746301984940,
+      "buyPrice": 20000,
+      "sellPrice": 150000,
+      "profit": 122500,
+      "itemName": "Flare Sword",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma8x1mubkrm54vng8m",
+      "itemId": "1563",
+      "dateSold": 1746318666467,
+      "buyPrice": 17999,
+      "sellPrice": 50000,
+      "profit": 29501,
+      "itemName": "Rocket Man Body",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma8x1ndyk70lzucvkbl",
+      "itemId": "1564",
+      "dateSold": 1746318667174,
+      "buyPrice": 17999,
+      "sellPrice": 50000,
+      "profit": 29501,
+      "itemName": "Rocket Man Helmet",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma8x1nnxlweuc0yibn",
+      "itemId": "1562",
+      "dateSold": 1746318667533,
+      "buyPrice": 17999,
+      "sellPrice": 50000,
+      "profit": 29501,
+      "itemName": "Rocket Man Legs",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-ma9u1tskywel8nla6j9",
+      "itemId": "950",
+      "dateSold": 1746374102804,
+      "buyPrice": 4900,
+      "sellPrice": 9000,
+      "profit": 4100,
+      "itemName": "Mossy Stone Boots",
+      "noFeeApplied": true,
+      "quantity": 2
+    },
+    {
+      "id": "history-ma9u22i3qgq1yv1rlfs",
+      "itemId": "947",
+      "dateSold": 1746374114091,
+      "buyPrice": 4800,
+      "sellPrice": 5000,
+      "profit": 200,
+      "itemName": "Blunt Club",
+      "noFeeApplied": true,
+      "quantity": 1
+    }
+  ],
+  "nextListingId": null,
+  "currentHistorySort": {
+    "column": "dateSold",
+    "direction": "desc"
+  }
+}
