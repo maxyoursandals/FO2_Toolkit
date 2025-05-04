@@ -1005,6 +1005,10 @@
 
              <div class="performance-section">
                 <h3>Performance Against Mobs</h3>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="hide-bosses-checkbox" style="cursor: pointer;">
+                    <label for="hide-bosses-checkbox" style="cursor: pointer; font-size: 0.9em;">Hide Bosses</label>
+                </div>
                 <div class="level-filter-section">
                     <div class="slider-container">
                         <span>Min: <span id="min-level-display">1</span></span>
@@ -1090,6 +1094,19 @@ let currentStats = {
     equipment: {}
 };
 
+// List of bosses
+const bossNamesList = [
+    "Evil McBadguy", "King Crab", "Skele Champion", "Boulder Colorado", "The Alpha",
+    "Undead Master Chef", "McBadguy Redux", "Destroyer of Will", "Destroyer of Faith",
+    "Destroyer of Mind", "Gamer's Right Hand", "Gamer's Left Hand", "Alrahur",
+    "Anubis", "Gamer's Head", "Stuff of Nightmares", "The Badger King", "Bearserker",
+    "Rotten Overlord", "Glacier Union Officer", "Devilish Star", "Froctopus",
+    "Evil Pie", "The Future", "Evil McFreezeGuy", "Gen. Biodegradable", "The Kraken",
+    "Sea Snake", "Chat", "Cat", "Flying Dutchman", "Troglodyte Scourge", "Taunted Throne"
+];
+
+const bossNameSet = new Set(bossNamesList);
+
 let buffsData = null;
 let activeBuffs = []; // Store active buffs (max 5)
 
@@ -1127,6 +1144,7 @@ const itemSearchInput = document.getElementById('item-search-input');
 const searchResults = document.getElementById('search-results');
 const cancelSearchButton = document.getElementById('cancel-search');
 const notification = document.getElementById('notification');
+const hideBossesCheckbox = document.getElementById('hide-bosses-checkbox');
 
 // Stat inputs
 const agiValue = document.getElementById('agi-value');
@@ -2667,6 +2685,22 @@ function setupEventListeners() {
         handleStatChange('sta', this.value);
     });
 
+    if (hideBossesCheckbox) {
+        hideBossesCheckbox.addEventListener('change', () => {
+            // Trigger table update when checkbox changes
+            const currentDPS = parseFloat(document.getElementById('dps-display').textContent) || 0;
+            // Get current slider values (already global or read them again)
+            const minLvl = performanceMinLevel; 
+            const maxLvl = performanceMaxLevel;
+            // Recalculate with the new checkbox state influencing the filter
+            const perfData = calculatePerformance(currentDPS, minLvl, maxLvl);
+            updatePerformanceTable(perfData); // Update the visual table
+            saveCurrentStateToLocalStorage(); // Save the new checkbox state
+        });
+    } else {
+        console.error("Hide Bosses checkbox element not found!");
+    }
+
     // Stat buttons
     document.querySelectorAll('.stat-button').forEach(button => {
         button.addEventListener('click', function() {
@@ -2806,10 +2840,9 @@ function saveCurrentStateToLocalStorage() {
         stats: currentStats.statPoints, // Save the stat points directly
         equipment: {}, // Store Item IDs for equipment
         activeBuffNames: activeBuffs.map(buff => buff.Name), // Store Names for buffs
-        // --- ADDED LINES ---
         minFilterLevel: performanceMinLevel,
-        maxFilterLevel: performanceMaxLevel
-        // --- END OF ADDED LINES ---
+        maxFilterLevel: performanceMaxLevel,
+        hideBosses: hideBossesCheckbox ? hideBossesCheckbox.checked : false
     };
 
     // Populate equipment Item IDs
@@ -2877,7 +2910,10 @@ function loadCurrentStateFromLocalStorage() {
         intValue.value = currentStats.statPoints.int;
         staValue.value = currentStats.statPoints.sta;
 
-        // --- UPDATED BLOCK ---
+        if (hideBossesCheckbox) {
+             hideBossesCheckbox.checked = savedData.hideBosses || false; 
+        }
+
         // Load slider positions into global variables if they exist
         performanceMinLevel = parseInt(savedData.minFilterLevel) || 1; // Default to 1 if missing/invalid
         performanceMaxLevel = parseInt(savedData.maxFilterLevel) || 80; // Default to placeholder 80 if missing/invalid
@@ -3017,38 +3053,47 @@ function loadMobsData() { // Removed 'async'
     }
 }
 
-function calculatePerformance(dps, minLevel, maxLevel) { // Signature is correct
+function calculatePerformance(dps, minLevel, maxLevel) {
     const performanceData = [];
+    const hideBosses = hideBossesCheckbox ? hideBossesCheckbox.checked : false;
+
     if (!mobDataCache || dps <= 0) {
-        return performanceData; // Return empty if no data or DPS is zero/negative
+        return performanceData;
     }
 
-    // Filter mobs by level range BEFORE calculating performance
-    const filteredMobs = mobDataCache.filter(mob => mob.level >= minLevel && mob.level <= maxLevel);
+    // Filter mobs by level range AND boss status (using name lookup) if checkbox is checked
+    const filteredMobs = mobDataCache.filter(mob => {
+        const levelMatch = mob.level >= minLevel && mob.level <= maxLevel;
+        // NEW Check: Include the mob if:
+        // 1. The checkbox is NOT checked OR
+        // 2. The mob's name is NOT in the bossNameSet
+        const bossMatch = !hideBosses || !bossNameSet.has(mob.name);
+        return levelMatch && bossMatch;
+    });
 
-    // ---- CORRECTED PART ----
-    // Iterate over the FILTERED list to calculate performance
-    filteredMobs.forEach(mob => { // Iterate over filteredMobs, not mobDataCache again
-         if (mob.health <= 0) return; // Skip mobs with no health
+    // The rest of the function (calculating ttk, gph etc. for filteredMobs) remains the same...
+    filteredMobs.forEach(mob => {
+        if (mob.health <= 0) return;
 
-        const timeToKill = mob.health / dps; // Time in seconds
+        const timeToKill = mob.health / dps;
         let goldPerHour = 0;
-        let xpPerHour = 0;
+        // Removed xpPerHour calculation based on previous request
+        // let xpPerHour = 0; 
 
-        if (timeToKill > 0) { // Avoid division by zero
+        if (timeToKill > 0) {
             const killsPerHour = 3600 / timeToKill;
             goldPerHour = killsPerHour * mob.avgGoldPerKill;
+            // xpPerHour = killsPerHour * mob.xp; 
         }
 
         performanceData.push({
-            // No need to include level here unless you plan to sort by it later
             name: mob.name,
             level: mob.level,
             ttk: timeToKill,
             gph: goldPerHour
+            // xph: xpPerHour // Removed
         });
     });
-    // ---- END OF CORRECTION ---- (The second loop that was here before is removed)
 
     return performanceData;
 }
