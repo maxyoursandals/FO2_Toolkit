@@ -1,0 +1,249 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    max-width: 1300px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+header {
+    background-color: #1a1a2e;
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+h1 { margin: 0; font-size: 2rem; }
+.subtitle { opacity: 0.8; margin-top: 5px; }
+
+/* Layout Styles */
+.main-content { display: flex; gap: 20px; flex-wrap: wrap; }
+.market-column { flex: 2; min-width: 450px; display: flex; flex-direction: column; }
+.item-details-column { flex: 1; min-width: 300px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; align-self: flex-start; display: none; border-left: 1px solid #ddd; position: sticky; top: 20px; }
+
+/* Search and Filters */
+.search-container { display: flex; margin-bottom: 20px; }
+#search-form { display: flex; width: 100%; }
+#search-input { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px 0 0 4px; font-size: 16px; }
+#search-button { padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; font-size: 16px; transition: background-color 0.3s; }
+#search-button:hover { background-color: #5a6268; }
+#search-button:disabled { background-color: #adb5bd; cursor: not-allowed; }
+
+.filters { display: flex; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; align-items: center; }
+.filter-group { display: flex; align-items: center; gap: 5px; }
+.filter-group label { font-weight: bold; white-space: nowrap; }
+select { padding: 8px; border-radius: 4px; border: 1px solid #ddd; }
+
+/* Last Updated and Refresh Button Styles */
+.update-info { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; justify-content: flex-start; overflow: hidden; margin-left: auto; font-size: 0.9rem; color: #555; }
+/* #last-updated-timestamp { white-space: nowrap; } */
+#refresh-button { padding: 6px 12px; flex-shrink: 0; white-space: nowrap; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.3s; }
+#refresh-button:hover { background-color: #45a049; }
+#refresh-button:disabled { background-color: #cccccc; color: #666666; cursor: not-allowed; }
+.refresh-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin-left: 5px; vertical-align: middle; }
+
+/* Messages */
+.error-message { background-color: #ffebee; color: #c62828; padding: 10px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #c62828; }
+.info-message { background-color: #e3f2fd; color: #1565c0; padding: 12px 15px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #1565c0; display: flex; justify-content: space-between; align-items: center; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.info-message button { padding: 5px 10px; background-color: #1565c0; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+.database-status { background-color: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #2e7d32; display: flex; justify-content: space-between; align-items: center; }
+.database-status.error { background-color: #ffebee; color: #c62828; border-left-color: #c62828; }
+.database-status button { padding: 5px 10px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+.database-status.error button { background-color: #f44336; }
+
+/* Results Table (Left Column) */
+.results-container { background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+.results-header { background-color: #f5f5f5; padding: 15px; border-bottom: 1px solid #ddd; font-weight: bold; flex-shrink: 0; }
+.table-wrapper { overflow-y: auto; flex-grow: 1; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+th { background-color: #f5f5f5; font-weight: bold; cursor: pointer; position: sticky; top: 0; z-index: 1; }
+th:hover { background-color: #e0e0e0; }
+th::after { content: ''; display: inline-block; width: 0; height: 0; margin-left: 5px; vertical-align: middle; border-left: 4px solid transparent; border-right: 4px solid transparent; }
+th.sort-asc::after { border-bottom: 4px solid #333; }
+th.sort-desc::after { border-top: 4px solid #333; }
+tr:hover { background-color: #f1f8ff; cursor: pointer; }
+.item-cell { min-width: 200px; }
+.item-info { display: flex; align-items: center; gap: 10px; }
+.item-icon { width: 32px; height: 32px; object-fit: contain; background-color: rgba(0, 0, 0, 0.05); border-radius: 4px; border: 1px solid #ddd; flex-shrink: 0; }
+.pixelated { image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; }
+.pagination { display: flex; justify-content: center; padding: 15px; background-color: #f5f5f5; border-top: 1px solid #ddd; flex-shrink: 0; }
+.pagination button { padding: 8px 12px; margin: 0 5px; background-color: white; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; }
+.pagination button:hover:not(:disabled) { background-color: #e0e0e0; }
+.pagination button:disabled { background-color: #f5f5f5; color: #bdbdbd; cursor: not-allowed; }
+.pagination-info { display: flex; align-items: center; margin: 0 10px; }
+
+/* Item Details Panel (Right Column) */
+.item-details-header { font-weight: bold; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ddd; font-size: 1.2rem; text-align: center; }
+.item-details-content { text-align: center; }
+.item-details-icon { width: 64px; height: 64px; object-fit: contain; background-color: rgba(0, 0, 0, 0.05); border-radius: 4px; border: 1px solid #ddd; margin: 0 auto 10px auto; display: block; }
+.item-details-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; }
+.item-details-stats { list-style: none; padding: 0; margin: 0; text-align: left; }
+.item-details-stats li { padding: 8px 0; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; }
+.item-details-stats li:last-child { border-bottom: none; }
+.item-details-stats span { font-weight: bold; color: #3f51b5; margin-left: 5px; }
+.item-details-placeholder { color: #999; font-style: italic; }
+
+/* Personal Price Input Styling */
+#details-personal-price {
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-left: 10px;
+    width: 80px; /* Adjust as needed */
+    text-align: right;
+}
+#details-personal-price-label {
+    flex-shrink: 0; /* Prevent label from shrinking */
+}
+
+/* Footer */
+footer { margin-top: 40px; text-align: center; color: #757575; font-size: 0.9rem; padding-top: 20px; border-top: 1px solid #ddd; clear: both; }
+
+/* Loading Spinners */
+.loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin-left: 10px; vertical-align: middle; }
+.results-container .loading-spinner { display: block; width: 40px; height: 40px; border: 4px solid rgba(63, 81, 181, 0.2); border-top-color: #3f51b5; margin: 40px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive Adjustments */
+@media (max-width: 900px) {
+    .main-content { flex-direction: column; }
+    .market-column, .item-details-column { min-width: 100%; }
+    .item-details-column { border-left: none; border-top: 1px solid #ddd; margin-top: 20px; position: static; }
+     .update-info { margin-left: 0; margin-top: 10px; justify-content: space-between; }
+}
+@media (max-width: 768px) {
+    .update-info { justify-content: space-between; }
+    .search-container, #search-form { flex-direction: column; }
+    #search-input { border-radius: 4px; margin-bottom: 10px; }
+    #search-button { border-radius: 4px; }
+     .filters { flex-direction: column; align-items: stretch; }
+     .filter-group, .update-info { width: 100%; justify-content: space-between; }
+     .update-info { margin-top: 15px; }
+}
+
+/* Profit Styling */
+.profitable-item {
+    background-color: rgba(76, 175, 80, 0.15) !important; /* Light green background */
+    border-left: 3px solid #4CAF50 !important; /* Green left border */
+    position: relative; /* Needed for ::before */
+}
+.profitable-item::before {
+    content: "💰"; /* Unicode money bag */
+    position: absolute; /* Position relative to the cell */
+    left: -2px; /* Adjust as needed */
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.2; /* Make it subtle */
+    font-size: 24px; /* Adjust size */
+    color: #2E7D32; /* Darker green */
+    pointer-events: none; /* Don't interfere with clicks */
+}
+.profit-amount {
+    color: #4CAF50;
+    font-weight: bold;
+    margin-left: 5px;
+    padding: 2px 6px;
+    background-color: rgba(76, 175, 80, 0.1);
+    border-radius: 4px;
+    display: inline-block;
+    font-size: 0.85em; /* Slightly smaller */
+}
+.profit-positive { color: #4CAF50; font-weight: bold; }
+.profit-negative { color: #757575; font-style: italic; }
+tr.profitable-item:hover { background-color: rgba(76, 175, 80, 0.25) !important; }
+
+/* Personal Price Highlight */
+.personal-price-highlight {
+    background-color: #fffacd !important; /* Light yellow (LemonChiffon) */
+    border-left-color: #ffd700 !important; /* Gold border */
+}
+tr.personal-price-highlight::before {
+     content: "🎯"; /* Target symbol or similar */
+     color: #b8860b; /* DarkGoldenrod */
+ }
+tr.personal-price-highlight:hover {
+     background-color: #fff5cc !important; /* Lighter yellow on hover */
+}
+.profit-amount.personal-profit {
+    color: #b8860b; /* DarkGoldenrod */
+     background-color: rgba(255, 215, 0, 0.1); /* Light gold background */
+ }
+
+
+/* Tooltip for profit explanation */
+.profit-info {
+    position: relative;
+    display: inline-block;
+    margin-left: 5px;
+    cursor: help;
+}
+.profit-info i { color: #3f51b5; font-size: 14px; }
+.profit-info .tooltip-text {
+    visibility: hidden; width: 200px; background-color: #333; color: #fff;
+    text-align: center; border-radius: 6px; padding: 5px;
+    position: absolute; z-index: 1; bottom: 125%; left: 50%;
+    margin-left: -100px; opacity: 0; transition: opacity 0.3s;
+    font-weight: normal; font-style: normal; font-size: 0.9em;
+}
+.profit-info:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+/* Profitable Only Button */
+#show-profitable-only {
+    padding: 8px 12px; background-color: #4CAF50; color: white;
+    border: none; border-radius: 4px; cursor: pointer;
+    transition: all 0.3s ease; font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    min-width: 160px; /* Ensure consistent width */
+}
+#show-profitable-only:hover:not(:disabled) {
+    background-color: #45a049; transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+#show-profitable-only.active {
+    background-color: #d32f2f; /* Red for Reset */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+#show-profitable-only.active:hover:not(:disabled) {
+     background-color: #c62828; /* Darker red */
+     transform: translateY(-1px);
+     box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+ }
+#show-profitable-only:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Progress Modal */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+#search-progress-modal {
+    position: fixed; left: 0; top: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); display: flex;
+    justify-content: center; align-items: center; z-index: 1000;
+    display: none; /* Hidden by default */ animation: fadeIn 0.3s ease-in-out;
+}
+#search-progress-content {
+    background-color: white; padding: 30px 40px; border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center;
+    width: 90%; max-width: 400px;
+}
+#search-progress-content h3 { margin-top: 0; margin-bottom: 15px; color: #333; }
+#search-progress-bar-container { width: 100%; background-color: #e0e0e0; border-radius: 4px; overflow: hidden; margin-bottom: 15px; }
+#search-progress-bar { width: 0%; height: 20px; background-color: #4CAF50; text-align: center; line-height: 20px; color: white; font-weight: bold; transition: width 0.4s ease; }
+#search-progress-message { font-size: 0.9rem; color: #555; margin-bottom: 20px; min-height: 1.2em; /* Prevent layout shift */}
+#search-progress-content button { padding: 8px 16px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; }
+#search-progress-content button:hover { background-color: #d32f2f; }
+
+/* Animation for newly found profitable items */
+@keyframes highlightNewItem {
+    0% { background-color: rgba(76, 175, 80, 0.4); }
+    100% { background-color: inherit; } /* Fade to normal hover/base color */
+}
+/* Note: Applying animation directly can interfere with hover. Consider a short highlight on add */

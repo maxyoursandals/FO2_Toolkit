@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Online 2 Market Tracker</title>
+    <link rel="stylesheet" href="./market-track-style.css">
+</head>
+<body>
+    <!-- <header>
+        <h1>Fantasy Online 2 Market Tracker</h1>
+        <p class="subtitle">Track prices, find deals, and maximize your profits</p>
+    </header> -->
+
+    <div id="database-status"></div>
+
+    <div class="search-container">
+        <form id="search-form">
+            <input
+                type="text"
+                id="search-input"
+                placeholder="Filter current view (e.g. 'crab', 'sword')"
+                value=""
+            >
+            <button type="submit" id="search-button" title="Filter current view or fetch page 1 if not filtering">Filter / Search</button>
+        </form>
+    </div>
+
+    <div class="main-content">
+
+        <div class="market-column">
+             <div class="filters">
+                 <!-- <div class="filter-group">
+                      <label for="sort-by">Sort by:</label>
+                      <select id="sort-by">
+                           <option value="Price">Price</option>
+                           <option value="TimeLeft" selected>Time Left</option>
+                           <option value="Listed">Recently Listed</option>
+                      </select>
+                 </div>
+                 <div class="filter-group">
+                      <label for="sort-direction">Direction:</label>
+                      <select id="sort-direction">
+                           <option value="ASC">Ascending</option>
+                           <option value="DESC" selected>Descending</option>
+                      </select>
+                 </div> -->
+                 <div class="filter-group">
+                    <button id="show-profitable-only" title="Search all market pages for items profitable against NPC sell price or personal price.">
+                        Show Profitable Only
+                    </button>
+                </div>
+                <div class="update-info">
+                    <!-- <span id="last-updated-timestamp">Last Updated: Never</span> -->
+                    <button id="refresh-button" title="Fetch latest data from API">Refresh</button>
+               </div>
+            </div>
+
+            <div id="message-container"></div>
+
+            <div id="results-container" class="results-container">
+                <div class="results-header">
+                    Market Listings (Click Row for Details)
+                </div>
+                 <div class="table-wrapper">
+                    <table id="results-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="Name">Item</th>
+                                <th data-sort="Price">Price</th>
+                                <th data-sort="TimeLeft">Time Left</th>
+                           </tr>
+                       </thead>
+                        <tbody id="results-body">
+                           <tr><td colspan="3" style="text-align:center;"><div class="loading-spinner"></div></td></tr>
+                        </tbody>
+                    </table>
+                 </div>
+                <div class="pagination">
+                    <button id="prev-page" disabled>Previous</button>
+                    <div class="pagination-info">
+                       Page <span id="current-page">1</span> of <span id="total-pages">1</span>
+                    </div>
+                    <button id="next-page" disabled>Next</button>
+               </div>
+            </div>
+        </div>
+
+        <div class="item-details-column" id="item-details-column">
+            <div class="item-details-header">Item Details</div>
+            <div class="item-details-content">
+                <img src='./images/AI-DEN_Cowboy.png' class="item-details-icon pixelated" id="details-icon" alt="Item Icon">
+                <div class="item-details-name" id="details-name"><span class="item-details-placeholder">Select an item from the left</span></div>
+
+                <ul class="item-details-stats" id="details-stats">
+                    <li>Recently Listed Price: <span id="details-recently-listed-price">N/A</span></li>
+                    <li>Shop Buy Price: <span id="details-buy-price">N/A</span></li>
+                    <li>Shop Sell Price: <span id="details-sell-price">N/A</span></li>
+                    <li>
+                      Potential Profit (vs NPC Sell):
+                        <span id="details-potential-profit">N/A</span>
+                        <span class="profit-info">
+                            <i>ℹ</i>
+                            <span class="tooltip-text">Profit from buying lowest displayed listing and selling to NPC shop.</span>
+                        </span>
+                    </li>
+                    <li>
+                        Potential Profit (vs Personal):
+                        <span id="details-personal-profit">N/A</span>
+                        <span class="profit-info">
+                             <i>ℹ</i>
+                             <span class="tooltip-text">Profit from buying lowest displayed listing vs your entered Personal Price.</span>
+                         </span>
+                    </li>
+                    <li>
+                        <label id="details-personal-price-label" for="details-personal-price">Personal Price:</label>
+                        <input type="number" id="details-personal-price" min="0" step="1" placeholder="Enter Price">
+                    </li>
+                </ul>
+
+                <div id="details-error" class="error-message" style="display: none; margin-top: 15px;"></div>
+            </div>
+        </div>
+	</div>
+
+    <footer>
+        <p>Fantasy Online 2 Market Tracker is not affiliated with Fantasy Online 2.</p>
+        <p>Market data provided via the FO2 public API.</p>
+        <p>© 2025 FO2 Market Tracker</p>
+    </footer>
+
+    <div id="search-progress-modal">
+         <div id="search-progress-content">
+             <h3>Searching for Profitable Items...</h3>
+             <div id="search-progress-message">Initializing...</div>
+             <div id="search-progress-bar-container">
+                 <div id="search-progress-bar">0%</div>
+             </div>
+             <button id="cancel-search-button">Cancel Search</button>
+         </div>
+     </div>
+
+    <script src="market-track.js"></script>
+</body>
+</html>
