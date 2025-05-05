@@ -52,7 +52,7 @@
         }
         
         .middle-panel {
-            flex: 1.25;
+            flex: 1.5;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -1269,7 +1269,9 @@ const bossNamesList = [
     "Anubis", "Gamer's Head", "Stuff of Nightmares", "The Badger King", "Bearserker",
     "Rotten Overlord", "Glacier Union Officer", "Devilish Star", "Froctopus",
     "Evil Pie", "The Future", "Evil McFreezeGuy", "Gen. Biodegradable", "The Kraken",
-    "Sea Snake", "Chat", "Cat", "Flying Dutchman", "Troglodyte Scourge", "Taunted Throne"
+    "Sea Snake", "Chat", "Cat", "Flying Dutchman", "Troglodyte Scourge", "Taunted Throne",
+    "The Dark Elf King", "Wild Turkey", "General Turnip", "Ketchup Krusher", "Root Rotter", 
+    "Gourd Digger", "Carrot Spearman", "Eggsecutioner", "Tater Tyrant"
 ];
 
 const bossNameSet = new Set(bossNamesList);
@@ -3507,10 +3509,10 @@ function displaySavedBuilds() {
         const infoDiv = document.createElement('div');
         infoDiv.className = 'build-item-info';
         infoDiv.innerHTML = `
-			<strong>${build.name || 'Unnamed Build'}</strong>
-			<div class="build-item-details">By: ${build.creator || 'Unknown'} | Lvl: <span class="math-inline">\{build\.level\}</span>{build.rebirth ? ' R': ''}</div>
-			<div class="build-item-description">${build.description || 'No description.'}</div>
-		`;
+            <strong>${build.name || 'Unnamed Build'}</strong>
+            <div class="build-item-details">By: ${build.creator || 'Unknown'} | Lvl: ${build.level}${build.rebirth ? ' Rb' : ''}</div>
+            <div class="build-item-description">${build.description || 'No description.'}</div>
+        `;
 		infoDiv.addEventListener('click', () => handleLoadBuildClick(build.id));
 
         // Actions section
