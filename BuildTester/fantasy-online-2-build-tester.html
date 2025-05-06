@@ -3508,11 +3508,17 @@ function displaySavedBuilds() {
         // Info section (clickable to load)
         const infoDiv = document.createElement('div');
         infoDiv.className = 'build-item-info';
-        infoDiv.innerHTML = `
+        infoDiv.innerHTML = ` 
             <strong>${build.name || 'Unnamed Build'}</strong>
-            <div class="build-item-details">By: ${build.creator || 'Unknown'} | Lvl: ${build.level}${build.rebirth ? ' Rb' : ''}</div>
+            <div class="build-item-details">
+                By: ${build.creator || 'Unknown'} | Lvl: ${build.level}${ build.rebirth ? 
+                    ' <img src="Icons/rebirth-icon.png" alt="Rebirth" style="height: 1.75em; vertical-align: middle; margin-left: 3px;" title="Rebirth">' 
+                    : '' 
+                }
+            </div>
             <div class="build-item-description">${build.description || 'No description.'}</div>
         `;
+        // Add event listener to load build on click
 		infoDiv.addEventListener('click', () => handleLoadBuildClick(build.id));
 
         // Actions section
