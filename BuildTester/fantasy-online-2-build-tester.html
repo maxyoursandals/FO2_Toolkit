@@ -943,20 +943,19 @@
 
         /* Original container styles for the editor page */
         #build-editor-page .container {
-             /* Your existing .container styles */
+            /* Your existing .container styles */
             display: flex;
             width: 100%;
             max-width: 1920px;
             gap: 20px;
             height: 100%;
         }
-
-        /* Styles for the management page */
+        
         #build-management-page {
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding-top: 20px;
+            padding: 20px 20px 0 20px; /* Added padding-bottom 0 */
             overflow-y: auto;
             height: 100%;
             box-sizing: border-box;
@@ -971,44 +970,205 @@
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
-            max-height: calc(100% - 40px); /* Prevent overflow */
+            max-height: calc(100vh - 120px); /* Adjusted max-height based on typical header/footer */
+            overflow: hidden; /* Prevent panel itself from scrolling */
         }
 
         #build-management-page .saved-builds-section {
-             /* Styles for the section *inside* the panel */
             width: 100%;
             display: flex;
             flex-direction: column;
             flex-grow: 1;
-            overflow: hidden;
+            overflow: hidden; /* Contains the scrolling list */
             margin: 0;
             padding: 0;
         }
 
         #build-management-page .saved-builds-list {
-            flex-grow: 1; /* List takes available space */
-            /* Your existing styles */
-             width: 100%;
-             overflow-y: auto;
-             border: 1px solid var(--border);
-             border-radius: 5px;
-             padding: 5px;
-             background-color: var(--background);
-             display: flex;
-             flex-direction: column;
-             gap: 5px;
-             margin-bottom: 10px;
-             min-height: 100px;
+            flex-grow: 1;
+            width: 100%;
+            overflow-y: auto; /* This list scrolls */
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 8px;
+            background-color: var(--background);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+            min-height: 150px;
         }
 
-        #build-management-page .build-section-buttons {
-            margin-top: auto; /* Push buttons to bottom */
-            padding-top: 15px;
-             display: flex;
-             justify-content: space-around;
-             width: 25%;
-             flex-shrink: 0;
+        /* Main container for one saved build row */
+        .saved-build-item.expanded {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 10px;
+            gap: 5px; /* Reduced gap between content and actions */
+            cursor: default;
         }
+
+        .saved-build-item.expanded:hover {
+            background-color: var(--panel);
+        }
+
+        /* Wrapper for the 4 main content columns */
+        .saved-build-item .build-item-content-wrapper {
+            display: flex;
+            flex-grow: 1;
+            gap: 15px; /* Moderate gap between columns */
+            min-width: 0;
+            width: calc(100% - 50px); /* Leave space for actions */
+            /* NEW: Stop columns from spreading too far apart if there's extra space */
+            justify-content: flex-start;
+        }
+
+        /* Common style for each of the 4 columns */
+        .saved-build-item .build-column {
+            /* CHANGED: Grow 0, Shrink 1, Basis 25% */
+            flex: 0 1 20%; /* <--- Use this instead */
+            min-width: 0; /* Still allow shrinking if absolutely necessary */
+            box-sizing: border-box;
+            padding: 0 5px; /* Slightly increased padding */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* Add a fixed height or min-height if vertical alignment varies too much */
+            /* min-height: 80px; */ /* Example: Adjust as needed */
+        }
+
+        /* Column 1: Build Info */
+        .saved-build-item .build-item-info {
+            cursor: pointer;
+            justify-content: center; /* Center text block vertically */
+        }
+        .saved-build-item .build-item-info:hover {
+            background-color: rgba(var(--accent-rgb, 61, 129, 219), 0.1);
+            border-radius: 3px;
+        }
+        .saved-build-item .build-item-info strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; margin-bottom: 2px; }
+        .saved-build-item .build-item-details { font-size: 0.8em; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: flex; align-items: center; }
+        .saved-build-item .build-item-description { font-size: 0.75em; color: #bbb; margin-top: 4px; max-width: 100%; /* Allow wrapping */ display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; } /* Limit description to 2 lines */
+
+        /* Column 2: Calculated Stats */
+        .saved-build-item .build-item-calculated-stats {
+            font-size: 0.8em; /* Slightly smaller */
+            line-height: 1.4;
+            color: #ccc;
+            justify-content: center; /* Center text block vertically */
+        }
+        .saved-build-item .build-item-calculated-stats div:not(.build-item-resource-bars) { margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .saved-build-item .build-item-calculated-stats b { color: var(--accent); display: inline-block; width: 45px; margin-right: 5px; }
+        .saved-build-item .build-item-calculated-stats .AGI { color: var(--energy); }
+        .saved-build-item .build-item-calculated-stats .STR { color: var(--health); }
+        .saved-build-item .build-item-calculated-stats .INT { color: #9b59b6; }
+        .saved-build-item .build-item-calculated-stats .STA { color: var(--positive-button); }
+        .build-item-resource-bars { display: flex; gap: 4px; margin: 3px 0; }
+        .build-item-bar { padding: 1px 4px; border-radius: 3px; font-size: 0.85em; color: white; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 85px; /* Adjusted max width */ }
+        .health-bar-small { background-color: var(--health); }
+        .energy-bar-small { background-color: var(--energy); }
+
+
+        /* Column 3: Equipment Section */
+        .saved-build-item .build-item-equip-section {
+            align-items: flex-start; /* Align grid to the start (left) */
+            justify-content: center;
+        }
+
+        /* Single 8x2 equipment grid container */
+        .build-item-equip-grid-single {
+            display: grid;
+            /* CHANGED: Use fixed pixel size for columns */
+            grid-template-columns: repeat(8, 36px); /* 8 columns of 36px */
+            grid-template-rows: repeat(2, 36px);    /* 2 rows of 36px */
+            gap: 3px;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        /* Individual equipment slot */
+        .build-item-equip-slot {
+            width: 36px;  /* << INCREASED SIZE */
+            height: 36px; /* << INCREASED SIZE */
+            /* ... rest of the styles remain the same ... */
+            background-color: var(--slot-bg);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .build-item-equip-slot.empty { background-color: rgba(44, 46, 64, 0.5); }
+        .build-item-equip-slot img { max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
+        .build-item-equip-slot-text { font-size: 10px; color: #aaa; text-align: center; line-height: 1; }
+
+        /* Column 4: Buffs Section */
+        .saved-build-item .build-item-buffs-section {
+            display: flex;
+            flex-direction: row;  /* << Explicitly set to row */
+            flex-wrap: wrap;      /* Allow wrapping */
+            gap: 4px;
+            align-items: center;  /* Vertically align items in a row */
+            justify-content: flex-start; /* Align icons to the start (left) */
+            align-content: flex-start; /* Align wrapped lines to the top */
+            min-height: 76px; /* Ensure enough height for potentially 2 rows of larger icons */
+        }
+
+        /* Individual buff icon */
+        .build-item-buff-icon {
+            width: 32px;  /* << INCREASED SIZE */
+            height: 32px; /* << INCREASED SIZE */
+            /* ... rest of the styles remain the same ... */
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            background-color: var(--slot-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .build-item-buff-icon img { max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
+
+        /* Actions column */
+        .saved-build-item .build-item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+            align-self: center; /* Center vertically */
+            justify-content: center;
+            height: 100%; /* Try to match height */
+        }
+        .build-action-button { background: none; border: none; color: var(--text); cursor: pointer; font-size: 16px; padding: 2px 4px; line-height: 1; border-radius: 3px; display: flex; align-items: center; justify-content: center; }
+        .build-action-button:hover { background-color: var(--slot-bg); color: var(--accent); }
+        .build-action-button.delete:hover { color: var(--negative-button); }
+        .build-action-button.edit:hover { color: var(--positive-button); }
+        .build-action-button.duplicate:hover { color: var(--neutral-button); }
+
+
+        /* --- Bottom Buttons for Management Page (Unchanged from previous) --- */
+        #build-management-page .build-section-buttons {
+            margin-top: auto;
+            padding-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        #build-management-page .build-section-buttons .action-button {
+            min-width: 120px;
+            text-align: center;
+        }
+
 
     </style>
 </head>
@@ -2703,6 +2863,205 @@ function loadBuild(buildIndex) {
 		// Add event listener for the reset equipment button
 		document.getElementById('reset-equipment-button').addEventListener('click', resetAllEquipment);
 
+
+/**
+ * Calculates derived stats for a given saved build object.
+ * IMPORTANT: Requires itemsByIdMap and buffsData to be populated globally.
+ * @param {object} build - The saved build object (containing id, name, level, rebirth, stats, equipment (IDs), activeBuffNames)
+ * @returns {object|null} An object with calculated stats (like finalHP, finalDPS, etc.) or null on error.
+ */
+ function calculateStatsForSavedBuild(build) {
+    if (!build || !itemsByIdMap || !buffsData) {
+        console.error("Missing build data, item map, or buff data for calculation.");
+        return null; // Cannot calculate without necessary data
+    }
+
+    // --- Simulate the state for calculation ---
+    const simStats = {
+        level: build.level,
+        rebirth: build.rebirth,
+        statPoints: { ...build.stats }, // Use allocated points from the saved build
+        // We don't need pointsRemaining for calculation itself
+    };
+
+    // Find the actual buff objects from the names
+    const simActiveBuffs = [];
+    if (build.activeBuffNames) {
+        build.activeBuffNames.forEach(buffName => {
+            let foundBuff = null;
+            for (const category in buffsData) {
+                foundBuff = buffsData[category].find(b => b.Name === buffName);
+                if (foundBuff) break;
+            }
+            if (foundBuff) {
+                simActiveBuffs.push(foundBuff);
+            } else {
+                console.warn(`Buff named "${buffName}" not found in buffsData for saved build calc.`);
+            }
+        });
+    }
+
+    // Find the actual item objects from the IDs
+    const simEquipment = {};
+    let equipmentArmor = 0;
+    let equipmentAP = 0;
+    let equipmentCrit = 0;
+    let weaponMinDamage = baseStats.damage.min; // Base unarmed
+    let weaponMaxDamage = baseStats.damage.max; // Base unarmed
+    let baseAttackSpeed = baseStats.atkSpeed;   // Base unarmed
+
+    if (build.equipment) {
+        for (const slot in build.equipment) {
+            const itemId = build.equipment[slot];
+            const item = itemsByIdMap.get(itemId);
+            if (item) {
+                simEquipment[slot] = item; // Store the full item object for stat calculation
+
+                // Accumulate direct bonuses from this item
+                equipmentArmor += item.Armor || 0;
+                // equipmentAP += item.AtkPower || 0; // Example if items could add direct AP
+                // equipmentCrit += item.CritPercent || 0; // Example
+
+                // Check for weapon stats
+                if (slot === 'weapon') {
+                    weaponMinDamage = item.minDamage;
+                    weaponMaxDamage = item.maxDamage;
+                    baseAttackSpeed = item["Atk Spd"] || baseAttackSpeed;
+                }
+            } else {
+                 if (itemId !== undefined && itemId !== null) { // Only warn if an ID was expected
+                    console.warn(`Item ID ${itemId} for slot ${slot} not found in itemsByIdMap for saved build calc.`);
+                 }
+            }
+        }
+    }
+
+    // --- Calculate Final Base Stats (AGI, STR, INT, STA) including items/buffs ---
+     const finalStats = {
+        agi: 20 + (simStats.statPoints.agi - 20),
+        str: 20 + (simStats.statPoints.str - 20),
+        int: 20 + (simStats.statPoints.int - 20),
+        sta: 20 + (simStats.statPoints.sta - 20)
+    };
+
+    // Add Buff Stats
+    simActiveBuffs.forEach(buff => {
+        finalStats.agi += buff.AGI || 0;
+        finalStats.str += buff.STR || 0;
+        finalStats.int += buff.INT || 0;
+        finalStats.sta += buff.STA || 0;
+    });
+
+    // Add Equipment Stats
+    for (const slot in simEquipment) {
+        const item = simEquipment[slot];
+        if (item) {
+            finalStats.agi += item.AGI || 0;
+            finalStats.str += item.STR || 0;
+            finalStats.int += item.INT || 0;
+            finalStats.sta += item.STA || 0;
+            // Note: Armor/AP/Crit directly from items are handled separately below
+        }
+    }
+
+    // --- Calculate Final Derived Stats (using the same formulas as recalculateBuildStats) ---
+
+    // HP and Energy
+    const baseHpConst = 1080;
+    const baseEnergyConst = 1200;
+    let finalHP = Math.round(baseHpConst / 60 * simStats.level);
+    let finalEnergy = Math.round(baseEnergyConst / 60 * simStats.level);
+    finalHP += Math.max(0, finalStats.sta - 20) * 20;
+    finalEnergy += Math.max(0, finalStats.int - 20) * 15;
+
+    // Armor
+    let finalArmor = Math.max(0, finalStats.str - 20) * 5;
+    finalArmor += equipmentArmor; // From items
+    simActiveBuffs.forEach(buff => { finalArmor += buff.Armor || 0; });
+    finalArmor = Math.max(0, finalArmor);
+
+    // Attack Speed
+    let finalAttackSpeed = baseAttackSpeed; // From weapon/base
+    let atkSpeedBuffApplied = false;
+    simActiveBuffs.forEach(buff => {
+        if (buff["ATK Speed"] !== undefined && buff["ATK Speed"] !== "" && !atkSpeedBuffApplied) {
+            finalAttackSpeed += parseInt(buff["ATK Speed"]) || 0;
+            atkSpeedBuffApplied = true;
+        }
+    });
+    finalAttackSpeed = Math.max(100, finalAttackSpeed);
+
+    // Attack Power (AP)
+    let finalAP = baseStats.atkPower; // Start with base 40
+    let highestStatValue = 0;
+    let isStrHighestDriver = false;
+    if (finalStats.str >= 20) { highestStatValue = finalStats.str; isStrHighestDriver = true; }
+    if (finalStats.agi > highestStatValue) { highestStatValue = finalStats.agi; isStrHighestDriver = false; }
+    if (finalStats.int > highestStatValue) { highestStatValue = finalStats.int; isStrHighestDriver = false; }
+    if (finalStats.sta > highestStatValue) { highestStatValue = finalStats.sta; isStrHighestDriver = false; }
+    if (!isStrHighestDriver && finalStats.str === highestStatValue && finalStats.str >= 20) { isStrHighestDriver = true;}
+
+    let apFromStats = 0;
+    let secondaryStrBonus = 0;
+    if (isStrHighestDriver) {
+        apFromStats = (finalStats.str - 20) * 3;
+    } else {
+        if (highestStatValue >= 20) { apFromStats = (highestStatValue - 20) * 2; }
+        if (finalStats.str > 20) { secondaryStrBonus = (finalStats.str - 20) * 1; }
+    }
+    finalAP += Math.max(0, apFromStats);
+    finalAP += Math.max(0, secondaryStrBonus);
+    finalAP += equipmentAP; // Direct AP from items
+    simActiveBuffs.forEach(buff => { finalAP += buff["ATK Power"] || 0; }); // Direct AP from buffs
+    finalAP = Math.max(0, finalAP);
+
+    // Critical Chance
+    let finalCrit = calculateCritical(finalStats); // Includes DR from stats
+    finalCrit += equipmentCrit; // Add direct crit from equipment
+    simActiveBuffs.forEach(buff => { // Add crit from buffs with DR
+        const critToAdd = buff["Crit %"] || 0;
+        if (critToAdd !== 0) {
+             if (finalCrit + critToAdd <= 80) { finalCrit += critToAdd; }
+             else if (finalCrit < 80) { finalCrit = 80 + (critToAdd - (80 - finalCrit)) * 0.5; }
+             else { finalCrit += critToAdd * 0.5; }
+        }
+    });
+    finalCrit = Math.max(0, finalCrit);
+
+    // Dodge Chance
+    let finalDodge = calculateNewDodge(finalStats.agi);
+    finalDodge = Math.max(0, finalDodge);
+
+    // Final Min/Max Damage
+    const attackSpeedInSeconds = finalAttackSpeed / 1000.0;
+    const damageBonus = Math.floor((finalAP * attackSpeedInSeconds) / 14);
+    let finalMinDamage = weaponMinDamage + damageBonus;
+    let finalMaxDamage = weaponMaxDamage + damageBonus;
+
+    // DPS
+    let finalDPS = 0;
+    if (finalAttackSpeed > 0) {
+        const avgHit = (finalMinDamage + finalMaxDamage) / 2;
+        const attacksPerSec = 1000.0 / finalAttackSpeed;
+        const critMultiplier = 1.0 + (finalCrit / 100.0) * (2.0 - 1.0);
+        finalDPS = avgHit * attacksPerSec * critMultiplier;
+    }
+
+    // Return the calculated results
+    return {
+        finalStats, // Contains AGI, STR, INT, STA after items/buffs
+        finalHP,
+        finalEnergy,
+        finalArmor,
+        finalAttackSpeed,
+        finalAP,
+        finalCrit,
+        finalDodge,
+        finalMinDamage,
+        finalMaxDamage,
+        finalDPS
+    };
+}        
 // Event Listeners
 
 // Level input
@@ -3489,63 +3848,280 @@ function saveBuildsList() {
     }
 }
 
-// Display saved builds in the list
 function displaySavedBuilds() {
     const listContainer = document.getElementById('saved-builds-list');
-    if (!listContainer) return;
+    if (!listContainer) {
+        console.error("Saved builds list container (#saved-builds-list) not found!");
+        return;
+    }
     listContainer.innerHTML = ''; // Clear current list
 
-    if (savedBuilds.length === 0) {
+    if (!savedBuilds || savedBuilds.length === 0) {
         listContainer.innerHTML = '<div style="text-align: center; color: #aaa; font-size: 0.9em; padding: 10px;">No saved builds yet.</div>';
         return;
     }
 
-    savedBuilds.forEach(build => {
-        const buildItem = document.createElement('div');
-        buildItem.className = 'saved-build-item';
-        buildItem.dataset.buildId = build.id; // Store ID for easy access
+    // Define the exact order of ALL equipment slots for the single 8x2 grid
+    const allEquipmentSlots = [
+        'face',    'head',     'shoulder', 'back',   // Row 1
+        'legs',    'chest',    'weapon',   'offhand',
+        'ring1',   'ring2',    'trinket1', 'trinket2', // Row 2
+        'guild',   'faction',  '',         ''        // Empty strings for placeholders if needed
+    ];
 
-        // Info section (clickable to load)
+
+    // --- Tooltip Helper Function (Scoped within displaySavedBuilds) ---
+    // Shows item details on hover for the compact equipment icons
+    function showItemTooltipOnHover(element, item) {
+         hideItemTooltip(); // Ensure no old tooltips linger
+         if (!item) return;
+
+         const tooltip = document.createElement('div');
+         tooltip.className = 'item-tooltip';
+         tooltip.id = 'item-tooltip'; // Use ID to easily find and remove
+
+         // --- Full Tooltip Content Generation Logic ---
+         // (This should be the same logic used in the main build editor tooltip)
+         let content = `<div class="tooltip-title">${item.Name}</div>`;
+         if (item.Level !== undefined) {
+             const subtypeText = item.Subtype && item.Subtype.trim() !== '' ? ` ${item.Subtype}` : '';
+             content += `<div class="tooltip-level">Level ${item.Level}${subtypeText}</div>`;
+         }
+         const allStatsHtml = [];
+         const statsToCheck = ['STA', 'STR', 'INT', 'AGI', 'Armor'];
+         const stringStatsToCheck = ['Damage'];
+         const specialStatsToCheck = ['Atk Spd'];
+
+         statsToCheck.forEach(statKey => {
+             if (item.hasOwnProperty(statKey) && item[statKey] !== undefined && item[statKey] !== 0 && item[statKey] !== '') {
+                 const value = item[statKey];
+                 const sign = value > 0 ? '+' : '';
+                 const cssClass = value > 0 ? 'stat-positive' : 'stat-negative';
+                 allStatsHtml.push(`<div class="${cssClass}">${statKey}: ${sign}${value}</div>`);
+             }
+         });
+         stringStatsToCheck.forEach(statKey => {
+              if (item.hasOwnProperty(statKey) && item[statKey] !== undefined && item[statKey] !== '') {
+                  allStatsHtml.push(`<div>${statKey}: ${item[statKey]}</div>`);
+              }
+         });
+          specialStatsToCheck.forEach(statKey => {
+              if (item.hasOwnProperty(statKey) && item[statKey] !== undefined && item[statKey] !== 0 && item[statKey] !== '') {
+                   // Display speed in ms for consistency with item data, or convert to seconds
+                   allStatsHtml.push(`<div>Speed: ${item[statKey]}</div>`);
+                   // const speedInSeconds = (item[statKey] / 1000.0).toFixed(1);
+                   // allStatsHtml.push(`<div>Speed: ${speedInSeconds}s</div>`);
+              }
+         });
+         if (allStatsHtml.length > 0) {
+             content += `<div class="tooltip-stats">${allStatsHtml.join('')}</div>`;
+         }
+
+         const requirements = [];
+         ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(reqKey => {
+             const statName = reqKey.replace('Req ', '');
+             if (item.hasOwnProperty(reqKey) && item[reqKey] !== undefined && item[reqKey] !== 0 && item[reqKey] !== '') {
+                 requirements.push(`<div>Requires ${statName}: ${item[reqKey]}</div>`);
+             }
+         });
+          if (requirements.length > 0) {
+             // Add separator only if there were stats displayed before requirements
+             if (allStatsHtml.length > 0) {
+                 content += `<div style="border-top: 1px solid var(--border); margin: 5px 0;"></div>`;
+             }
+             content += `<div class="tooltip-req">${requirements.join('')}</div>`;
+         }
+         // --- End Full Tooltip Content ---
+
+         tooltip.innerHTML = content;
+         document.body.appendChild(tooltip);
+
+         // Position Tooltip near the hovered element
+         const elemRect = element.getBoundingClientRect();
+         const tooltipRect = tooltip.getBoundingClientRect();
+         const margin = 5; // Reduced margin slightly
+         let left = elemRect.right + margin;
+         let top = elemRect.top + window.scrollY; // Add scrollY for correct positioning
+
+         // Adjust position if tooltip goes off-screen
+         if (left + tooltipRect.width > window.innerWidth) {
+             left = elemRect.left - tooltipRect.width - margin; // Move to left
+         }
+         if (top + tooltipRect.height > (window.innerHeight + window.scrollY)) {
+             top = (window.innerHeight + window.scrollY) - tooltipRect.height - margin; // Align to bottom edge
+         }
+         if (top < window.scrollY) {
+             top = window.scrollY + margin; // Align to top edge
+         }
+          // Ensure left doesn't go off-screen either
+         if (left < window.scrollX) {
+             left = window.scrollX + margin;
+         }
+
+
+         tooltip.style.left = `${left}px`;
+         tooltip.style.top = `${top}px`;
+
+         // Fade in effect
+         requestAnimationFrame(() => {
+             tooltip.style.opacity = 1;
+         });
+    }
+    // --- End Tooltip Helper ---
+
+
+    // --- Loop through saved builds ---
+    savedBuilds.forEach(build => {
+        // Calculate stats for the current build in the loop
+        const calculatedStats = calculateStatsForSavedBuild(build);
+
+        // Main container for the build item row
+        const buildItem = document.createElement('div');
+        buildItem.className = 'saved-build-item expanded';
+        buildItem.dataset.buildId = build.id;
+
+        // Wrapper for the 4 main content columns
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'build-item-content-wrapper';
+
+        // --- Column 1: Info ---
         const infoDiv = document.createElement('div');
-        infoDiv.className = 'build-item-info';
-        infoDiv.innerHTML = ` 
+        infoDiv.className = 'build-item-info build-column';
+        infoDiv.innerHTML = `
             <strong>${build.name || 'Unnamed Build'}</strong>
             <div class="build-item-details">
-                By: ${build.creator || 'Unknown'} | Lvl: ${build.level}${ build.rebirth ? 
-                    ' <img src="Icons/rebirth-icon.png" alt="Rebirth" style="height: 1.75em; vertical-align: middle; margin-left: 3px;" title="Rebirth">' 
-                    : '' 
+                By: ${build.creator || 'Unknown'} | Lvl: ${build.level}${ build.rebirth ?
+                    ' <img src="Icons/rebirth-icon.png" alt="Rebirth" style="height: 1.1em; vertical-align: middle; margin-left: 3px;" title="Rebirth">'
+                    : ''
                 }
             </div>
             <div class="build-item-description">${build.description || 'No description.'}</div>
         `;
-        // Add event listener to load build on click
-		infoDiv.addEventListener('click', () => handleLoadBuildClick(build.id));
+        infoDiv.addEventListener('click', () => handleLoadBuildClick(build.id)); // Click loads the build
+        contentWrapper.appendChild(infoDiv);
 
-        // Actions section
+        // --- Column 2: Calculated Stats ---
+        const statsDiv = document.createElement('div');
+        statsDiv.className = 'build-item-calculated-stats build-column';
+        if (calculatedStats) {
+            // Display calculated stats with colors and compact bars
+            statsDiv.innerHTML = `
+                <div><b>DPS:</b> ${calculatedStats.finalDPS.toFixed(2)}</div>
+                <div><b>Stats:</b>
+                    <span class="AGI">${calculatedStats.finalStats.agi}</span> /
+                    <span class="STR">${calculatedStats.finalStats.str}</span> /
+                    <span class="INT">${calculatedStats.finalStats.int}</span> /
+                    <span class="STA">${calculatedStats.finalStats.sta}</span>
+                </div>
+                <div><b>Crit:</b> ${calculatedStats.finalCrit.toFixed(2)}% | <b>Dodge:</b> ${calculatedStats.finalDodge.toFixed(2)}%</div>
+                <div><b>Dmg:</b> (${calculatedStats.finalMinDamage}-${calculatedStats.finalMaxDamage})</div>
+                <div class="build-item-resource-bars">
+                    <div class="build-item-bar health-bar-small">HP: ${calculatedStats.finalHP}</div>
+                    <div class="build-item-bar energy-bar-small">Energy: ${calculatedStats.finalEnergy}</div>
+                </div>
+                <div><b>Armor:</b> ${calculatedStats.finalArmor} | <b>Spd:</b> ${(calculatedStats.finalAttackSpeed / 1000.0).toFixed(1)}s</div>
+            `;
+        } else {
+            // Fallback if stats calculation fails
+            statsDiv.innerHTML = '<div style="font-style: italic; color: #888;">Stats N/A</div>';
+        }
+        contentWrapper.appendChild(statsDiv);
+
+        // --- Column 3: Equipment Grid (Single 8x2 Grid) ---
+        const equipDiv = document.createElement('div');
+        equipDiv.className = 'build-item-equip-section build-column';
+
+        const singleGridDiv = document.createElement('div');
+        singleGridDiv.className = 'build-item-equip-grid-single'; // Use the class for the 8x2 grid
+
+        allEquipmentSlots.forEach(slotName => {
+            const slotDiv = document.createElement('div');
+            slotDiv.className = 'build-item-equip-slot'; // Use the class for the larger slot size
+            let item = null; // Define item scope
+
+            if (slotName && build.equipment && build.equipment[slotName]) {
+                const itemId = build.equipment[slotName];
+                item = itemsByIdMap.get(itemId); // Find the item object
+
+                if (item && item["Sprite-Link"]) {
+                    slotDiv.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slotName}" title="${item.Name || slotName}">`;
+                } else if (item) {
+                    // Fallback if image link is missing but item exists
+                    slotDiv.innerHTML = `<div class="build-item-equip-slot-text" title="${item.Name}">${item.Name.substring(0, 3)}</div>`;
+                } else {
+                    // Item ID exists but item not found in map (or slotName is empty)
+                    slotDiv.classList.add('empty');
+                }
+            } else {
+                // Slot is empty or placeholder in the layout
+                slotDiv.classList.add('empty');
+            }
+
+            // Add tooltip listener only if there's an item to show info for
+            if (item) {
+                slotDiv.addEventListener('mouseenter', function() { showItemTooltipOnHover(slotDiv, item); });
+                slotDiv.addEventListener('mouseleave', hideItemTooltip); // Assumes global hideItemTooltip exists
+            }
+            singleGridDiv.appendChild(slotDiv);
+        });
+        equipDiv.appendChild(singleGridDiv); // Add the single grid container to the equipment column
+        contentWrapper.appendChild(equipDiv);
+
+        // --- Column 4: Buffs ---
+        const buffsDiv = document.createElement('div');
+        buffsDiv.className = 'build-item-buffs-section build-column';
+        if (build.activeBuffNames && build.activeBuffNames.length > 0) {
+             build.activeBuffNames.forEach(buffName => {
+                 let buff = null;
+                 // Find buff object from buffsData (across categories)
+                 for (const category in buffsData) {
+                    if (buffsData.hasOwnProperty(category)) {
+                       buff = buffsData[category].find(b => b.Name === buffName);
+                       if (buff) break;
+                    }
+                 }
+
+                 if (buff) {
+                     const buffIconDiv = document.createElement('div');
+                     buffIconDiv.className = 'build-item-buff-icon'; // Use class for larger buff icons
+                     // Determine icon path (same logic as before)
+                     const tierMatch = buff.Name.match(/\s(\d+)$/);
+                     let baseName = buff.Name.toLowerCase().replace(/\s+\d+$/, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+                     const iconFileName = `Icons/${baseName}-icon.png`; // Ensure Icons path is correct
+
+                     buffIconDiv.innerHTML = `<img src="${iconFileName}" alt="${buff.Name}" title="${buff.Name}">`;
+                     // Add buff tooltip listeners
+                     buffIconDiv.addEventListener('mouseenter', function(e) { showBuffTooltip(buff, e.currentTarget); }); // Assumes global showBuffTooltip exists
+                     buffIconDiv.addEventListener('mouseleave', hideBuffTooltip); // Assumes global hideBuffTooltip exists
+                     buffsDiv.appendChild(buffIconDiv);
+                 } else {
+                     console.warn(`Buff data not found for "${buffName}" in saved build ${build.id}`);
+                 }
+             });
+        } else {
+            // Optional: display placeholder if no buffs
+            // buffsDiv.innerHTML = '<div class="build-item-no-buffs" style="font-size: 0.8em; color: #888; text-align: center; width: 100%;">No buffs</div>';
+        }
+        contentWrapper.appendChild(buffsDiv);
+
+        // --- Action Buttons Column ---
         const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'build-item-actions';
+        actionsDiv.className = 'build-item-actions'; // Actions are now separate from the main content flex
         actionsDiv.innerHTML = `
             <button class="build-action-button duplicate" title="Duplicate Build">➕</button>
-			<button class="build-action-button edit" title="Edit Details">✏️</button>
+            <button class="build-action-button edit" title="Edit Details">✏️</button>
             <button class="build-action-button delete" title="Delete Build">❌</button>
         `;
+        // Add event listeners for actions
+        actionsDiv.querySelector('.duplicate').addEventListener('click', (e) => { e.stopPropagation(); handleDuplicateBuildClick(build.id); });
+        actionsDiv.querySelector('.edit').addEventListener('click', (e) => { e.stopPropagation(); openBuildModal(build.id); });
+        actionsDiv.querySelector('.delete').addEventListener('click', (e) => { e.stopPropagation(); handleDeleteBuildClick(build.id); });
 
-        // Add event listeners to action buttons
-        actionsDiv.querySelector('.edit').addEventListener('click', (e) => {
-             e.stopPropagation(); // Prevent loading build when clicking edit
-             openBuildModal(build.id);
-        });
-        actionsDiv.querySelector('.duplicate').addEventListener('click', (e) => {
-             e.stopPropagation();
-             handleDuplicateBuildClick(build.id);
-        });
-        actionsDiv.querySelector('.delete').addEventListener('click', (e) => {
-             e.stopPropagation();
-             handleDeleteBuildClick(build.id);
-        });
-
-        buildItem.appendChild(infoDiv);
+        // --- Append content wrapper and actions to the main build item ---
+        buildItem.appendChild(contentWrapper);
         buildItem.appendChild(actionsDiv);
+
+        // Add the fully constructed build item to the list
         listContainer.appendChild(buildItem);
     });
 }
