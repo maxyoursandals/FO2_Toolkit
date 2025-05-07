@@ -1023,13 +1023,10 @@
             gap: 15px; /* Moderate gap between columns */
             min-width: 0;
             width: calc(100% - 50px); /* Leave space for actions */
-            /* NEW: Stop columns from spreading too far apart if there's extra space */
             justify-content: flex-start;
         }
 
-        /* Common style for each of the 4 columns */
         .saved-build-item .build-column {
-            /* CHANGED: Grow 0, Shrink 1, Basis 25% */
             flex: 0 1 20%; /* <--- Use this instead */
             min-width: 0; /* Still allow shrinking if absolutely necessary */
             box-sizing: border-box;
@@ -1037,14 +1034,13 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            /* Add a fixed height or min-height if vertical alignment varies too much */
-            /* min-height: 80px; */ /* Example: Adjust as needed */
+            min-height: 80px;
         }
 
         /* Column 1: Build Info */
         .saved-build-item .build-item-info {
             cursor: pointer;
-            justify-content: center; /* Center text block vertically */
+            justify-content: center;
         }
         .saved-build-item .build-item-info:hover {
             background-color: rgba(var(--accent-rgb, 61, 129, 219), 0.1);
@@ -1057,18 +1053,18 @@
         /* Column 2: Calculated Stats */
         .saved-build-item .build-item-calculated-stats {
             font-size: 0.8em; /* Slightly smaller */
-            line-height: 1.4;
+            line-height: 1.2;
             color: #ccc;
             justify-content: center; /* Center text block vertically */
         }
         .saved-build-item .build-item-calculated-stats div:not(.build-item-resource-bars) { margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .saved-build-item .build-item-calculated-stats b { color: var(--accent); display: inline-block; width: 45px; margin-right: 5px; }
+        .saved-build-item .build-item-calculated-stats b { color: var(--accent); display: inline-block; width: 50px; margin-right: 5px; }
         .saved-build-item .build-item-calculated-stats .AGI { color: var(--energy); }
         .saved-build-item .build-item-calculated-stats .STR { color: var(--health); }
         .saved-build-item .build-item-calculated-stats .INT { color: #9b59b6; }
         .saved-build-item .build-item-calculated-stats .STA { color: var(--positive-button); }
         .build-item-resource-bars { display: flex; gap: 4px; margin: 3px 0; }
-        .build-item-bar { padding: 1px 4px; border-radius: 3px; font-size: 0.85em; color: white; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 85px; /* Adjusted max width */ }
+        .build-item-bar { padding: 1px 4px; border-radius: 3px; font-size: 0.85em; color: white; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 85px; }
         .health-bar-small { background-color: var(--health); }
         .energy-bar-small { background-color: var(--energy); }
 
@@ -1082,9 +1078,8 @@
         /* Single 8x2 equipment grid container */
         .build-item-equip-grid-single {
             display: grid;
-            /* CHANGED: Use fixed pixel size for columns */
-            grid-template-columns: repeat(8, 36px); /* 8 columns of 36px */
-            grid-template-rows: repeat(2, 36px);    /* 2 rows of 36px */
+            grid-template-columns: repeat(8, 48px); /* 8 columns of 36px */
+            grid-template-rows: repeat(2, 48px);    /* 2 rows of 36px */
             gap: 3px;
             width: fit-content;
             max-width: 100%;
@@ -1092,9 +1087,8 @@
 
         /* Individual equipment slot */
         .build-item-equip-slot {
-            width: 36px;  /* << INCREASED SIZE */
-            height: 36px; /* << INCREASED SIZE */
-            /* ... rest of the styles remain the same ... */
+            width: 48px;
+            height: 48px;
             background-color: var(--slot-bg);
             border: 1px solid var(--border);
             border-radius: 3px;
@@ -1106,7 +1100,7 @@
         }
 
         .build-item-equip-slot.empty { background-color: rgba(44, 46, 64, 0.5); }
-        .build-item-equip-slot img { max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
+        .build-item-equip-slot img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
         .build-item-equip-slot-text { font-size: 10px; color: #aaa; text-align: center; line-height: 1; }
 
         /* Column 4: Buffs Section */
@@ -4007,20 +4001,19 @@ function displaySavedBuilds() {
         if (calculatedStats) {
             // Display calculated stats with colors and compact bars
             statsDiv.innerHTML = `
-                <div><b>DPS:</b> ${calculatedStats.finalDPS.toFixed(2)}</div>
-                <div><b>Stats:</b>
+            <div class="build-item-resource-bars">
+                    <div class="build-item-bar health-bar-small">HP: ${calculatedStats.finalHP}</div>
+                    <div class="build-item-bar energy-bar-small">Energy: ${calculatedStats.finalEnergy}</div>
+            </div>
+            <div>
                     <span class="AGI">${calculatedStats.finalStats.agi}</span> /
                     <span class="STR">${calculatedStats.finalStats.str}</span> /
                     <span class="INT">${calculatedStats.finalStats.int}</span> /
                     <span class="STA">${calculatedStats.finalStats.sta}</span>
-                </div>
-                <div><b>Crit:</b> ${calculatedStats.finalCrit.toFixed(2)}% | <b>Dodge:</b> ${calculatedStats.finalDodge.toFixed(2)}%</div>
-                <div><b>Dmg:</b> (${calculatedStats.finalMinDamage}-${calculatedStats.finalMaxDamage})</div>
-                <div class="build-item-resource-bars">
-                    <div class="build-item-bar health-bar-small">HP: ${calculatedStats.finalHP}</div>
-                    <div class="build-item-bar energy-bar-small">Energy: ${calculatedStats.finalEnergy}</div>
-                </div>
-                <div><b>Armor:</b> ${calculatedStats.finalArmor} | <b>Spd:</b> ${(calculatedStats.finalAttackSpeed / 1000.0).toFixed(1)}s</div>
+            </div>    
+                <div><b>DPS:</b> ${calculatedStats.finalDPS.toFixed(2)}  <b>Armor:</b> ${calculatedStats.finalArmor}</div>
+                <div><b>Crit:</b> ${calculatedStats.finalCrit.toFixed(2)}%  <b>Dodge:</b>${calculatedStats.finalDodge.toFixed(2)}%</div>
+                <div><b>Dmg:</b> (${calculatedStats.finalMinDamage}-${calculatedStats.finalMaxDamage})  <b>Spd:</b>${(calculatedStats.finalAttackSpeed / 1000.0).toFixed(1)}s</div>
             `;
         } else {
             // Fallback if stats calculation fails
