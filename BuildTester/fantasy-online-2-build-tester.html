@@ -1030,7 +1030,7 @@
             flex: 0 1 20%; /* <--- Use this instead */
             min-width: 0; /* Still allow shrinking if absolutely necessary */
             box-sizing: border-box;
-            padding: 0 5px; /* Slightly increased padding */
+            padding: 0 8px; /* Slightly increased padding */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -1039,6 +1039,7 @@
 
         /* Column 1: Build Info */
         .saved-build-item .build-item-info {
+            flex: 1 1 15%
             cursor: pointer;
             justify-content: center;
         }
@@ -1052,6 +1053,7 @@
 
         /* Column 2: Calculated Stats */
         .saved-build-item .build-item-calculated-stats {
+            flex: 1 1 12%;
             font-size: 0.8em; /* Slightly smaller */
             line-height: 1.2;
             color: #ccc;
@@ -1071,6 +1073,7 @@
 
         /* Column 3: Equipment Section */
         .saved-build-item .build-item-equip-section {
+            flex: 1 1 30%;
             align-items: flex-start; /* Align grid to the start (left) */
             justify-content: center;
         }
@@ -1105,6 +1108,7 @@
 
         /* Column 4: Buffs Section */
         .saved-build-item .build-item-buffs-section {
+            flex: 1 1 30%;
             display: flex;
             flex-direction: row;  /* << Explicitly set to row */
             flex-wrap: nowrap;      /* Allow wrapping */
@@ -1325,6 +1329,7 @@
                                              <th data-sort="level">Level <span class="sort-indicator"></span></th>
                                              <th data-sort="ttk">Kill In <span class="sort-indicator"></span></th>
                                              <th data-sort="gph">Gold/hr <span class="sort-indicator"></span></th>
+                                             <th data-sort="xph">XP/hr <span class="sort-indicator"></span></th>
                                          </tr>
                                      </thead>
                                      <tbody id="performance-tbody">
@@ -1768,7 +1773,7 @@ function updateDisplay(results) {
     const dpsDisplayElement = document.getElementById('dps-display');
     if (dpsDisplayElement) {
         // Format DPS to 2 decimal places
-        dpsDisplayElement.textContent = results.finalDPS.toFixed(2);
+        dpsDisplayElement.textContent = Math.round(results.finalDPS);
     } else {
         console.warn("DPS display element ('dps-display') not found.");
     }
@@ -3639,21 +3644,20 @@ function calculatePerformance(dps, minLevel, maxLevel) {
 
         const timeToKill = mob.health / dps;
         let goldPerHour = 0;
-        // Removed xpPerHour calculation based on previous request
-        // let xpPerHour = 0; 
+        let xpPerHour = 0; 
 
         if (timeToKill > 0) {
             const killsPerHour = 3600 / timeToKill;
             goldPerHour = killsPerHour * mob.avgGoldPerKill;
-            // xpPerHour = killsPerHour * mob.xp; 
+            xpPerHour = killsPerHour * mob.xp; // Calculate faction XP per hour using mob.xp
         }
 
         performanceData.push({
             name: mob.name,
             level: mob.level,
             ttk: timeToKill,
-            gph: goldPerHour
-            // xph: xpPerHour // Removed
+            gph: goldPerHour,
+            xph: xpPerHour
         });
     });
 
@@ -3675,8 +3679,8 @@ function updatePerformanceTable(performanceData) {
     tbody.innerHTML = ''; // Clear previous rows
 
     if (!performanceData || performanceData.length === 0) {
-         tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No performance data to display (check DPS/Mob Data).</td></tr>';
-         return;
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No performance data to display (check DPS/Mob Data).</td></tr>';
+        return;
     }
 
     // Sort the data
@@ -3709,8 +3713,15 @@ function updatePerformanceTable(performanceData) {
         const row = tbody.insertRow();
         row.insertCell().textContent = mobPerf.name;
         row.insertCell().textContent = mobPerf.level;
-        row.insertCell().textContent = Math.ceil(mobPerf.ttk) + 's'; // Time to kill (rounded up)
+        const ttkCell = row.insertCell();
+            if (mobPerf.ttk > 99) {
+                const minutes = mobPerf.ttk / 60;
+                ttkCell.textContent = minutes.toFixed(1) + 'm'; // e.g., "1.7m"
+            } else {
+                ttkCell.textContent = Math.round(mobPerf.ttk) + 's'; // e.g., "98s" or "99s"
+            }
         row.insertCell().textContent = formatNumber(mobPerf.gph);    // Gold per hour
+        row.insertCell().textContent = formatNumber(mobPerf.xph);    // XP per hour
     });
 }
 
@@ -4011,7 +4022,7 @@ function displaySavedBuilds() {
                     <span class="INT">${calculatedStats.finalStats.int}</span> /
                     <span class="STA">${calculatedStats.finalStats.sta}</span>
             </div>    
-                <div><b>DPS:</b> ${calculatedStats.finalDPS.toFixed(2)}  <b>Armor:</b> ${calculatedStats.finalArmor}</div>
+                <div><b>DPS:</b> ${Math.round(calculatedStats.finalDPS)}  <b>Armor:</b> ${calculatedStats.finalArmor}</div>
                 <div><b>Crit:</b> ${calculatedStats.finalCrit.toFixed(2)}%  <b>Dodge:</b>${calculatedStats.finalDodge.toFixed(2)}%</div>
                 <div><b>Dmg:</b> (${calculatedStats.finalMinDamage}-${calculatedStats.finalMaxDamage})  <b>Spd:</b>${(calculatedStats.finalAttackSpeed / 1000.0).toFixed(1)}s</div>
             `;
