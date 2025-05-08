@@ -65,6 +65,14 @@
             gap: 20px;
             min-width: 350px;
         }
+
+        .right-panel > .stat-item:first-child { /* Selects ONLY the direct children */
+             margin-top: 5px; /* Adjust this value as needed */
+        }
+
+        .mitigation-row {
+            margin-top: 0px;
+        }
         
         .derived-stats {
 			flex: 2;
@@ -926,7 +934,7 @@
             position: relative;
             overflow: hidden;
             width: 100%; /* Make page area take full width */
-            border: 1px dashed red;
+            /* border: 1px dashed red; */
         }
 
         .page { /* Hides pages */
@@ -1303,6 +1311,10 @@
                         <div class="stat-item dps-row"> <div>Damage Per Second</div>
                              <div id="dps-display">0.00</div>
                          </div>
+                         
+                         <div class="stat-item mitigation-row"> <div>Damage Mitigation</div>
+                            <div id="mitigation-display">0.00 %</div>
+                        </div>
     
                          <div class="performance-section">
                               <div class="performance-header"> <h3>Performance Against Mobs</h3>
@@ -1585,6 +1597,12 @@ function recalculateBuildStats() {
     });
     finalAttackSpeed = Math.max(100, finalAttackSpeed); // Ensure minimum attack speed (e.g., 100ms)
 
+    let mitigationPercent = 0;
+    const kValue = 200 + 50 * currentStats.level;
+    // Check denominator to avoid division by zero
+    if ((kValue + finalArmor) > 0) {
+        mitigationPercent = (finalArmor / (kValue + finalArmor)) * 100;
+    }
 
     // --- Calculate Final AP (Attack Power) ---
     // (Using the refined logic from previous steps)
@@ -1666,17 +1684,19 @@ function recalculateBuildStats() {
 
     // Return all calculated values
     return {
-        finalStats,       // { agi, str, int, sta }
+        finalStats,
         finalHP,
         finalEnergy,
         finalArmor,
-        finalAttackSpeed, // Milliseconds
+        finalAttackSpeed,
         finalAP,
-        finalCrit,        // Percentage
-        finalDodge,       // Percentage
+        finalCrit,
+        finalDodge,     
         finalMinDamage,
         finalMaxDamage,
-        finalDPS          // <<< Added DPS
+        finalDPS,
+        mitigationPercent
+
     };
 }
 
@@ -1769,13 +1789,18 @@ function updateDisplay(results) {
     dodgeDisplay.textContent = results.finalDodge.toFixed(2) + ' %';
     damageDisplay.textContent = `(${results.finalMinDamage}-${results.finalMaxDamage})`;
 
-    // Update DPS Display in Right Panel
     const dpsDisplayElement = document.getElementById('dps-display');
     if (dpsDisplayElement) {
-        // Format DPS to 2 decimal places
         dpsDisplayElement.textContent = Math.round(results.finalDPS);
     } else {
         console.warn("DPS display element ('dps-display') not found.");
+    }
+
+    const mitigationDisplayElement = document.getElementById('mitigation-display');
+    if (mitigationDisplayElement) {
+        mitigationDisplayElement.textContent = results.mitigationPercent.toFixed(2) + ' %';
+    } else {
+        console.warn("Mitigation display element ('mitigation-display') not found.");
     }
 
     // Calculate and update performance table
@@ -2980,6 +3005,13 @@ function loadBuild(buildIndex) {
     simActiveBuffs.forEach(buff => { finalArmor += buff.Armor || 0; });
     finalArmor = Math.max(0, finalArmor);
 
+    let mitigationPercent = 0;
+    const kValue = 200 + 50 * simStats.level; // Use simStats.level here
+    // Check denominator to avoid division by zero
+    if ((kValue + finalArmor) > 0) {
+        mitigationPercent = (finalArmor / (kValue + finalArmor)) * 100;
+    }
+
     // Attack Speed
     let finalAttackSpeed = baseAttackSpeed; // From weapon/base
     let atkSpeedBuffApplied = false;
@@ -3059,7 +3091,8 @@ function loadBuild(buildIndex) {
         finalDodge,
         finalMinDamage,
         finalMaxDamage,
-        finalDPS
+        finalDPS,
+        mitigationPercent
     };
 }        
 // Event Listeners
@@ -4025,6 +4058,7 @@ function displaySavedBuilds() {
                 <div><b>DPS:</b> ${Math.round(calculatedStats.finalDPS)}  <b>Armor:</b> ${calculatedStats.finalArmor}</div>
                 <div><b>Crit:</b> ${calculatedStats.finalCrit.toFixed(2)}%  <b>Dodge:</b>${calculatedStats.finalDodge.toFixed(2)}%</div>
                 <div><b>Dmg:</b> (${calculatedStats.finalMinDamage}-${calculatedStats.finalMaxDamage})  <b>Spd:</b>${(calculatedStats.finalAttackSpeed / 1000.0).toFixed(1)}s</div>
+                <div><b>Mitigation:</b> ${calculatedStats.mitigationPercent.toFixed(2)}%</div>
             `;
         } else {
             // Fallback if stats calculation fails
