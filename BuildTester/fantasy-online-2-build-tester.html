@@ -1315,6 +1315,14 @@
                          <div class="stat-item mitigation-row"> <div>Damage Mitigation</div>
                             <div id="mitigation-display">0.00 %</div>
                         </div>
+
+                        <div class="stat-item regen-row"> <div>HP Regen/Sec</div>
+                            <div id="hp-regen-display">0.0</div>
+                        </div>
+
+                        <div class="stat-item regen-row"> <div>Energy Regen/Sec</div>
+                            <div id="energy-regen-display">0.0</div>
+                        </div>
     
                          <div class="performance-section">
                               <div class="performance-header"> <h3>Performance Against Mobs</h3>
@@ -1535,7 +1543,13 @@ function recalculateBuildStats() {
         finalStats.str += buff.STR || 0;
         finalStats.int += buff.INT || 0;
         finalStats.sta += buff.STA || 0;
-    });
+        if (buff["Health Per Second"] !== undefined && buff["Health Per Second"] !== "") {
+                finalHPRegenPerSecond += Number(buff["Health Per Second"]) || 0;
+            }
+            if (buff["Energy Per Second"] !== undefined && buff["Energy Per Second"] !== "") {
+                finalEnergyRegenPerSecond += Number(buff["Energy Per Second"]) || 0;
+            }
+        });
 
     // Add Equipment Stats & Collect Equip Bonuses
     let equipmentArmor = 0;
@@ -1545,6 +1559,9 @@ function recalculateBuildStats() {
     let weaponMaxDamage = baseStats.damage.max; // Use base unarmed max damage initially
     let baseAttackSpeed = baseStats.atkSpeed;   // Use base unarmed speed initially
 
+    let finalHPRegenPerSecond = 0;
+    let finalEnergyRegenPerSecond = 0;
+
     for (const slot in currentStats.equipment) {
         const item = currentStats.equipment[slot];
         if (item) {
@@ -1553,8 +1570,8 @@ function recalculateBuildStats() {
             finalStats.int += item.INT || 0;
             finalStats.sta += item.STA || 0;
             equipmentArmor += item.Armor || 0;
-            // equipmentAP += item.AtkPower || 0; // Example if items could add direct AP
-            // equipmentCrit += item.CritPercent || 0; // Example if items could add direct Crit %
+            equipmentAP += item.AtkPower || 0;
+            equipmentCrit += item.CritPercent || 0;
 
             // If a weapon is equipped, use its damage and speed
             if (slot === 'weapon') {
@@ -1691,12 +1708,13 @@ function recalculateBuildStats() {
         finalAttackSpeed,
         finalAP,
         finalCrit,
-        finalDodge,     
+        finalDodge,
         finalMinDamage,
         finalMaxDamage,
         finalDPS,
-        mitigationPercent
-
+        mitigationPercent,
+        finalHPRegenPerSecond,
+        finalEnergyRegenPerSecond
     };
 }
 
@@ -1801,6 +1819,20 @@ function updateDisplay(results) {
         mitigationDisplayElement.textContent = results.mitigationPercent.toFixed(2) + ' %';
     } else {
         console.warn("Mitigation display element ('mitigation-display') not found.");
+    }
+
+    const hpRegenDisplayElement = document.getElementById('hp-regen-display');
+    if (hpRegenDisplayElement) {
+        hpRegenDisplayElement.textContent = results.finalHPRegenPerSecond.toFixed(1);
+    } else {
+        console.warn("HP Regen display element ('hp-regen-display') not found.");
+    }
+
+    const energyRegenDisplayElement = document.getElementById('energy-regen-display');
+    if (energyRegenDisplayElement) {
+        energyRegenDisplayElement.textContent = results.finalEnergyRegenPerSecond.toFixed(1);
+    } else {
+        console.warn("Energy Regen display element ('energy-regen-display') not found.");
     }
 
     // Calculate and update performance table
@@ -2935,6 +2967,9 @@ function loadBuild(buildIndex) {
     let weaponMaxDamage = baseStats.damage.max; // Base unarmed
     let baseAttackSpeed = baseStats.atkSpeed;   // Base unarmed
 
+    let finalHPRegenPerSecond = 0;
+    let finalEnergyRegenPerSecond = 0;
+
     if (build.equipment) {
         for (const slot in build.equipment) {
             const itemId = build.equipment[slot];
@@ -2975,6 +3010,14 @@ function loadBuild(buildIndex) {
         finalStats.str += buff.STR || 0;
         finalStats.int += buff.INT || 0;
         finalStats.sta += buff.STA || 0;
+
+        if (buff["Health Per Second"] !== undefined && buff["Health Per Second"] !== "") {
+            finalHPRegenPerSecond += Number(buff["Health Per Second"]) || 0;
+        }
+        if (buff["Energy Per Second"] !== undefined && buff["Energy Per Second"] !== "") {
+            finalEnergyRegenPerSecond += Number(buff["Energy Per Second"]) || 0;
+        }
+
     });
 
     // Add Equipment Stats
@@ -3092,7 +3135,9 @@ function loadBuild(buildIndex) {
         finalMinDamage,
         finalMaxDamage,
         finalDPS,
-        mitigationPercent
+        mitigationPercent,
+        finalHPRegenPerSecond,
+        finalEnergyRegenPerSecond
     };
 }        
 // Event Listeners
@@ -3170,7 +3215,7 @@ cancelSearchButton.addEventListener('click', closeItemSearch);
 document.addEventListener('DOMContentLoaded', function() {
 
 // Load buffs
-const buffsJson = [{"Category":"Buff","Name":"Berserk","ATK Power":80,"Crit %":4,"ATK Speed":-300,"Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Volley","ATK Power":180,"Crit %":"","ATK Speed":-300,"Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"l33t Skillz 6","ATK Power":100,"Crit %":12,"ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"l33t Skillz 7","ATK Power":200,"Crit %":14,"ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Nerd Rage 5","ATK Power":240,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Nerd Rage 6","ATK Power":300,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Nerd Rage 7","ATK Power":500,"Crit %":3,"ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Rage 1","ATK Power":200,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Rage 2","ATK Power":600,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Ruse 1","ATK Power":"","Crit %":8,"ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Ruse 2","ATK Power":"","Crit %":16,"ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Block of Ice","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":20000,"STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Seaweed","ATK Power":240,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Ocean's Blessing","ATK Power":"","Crit %":7,"ATK Speed":"","Energy Per Second":20,"Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Dutchman's Blessing","ATK Power":220,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":30,"Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Self-Motivated 4","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":14,"Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Self-Motivated 5","ATK Power":100,"Crit %":"","ATK Speed":"","Energy Per Second":40,"Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"That's the Stuff 4","ATK Power":"","Crit %":-1,"ATK Speed":"","Energy Per Second":"","Health Per Second":45,"Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Tuff Luv 1","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":15,"Armor":3000,"STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Tuff Luv 2","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":32,"Armor":7000,"STR":"","STA":"","AGI":"","INT":""},{"Category":"Morph","Name":"Mr Roboto","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":20,"AGI":"","INT":""},{"Category":"Morph","Name":"Deep Freeze","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":20,"STA":"","AGI":"","INT":""},{"Category":"Morph","Name":"Shell Shocked","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":8000,"STR":"","STA":"","AGI":-10,"INT":""},{"Category":"Morph","Name":"Alienated","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":20,"INT":""},{"Category":"Morph","Name":"Ghoulish Behavior","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":20},{"Category":"Morph","Name":"Earth Metamorph","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":20,"STA":35,"AGI":20,"INT":20},{"Category":"Morph","Name":"Fire Metamorph","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":35,"STA":20,"AGI":20,"INT":20},{"Category":"Morph","Name":"Ice Metamorph","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":20,"STA":20,"AGI":20,"INT":35},{"Category":"Morph","Name":"Wind Metamorph","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":20,"STA":20,"AGI":35,"INT":20},{"Category":"Buff","Name":"Little Light","ATK Power":180,"Crit %":"","ATK Speed":"","Energy Per Second":24,"Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""}]
+const buffsJson = [{"Category":"Buff","Name":"Berserk","ATK Power":80,"Crit %":4,"ATK Speed":-300,"Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Volley","ATK Power":180,"Crit %":"","ATK Speed":-300,"Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"l33t Skillz 6","ATK Power":100,"Crit %":12,"ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"l33t Skillz 7","ATK Power":200,"Crit %":14,"ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Nerd Rage 5","ATK Power":240,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Nerd Rage 6","ATK Power":300,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Nerd Rage 7","ATK Power":500,"Crit %":3,"ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Rage 1","ATK Power":200,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Rage 2","ATK Power":600,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Ruse 1","ATK Power":"","Crit %":8,"ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Ruse 2","ATK Power":"","Crit %":16,"ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Block of Ice","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":20000,"STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Seaweed","ATK Power":240,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Ocean's Blessing","ATK Power":"","Crit %":7,"ATK Speed":"","Energy Per Second":20,"Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Dutchman's Blessing","ATK Power":220,"Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":30,"Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Self-Motivated 4","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":14,"Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Self-Motivated 5","ATK Power":100,"Crit %":"","ATK Speed":"","Energy Per Second":40,"Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"That's the Stuff 4","ATK Power":"","Crit %":-1,"ATK Speed":"","Energy Per Second":"","Health Per Second":45,"Armor":"","STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Thick Skin 6","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":15000,"STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Tuff Luv 1","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":15,"Armor":3000,"STR":"","STA":"","AGI":"","INT":""},{"Category":"Buff","Name":"Tuff Luv 2","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":32,"Armor":7000,"STR":"","STA":"","AGI":"","INT":""},{"Category":"Morph","Name":"Mr Roboto","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":20,"AGI":"","INT":""},{"Category":"Morph","Name":"Deep Freeze","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":20,"STA":"","AGI":"","INT":""},{"Category":"Morph","Name":"Shell Shocked","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":8000,"STR":"","STA":"","AGI":-10,"INT":""},{"Category":"Morph","Name":"Alienated","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":20,"INT":""},{"Category":"Morph","Name":"Ghoulish Behavior","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":20},{"Category":"Morph","Name":"Earth Metamorph","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":20,"STA":35,"AGI":20,"INT":20},{"Category":"Morph","Name":"Fire Metamorph","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":35,"STA":20,"AGI":20,"INT":20},{"Category":"Morph","Name":"Ice Metamorph","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":20,"STA":20,"AGI":20,"INT":35},{"Category":"Morph","Name":"Wind Metamorph","ATK Power":"","Crit %":"","ATK Speed":"","Energy Per Second":"","Health Per Second":"","Armor":"","STR":20,"STA":20,"AGI":35,"INT":20},{"Category":"Buff","Name":"Little Light","ATK Power":180,"Crit %":"","ATK Speed":"","Energy Per Second":24,"Health Per Second":"","Armor":"","STR":"","STA":"","AGI":"","INT":""}]
 
 buffsData = loadBuffsData(buffsJson);
 
@@ -4058,7 +4103,9 @@ function displaySavedBuilds() {
                 <div><b>DPS:</b> ${Math.round(calculatedStats.finalDPS)}  <b>Armor:</b> ${calculatedStats.finalArmor}</div>
                 <div><b>Crit:</b> ${calculatedStats.finalCrit.toFixed(2)}%  <b>Dodge:</b>${calculatedStats.finalDodge.toFixed(2)}%</div>
                 <div><b>Dmg:</b> (${calculatedStats.finalMinDamage}-${calculatedStats.finalMaxDamage})  <b>Spd:</b>${(calculatedStats.finalAttackSpeed / 1000.0).toFixed(1)}s</div>
+                <div><b>Mgtn:</b> ${Math.round(calculatedStats.mitigationPercent.toFixed(2))}%</div>
                 <div><b>Mitigation:</b> ${calculatedStats.mitigationPercent.toFixed(2)}%</div>
+            <div><b>HP/s:</b> ${calculatedStats.finalHPRegenPerSecond.toFixed(1)}/s <b>ENG/s:</b> ${calculatedStats.finalEnergyRegenPerSecond.toFixed(1)}/s</div>
             `;
         } else {
             // Fallback if stats calculation fails
