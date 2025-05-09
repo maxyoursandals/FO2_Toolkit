@@ -66,8 +66,10 @@
             min-width: 350px;
         }
 
-        .right-panel > .stat-item:first-child { /* Selects ONLY the direct children */
-             margin-top: 5px; /* Adjust this value as needed */
+        .right-panel .dps-row,
+        .right-panel .mitigation-row,
+        .right-panel .regen-row {
+            margin-bottom: 0px; /* Or margin-top, but pick one for consistency */
         }
 
         .mitigation-row {
@@ -583,7 +585,17 @@
         }
 		
 		.right-panel .stat-item {
-            margin-top: 50px; /* Adjust this value as needed */
+            /* Option A: Reduce the default margin for all stat items in the right panel */
+            margin-top: 0px; /* Or even less, e.g., 5px */
+
+            /* Option B: Remove it entirely if you want to rely on specific classes for spacing */
+            /* margin-top: 0; */
+
+            /* Keep other properties if they exist */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1px 5px;
         }
 
         .performance-section {
@@ -1184,8 +1196,8 @@
     <div id="app-container">
     
         <div class="top-nav">
-            <button class="nav-button active" data-page="build-editor">Build Editor</button>
-            <button class="nav-button" data-page="build-management">Build Management</button>
+            <button class="nav-button active" data-page="build-editor">Editor</button>
+            <button class="nav-button" data-page="build-management">Saved Builds</button>
         </div>
     
         <div class="page-content">
@@ -1531,37 +1543,44 @@ function showNotification(message, type = 'info') {
 function recalculateBuildStats() {
     // --- 1. Calculate Final Base Stats (AGI, STR, INT, STA) ---
     const finalStats = {
-        agi: 20 + (currentStats.statPoints.agi - 20), // Start with allocated points
+        agi: 20 + (currentStats.statPoints.agi - 20),
         str: 20 + (currentStats.statPoints.str - 20),
         int: 20 + (currentStats.statPoints.int - 20),
         sta: 20 + (currentStats.statPoints.sta - 20)
     };
 
-    // Add Buff Stats
+    let equipmentArmor = 0;
+    let equipmentAP = 0;
+    let equipmentCrit = 0;
+    let weaponMinDamage = baseStats.damage.min;
+    let weaponMaxDamage = baseStats.damage.max;
+    let baseAttackSpeed = baseStats.atkSpeed;
+
+    let finalHPRegenPerSecond = 0;
+    let finalEnergyRegenPerSecond = 0;
+
+    // Add Buff Stats AND Regen
     activeBuffs.forEach(buff => {
         finalStats.agi += buff.AGI || 0;
         finalStats.str += buff.STR || 0;
         finalStats.int += buff.INT || 0;
         finalStats.sta += buff.STA || 0;
+        
+        // Accumulate direct bonuses from buffs
+        equipmentArmor += buff.Armor || 0; 
+        equipmentAP += buff["ATK Power"] || 0; 
+        // equipmentCrit += buff["Crit %"] || 0; // Crit from buffs is handled later with DR
+
+        // Regen from buffs
         if (buff["Health Per Second"] !== undefined && buff["Health Per Second"] !== "") {
-                finalHPRegenPerSecond += Number(buff["Health Per Second"]) || 0;
-            }
-            if (buff["Energy Per Second"] !== undefined && buff["Energy Per Second"] !== "") {
-                finalEnergyRegenPerSecond += Number(buff["Energy Per Second"]) || 0;
-            }
-        });
+            finalHPRegenPerSecond += Number(buff["Health Per Second"]) || 0;
+        }
+        if (buff["Energy Per Second"] !== undefined && buff["Energy Per Second"] !== "") {
+            finalEnergyRegenPerSecond += Number(buff["Energy Per Second"]) || 0;
+        }
+    });
 
-    // Add Equipment Stats & Collect Equip Bonuses
-    let equipmentArmor = 0;
-    let equipmentAP = 0; // Placeholder if any gear adds direct AP
-    let equipmentCrit = 0; // Placeholder if any gear adds direct Crit%
-    let weaponMinDamage = baseStats.damage.min; // Use base unarmed min damage initially
-    let weaponMaxDamage = baseStats.damage.max; // Use base unarmed max damage initially
-    let baseAttackSpeed = baseStats.atkSpeed;   // Use base unarmed speed initially
-
-    let finalHPRegenPerSecond = 0;
-    let finalEnergyRegenPerSecond = 0;
-
+    // Add Equipment Stats
     for (const slot in currentStats.equipment) {
         const item = currentStats.equipment[slot];
         if (item) {
@@ -1570,14 +1589,13 @@ function recalculateBuildStats() {
             finalStats.int += item.INT || 0;
             finalStats.sta += item.STA || 0;
             equipmentArmor += item.Armor || 0;
-            equipmentAP += item.AtkPower || 0;
-            equipmentCrit += item.CritPercent || 0;
+            // equipmentAP += item.AtkPower || 0; // If items can add direct AP
+            // equipmentCrit += item.CritPercent || 0; // If items can add direct Crit %
 
-            // If a weapon is equipped, use its damage and speed
             if (slot === 'weapon') {
-                weaponMinDamage = item.minDamage; // Already processed in loadItemData
-                weaponMaxDamage = item.maxDamage; // Already processed in loadItemData
-                baseAttackSpeed = item["Atk Spd"] || baseAttackSpeed; // Use item speed, fallback to base
+                weaponMinDamage = item.minDamage;
+                weaponMaxDamage = item.maxDamage;
+                baseAttackSpeed = item["Atk Spd"] || baseAttackSpeed;
             }
         }
     }
@@ -1585,45 +1603,42 @@ function recalculateBuildStats() {
     // --- 2. Calculate Final Derived Stats ---
 
     // HP and Energy
-    const baseHpConst = 1080; // Constants for calculation
+    const baseHpConst = 1080;
     const baseEnergyConst = 1200;
     let finalHP = Math.round(baseHpConst / 60 * currentStats.level);
     let finalEnergy = Math.round(baseEnergyConst / 60 * currentStats.level);
     finalHP += Math.max(0, finalStats.sta - 20) * 20;
     finalEnergy += Math.max(0, finalStats.int - 20) * 15;
 
-    // Armor (from Str + Equip + Buffs)
+    // Armor (now equipmentArmor already includes buff direct armor)
     let finalArmor = Math.max(0, finalStats.str - 20) * 5;
-    finalArmor += equipmentArmor;
-    activeBuffs.forEach(buff => {
-        finalArmor += buff.Armor || 0;
-    });
-    finalArmor = Math.max(0, finalArmor); // Ensure armor doesn't go below 0
+    finalArmor += equipmentArmor; 
+    finalArmor = Math.max(0, finalArmor);
 
     // Attack Speed (Base from weapon/unarmed + Non-Stacking Buff)
     let finalAttackSpeed = baseAttackSpeed;
-    let atkSpeedBuffApplied = false;
+    let atkSpeedBuffApplied = false; // This logic is fine, it's for non-stacking speed buffs.
     activeBuffs.forEach(buff => {
-        // Check if buff provides ATK Speed and it hasn't been applied yet
         if (buff["ATK Speed"] !== undefined && buff["ATK Speed"] !== "" && !atkSpeedBuffApplied) {
-            // Ensure the value is treated as a number
-            const speedChange = parseInt(buff["ATK Speed"]) || 0;
-            finalAttackSpeed += speedChange;
-            atkSpeedBuffApplied = true; // Only apply the first relevant buff found
+            finalAttackSpeed += parseInt(buff["ATK Speed"]) || 0;
+            atkSpeedBuffApplied = true;
         }
     });
-    finalAttackSpeed = Math.max(100, finalAttackSpeed); // Ensure minimum attack speed (e.g., 100ms)
+    finalAttackSpeed = Math.max(100, finalAttackSpeed);
 
     let mitigationPercent = 0;
     const kValue = 200 + 50 * currentStats.level;
-    // Check denominator to avoid division by zero
     if ((kValue + finalArmor) > 0) {
         mitigationPercent = (finalArmor / (kValue + finalArmor)) * 100;
     }
 
     // --- Calculate Final AP (Attack Power) ---
-    // (Using the refined logic from previous steps)
-    let finalAP = baseStats.atkPower; // Start with base 40
+    let finalAPCalc = baseStats.atkPower; // Use a temporary variable for calculation
+    // ... (existing AP calculation logic, using finalStats and equipmentAP) ...
+    // The equipmentAP already includes AP from buffs.
+    // This part needs to be careful not to double-add buff AP.
+    // Let's refine AP and Crit addition from buffs to be more explicit AFTER base calculations.
+    
     let highestStatValue = 0;
     let isStrHighestDriver = false;
     if (finalStats.str >= 20) { highestStatValue = finalStats.str; isStrHighestDriver = true; }
@@ -1632,82 +1647,81 @@ function recalculateBuildStats() {
     if (finalStats.sta > highestStatValue) { highestStatValue = finalStats.sta; isStrHighestDriver = false; }
     if (!isStrHighestDriver && finalStats.str === highestStatValue && finalStats.str >= 20) { isStrHighestDriver = true;}
 
-    let apFromStats = 0;
+    let apFromBaseStats = 0;
     let secondaryStrBonus = 0;
     if (isStrHighestDriver) {
-        apFromStats = (finalStats.str - 20) * 3;
+        apFromBaseStats = (finalStats.str - 20) * 3;
     } else {
-        if (highestStatValue >= 20) { // Only gain AP from stats above base 20
-             apFromStats = (highestStatValue - 20) * 2;
-        }
-        if (finalStats.str > 20) {
-            secondaryStrBonus = (finalStats.str - 20) * 1;
+        if (highestStatValue >= 20) { apFromBaseStats = (highestStatValue - 20) * 2; }
+        if (finalStats.str > 20) { secondaryStrBonus = (finalStats.str - 20) * 1; }
+    }
+    finalAPCalc += Math.max(0, apFromBaseStats);
+    finalAPCalc += Math.max(0, secondaryStrBonus);
+    // equipmentAP now contains direct AP from items (if any) AND buffs.
+    finalAPCalc += equipmentAP; // Add direct AP from equipment & buffs
+    finalAPCalc = Math.max(0, finalAPCalc);
+
+
+    // Critical Chance
+    let finalCritCalc = calculateCritical(finalStats); // Crit from base stats (AGI/INT)
+    // equipmentCrit now contains direct Crit % from items (if any) AND buffs.
+    // Re-apply DR logic if buffs also add crit *after* stat crit.
+    // This part needs to be careful. The current calculateCritical handles DR for stats.
+    // If buffs add flat crit, that needs its own DR application or be fed into calculateCritical.
+    // For simplicity, let's assume calculateCritical handles all sources if we pass total effective stats.
+    // The activeBuffs.forEach loop for crit in recalculateBuildStats might be redundant if equipmentCrit is already summed.
+    // Let's ensure `equipmentCrit` only comes from items, and buffs are handled separately for crit
+    // Or, better, sum all stat contributions first, then calculate crit.
+    
+    // Recalculate Crit with explicit buff contributions
+    let baseCritFromStats = calculateCritical(finalStats); // Crit from AGI/INT with DR
+    let buffCritContribution = 0;
+    activeBuffs.forEach(buff => {
+        buffCritContribution += buff["Crit %"] || 0;
+    });
+
+    let finalCombinedCrit = baseCritFromStats;
+    if (buffCritContribution !== 0) { // Apply DR for buff crit contribution
+        if (finalCombinedCrit + buffCritContribution <= 80) {
+            finalCombinedCrit += buffCritContribution;
+        } else if (finalCombinedCrit < 80) {
+            const fullValue = 80 - finalCombinedCrit;
+            const reducedValue = (buffCritContribution - fullValue) * 0.5;
+            finalCombinedCrit = 80 + reducedValue;
+        } else { // finalCombinedCrit >= 80
+            finalCombinedCrit += buffCritContribution * 0.5;
         }
     }
-    finalAP += Math.max(0, apFromStats);
-    finalAP += Math.max(0, secondaryStrBonus);
-    finalAP += equipmentAP; // Add direct AP from equipment collected earlier
-    activeBuffs.forEach(buff => { // Add direct AP from buffs
-        finalAP += buff["ATK Power"] || 0;
-    });
-    finalAP = Math.max(0, finalAP); // Ensure AP is not negative
+    finalCombinedCrit = Math.max(0, finalCombinedCrit);
 
 
-    // Critical Chance (from Stats + Equip Crit + Buff Crit with DR)
-    let finalCrit = calculateCritical(finalStats); // Includes DR from stats
-    finalCrit += equipmentCrit; // Add direct crit from equipment
-    activeBuffs.forEach(buff => { // Add crit from buffs, applying DR logic again
-        const critToAdd = buff["Crit %"] || 0;
-        if (critToAdd !== 0) {
-             if (finalCrit + critToAdd <= 80) {
-                 finalCrit += critToAdd;
-             } else if (finalCrit < 80) {
-                 const fullValue = 80 - finalCrit;
-                 const reducedValue = (critToAdd - fullValue) * 0.5;
-                 finalCrit = 80 + reducedValue;
-             } else { // finalCrit >= 80
-                 finalCrit += critToAdd * 0.5;
-             }
-        }
-    });
-    finalCrit = Math.max(0, finalCrit); // Ensure crit is not negative
-
-
-    // Dodge Chance (Calculated directly from final AGI with DR)
-    let finalDodge = calculateNewDodge(finalStats.agi); // Uses the helper function
-    finalDodge = Math.max(0, finalDodge); // Ensure dodge is not negative
+    // Dodge Chance
+    let finalDodge = calculateNewDodge(finalStats.agi);
+    finalDodge = Math.max(0, finalDodge);
 
     // Calculate Final Min/Max Damage including AP Bonus
     const attackSpeedInSeconds = finalAttackSpeed / 1000.0;
-    // Calculate the bonus damage from AP, rounding down
-    const damageBonus = Math.floor((finalAP * attackSpeedInSeconds) / 14);
+    const damageBonus = Math.floor((finalAPCalc * attackSpeedInSeconds) / 14);
     let finalMinDamage = weaponMinDamage + damageBonus;
     let finalMaxDamage = weaponMaxDamage + damageBonus;
 
-
-    // --- Calculate DPS ---
+    // DPS
     let finalDPS = 0;
-    if (finalAttackSpeed > 0) { // Avoid division by zero
+    if (finalAttackSpeed > 0) {
         const avgHit = (finalMinDamage + finalMaxDamage) / 2;
-        // Ensure attacksPerSec calculation is correct
-        const attacksPerSec = 1000.0 / finalAttackSpeed; // Use floating point division
-        const critDecimal = finalCrit / 100.0; // Convert crit % to decimal
-        // Assuming crit damage multiplier is 2x. Adjust '2.0' if different.
-        const critMultiplier = 1.0 + critDecimal * (2.0 - 1.0); // (Base Damage + Crit Damage Increase)
+        const attacksPerSec = 1000.0 / finalAttackSpeed;
+        const critMultiplier = 1.0 + (finalCombinedCrit / 100.0) * (2.0 - 1.0); // Use finalCombinedCrit
         finalDPS = avgHit * attacksPerSec * critMultiplier;
     }
-    // --- End DPS Calculation ---
 
-
-    // Return all calculated values
     return {
         finalStats,
         finalHP,
         finalEnergy,
         finalArmor,
         finalAttackSpeed,
-        finalAP,
-        finalCrit,
+        finalAP: finalAPCalc, // Use the correctly calculated AP
+        finalCrit: finalCombinedCrit, // Use the correctly calculated Crit
         finalDodge,
         finalMinDamage,
         finalMaxDamage,
