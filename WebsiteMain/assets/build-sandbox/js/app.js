@@ -1731,10 +1731,6 @@ document.querySelectorAll('.stat-button').forEach(button => {
     });
 });
 
-// Reset and Distribute buttons
-resetButton.addEventListener('click', resetStats);
-distributeButton.addEventListener('click', distributePoints);
-
 // Equipment slots
 document.querySelectorAll('.slot').forEach(slot => {
     slot.addEventListener('click', function() {
