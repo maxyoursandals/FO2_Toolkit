@@ -2,24 +2,21 @@
             /* --background: #0c0e1a; */
             --panel: #1a1c2a;
             --text: #e0e0e0;
-            --accent: #3d81db;
-            --accent-hover: #5b93e0;
+            --accent: #c7d4e4;
+            --accent-hover: #313c4d;
             --health: #e74c3c;
             --energy: #3498db;
             --stat-text: #e0e0e0;
             --negative-button: #e74c3c;
             --positive-button: #2ecc71;
-            --neutral-button: #3d81db;
+            --neutral-button: #353953;
             --border: #2c2e40;
             --slot-bg: #2c2e40;
         }
-        
         body {
             background-color: var(--background);
             color: var(--text);
             /* font-family: Arial, sans-serif; */
-            margin: 0;
-            padding: 0;
             /* height: 100vh; */
             /* overflow: hidden; */
         }
@@ -52,7 +49,7 @@
         }
 
         .right-panel {
-            flex: 3;
+            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -204,6 +201,92 @@
             flex: 1;
             margin: 0 10px;
         }
+
+        /* --- General Slider Styling --- */
+        input[type="range"] {
+            -webkit-appearance: none; /* Override default Webkit look */
+            appearance: none;
+            width: 100%; /* Or a specific width */
+            height: 8px; /* Example height for the track */
+            background: #555; /* Dark track background - ADJUST THIS */
+            border-radius: 5px;
+            outline: none;
+            margin: 10px 0; /* Your existing margin */
+        }
+
+        /* --- Thumb Styling (Chrome, Opera, Safari, Edge) --- */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; /* Override default Webkit look */
+            appearance: none;
+            width: 20px; /* Example width */
+            height: 20px; /* Example height */
+            background: var(--accent, #3d81db); /* Use your accent color, or a new one - ADJUST THIS */
+            border-radius: 50%; /* Circular thumb */
+            cursor: pointer;
+            border: 2px solid var(--panel, #1a1c2a); /* Optional: border matching panel bg */
+            box-shadow: 0 0 2px rgba(0,0,0,0.5); /* Optional shadow */
+        }
+
+        /* --- Thumb Styling (Firefox) --- */
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; /* Example width */
+            height: 20px; /* Example height */
+            background: var(--accent, #3d81db); /* Use your accent color - ADJUST THIS */
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid var(--panel, #1a1c2a); /* Optional: border matching panel bg */
+            box-shadow: 0 0 2px rgba(0,0,0,0.5); /* Optional shadow */
+        }
+
+        /* --- Track Styling (Firefox) --- */
+        input[type="range"]::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #555; /* Dark track background - ADJUST THIS */
+            border-radius: 5px;
+            border: none; /* Remove Firefox default border */
+        }
+
+        /* --- Track Styling (IE - less relevant now, but for completeness) --- */
+        input[type="range"]::-ms-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: transparent; /* IE track is often hidden and filled with ms-fill-lower/upper */
+            border-color: transparent;
+            color: transparent;
+        }
+
+        input[type="range"]::-ms-fill-lower {
+            background: var(--accent, #3d81db); /* Color of the track to the left of the thumb */
+            border-radius: 5px;
+        }
+
+        input[type="range"]::-ms-fill-upper {
+            background: #555; /* Color of the track to the right of the thumb */
+            border-radius: 5px;
+        }
+
+        input[type="range"]::-ms-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent, #3d81db);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid var(--panel, #1a1c2a);
+            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+            margin-top: 0px; /* May need adjustment */
+        }
+
+        /* --- Optional: Focus styles for accessibility --- */
+        input[type="range"]:focus::-webkit-slider-thumb {
+            box-shadow: 0 0 0 3px var(--panel, #1a1c2a), 0 0 0 6px rgba(var(--accent-rgb, 61, 129, 219), 0.5); /* Adjust focus ring */
+        }
+
+        input[type="range"]:focus::-moz-range-thumb {
+            box-shadow: 0 0 0 3px var(--panel, #1a1c2a), 0 0 0 6px rgba(var(--accent-rgb, 61, 129, 219), 0.5); /* Adjust focus ring */
+        }
         
         .stat-buttons {
             display: flex;
@@ -337,7 +420,7 @@
         .notification {
             position: fixed;
             top: 20px;
-            right: 20px;
+            left: 20px;
             background-color: var(--panel);
             border-left: 4px solid var(--accent);
             padding: 15px;
@@ -882,10 +965,14 @@
 
 		/* Style for the reset button */
 		.action-button.negative {
-			background-color: var(--negative-button);
+			/* background-color: #c03a2b63; */
 		}
 		.action-button.negative:hover {
-			background-color: #c0392b; /* Darker red on hover */
+			background-color: #c03a2b63;
+		}
+
+        .action-button.positive:hover {
+			background-color: #37c02b63;
 		}
 
         #app-container {
