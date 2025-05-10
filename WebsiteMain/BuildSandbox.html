@@ -61,10 +61,13 @@
 													<label for="level">Level</label>
 													<div style="display: flex; align-items: center;">
 														<input type="number" id="level" min="1" max="80" value="1">
-														<div class="rebirth-option">
-															<input type="checkbox" id="rebirth">
-															<label for="rebirth">Rebirth</label>
-														</div>
+													<div class="rebirth-icon-container" id="rebirth-icon-clickable" title="Toggle Rebirth">
+														<img src="assets/build-sandbox/icons/rebirth-icon.png" alt="Rebirth" id="rebirth-status-icon">
+													</div>
+													<div class="action-buttons">
+														<button class="action-button" id="reset-button">Reset Stats</button>
+														<button class="action-button" id="reset-buffs-button">Reset Buffs</button>
+													</div>
 													</div>
 													<input type="range" id="level-slider" min="1" max="60" value="1">
 												</div>
@@ -108,10 +111,6 @@
 													</div>
 													<div class="remaining-points">
 														Remaining: <span id="remaining-points">2</span>
-													</div>
-													<div class="action-buttons">
-														<button class="action-button" id="reset-button">Reset Stats</button>
-														<button class="action-button" id="reset-buffs-button">Reset Buffs</button>
 													</div>
 													<div class="buff-section">
 														<h3>Active Buffs <span id="active-buffs-count">(0/5)</span></h3>

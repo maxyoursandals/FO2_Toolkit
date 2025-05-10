@@ -371,7 +371,8 @@ const modalSaveButton = document.getElementById('modal-save-button');
 // DOM Elements
 const levelInput = document.getElementById('level');
 const levelSlider = document.getElementById('level-slider');
-const rebirthCheckbox = document.getElementById('rebirth');
+const rebirthIconClickable = document.getElementById('rebirth-icon-clickable');
+const rebirthStatusIcon = document.getElementById('rebirth-status-icon');
 const remainingPointsDisplay = document.getElementById('remaining-points');
 const resetButton = document.getElementById('reset-button');
 const itemSearchModal = document.getElementById('item-search-modal');
@@ -791,7 +792,7 @@ function equipItem(slot, item) {
     if (item) { // Equipping an item
         // Display item image
         if (item["Sprite-Link"] && item["Sprite-Link"] !== "") {
-            slotElement.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slot}" title="${item.Name || slot}" style="max-width: 40px; max-height: 40px; image-rendering: pixelated;">`;
+            slotElement.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slot}" title="${item.Name || slot}" style="image-rendering: pixelated;">`;
         } else {
              slotElement.innerHTML = `<div style="width:40px;height:40px;display:flex;justify-content:center;align-items:center;font-size:12px;text-align:center;" title="${item.Name || ''}">${item.Name || '?'}</div>`;
         }
@@ -814,7 +815,7 @@ function equipItem(slot, item) {
         if (slot === 'ring1' || slot === 'ring2') iconName = 'ring';
         if (slot === 'trinket1' || slot === 'trinket2') iconName = 'trinket';
 
-        const defaultIconSrc = `icons/${iconName}-icon.png`;
+        const defaultIconSrc = `assets/build-sandbox/icons/${iconName}-icon.png`;
         const defaultAltText = slot.charAt(0).toUpperCase() + slot.slice(1);
         slotElement.innerHTML = `<img src="${defaultIconSrc}" alt="${defaultAltText}">`;
         // Add error handling for default icons if needed
@@ -990,21 +991,31 @@ function handleLevelChange() {
 }
 
 function handleRebirthChange() {
-    currentStats.rebirth = rebirthCheckbox.checked;
-    
-    // Update max level
+    currentStats.rebirth = !currentStats.rebirth; // Toggle the state
+
+    // Update icon visual state
+    if (rebirthStatusIcon) {
+        if (currentStats.rebirth) {
+            rebirthStatusIcon.classList.add('active');
+        } else {
+            rebirthStatusIcon.classList.remove('active');
+        }
+    }
+
+    // Update max level for slider and input
     if (currentStats.rebirth) {
         levelSlider.max = 80;
+        levelInput.max = 80; // Also set max for number input
     } else {
         levelSlider.max = 60;
+        levelInput.max = 60; // Also set max for number input
         if (currentStats.level > 60) {
             currentStats.level = 60;
             levelInput.value = 60;
             levelSlider.value = 60;
         }
     }
-    
-    // Update available points
+
     updateRemainingPoints();
     const results = recalculateBuildStats();
     updateDisplay(results);
@@ -1118,93 +1129,87 @@ function createBuffIcon(buff, container) {
 
 // Show tooltip with buff details
 function showBuffTooltip(buff, element) {
-    // Remove any existing tooltip
-    hideBuffTooltip();
-    
+    hideBuffTooltip(); // Remove any existing tooltip
+
     const tooltip = document.createElement('div');
     tooltip.className = 'buff-tooltip';
     tooltip.id = 'buff-tooltip';
-    
+
     let tooltipContent = `<div class="tooltip-title">${buff.Name} (${buff.Category})</div>`;
-    
-    // Add effects
     const effects = [];
-    
-    if (buff["ATK Power"] !== undefined && buff["ATK Power"] !== "") {
-        const sign = buff["ATK Power"] > 0 ? '+' : '';
-        const cssClass = buff["ATK Power"] > 0 ? 'effect-positive' : 'effect-negative';
-        effects.push(`<div class="buff-effect ${cssClass}">ATK Power: ${sign}${buff["ATK Power"]}</div>`);
-    }
-    
-    if (buff["Crit %"] !== undefined && buff["Crit %"] !== "") {
-        const sign = buff["Crit %"] > 0 ? '+' : '';
-        const cssClass = buff["Crit %"] > 0 ? 'effect-positive' : 'effect-negative';
-        effects.push(`<div class="buff-effect ${cssClass}">Crit: ${sign}${buff["Crit %"]}%</div>`);
-    }
-    
-    if (buff["ATK Speed"] !== undefined && buff["ATK Speed"] !== "") {
-        const sign = buff["ATK Speed"] > 0 ? '+' : '';
-        // For ATK Speed, negative is actually positive (faster)
-        const cssClass = buff["ATK Speed"] < 0 ? 'effect-positive' : 'effect-negative';
-        effects.push(`<div class="buff-effect ${cssClass}">ATK Speed: ${sign}${buff["ATK Speed"]}</div>`);
-    }
-    
-    if (buff["Energy Per Second"] !== undefined && buff["Energy Per Second"] !== "") {
-        const sign = buff["Energy Per Second"] > 0 ? '+' : '';
-        const cssClass = buff["Energy Per Second"] > 0 ? 'effect-positive' : 'effect-negative';
-        effects.push(`<div class="buff-effect ${cssClass}">Energy Per Second: ${sign}${buff["Energy Per Second"]}</div>`);
-    }
-    
-    if (buff["Health Per Second"] !== undefined && buff["Health Per Second"] !== "") {
-        const sign = buff["Health Per Second"] > 0 ? '+' : '';
-        const cssClass = buff["Health Per Second"] > 0 ? 'effect-positive' : 'effect-negative';
-        effects.push(`<div class="buff-effect ${cssClass}">Health Per Second: ${sign}${buff["Health Per Second"]}</div>`);
-    }
-    
-    if (buff["Armor"] !== undefined && buff["Armor"] !== "") {
-        const sign = buff["Armor"] > 0 ? '+' : '';
-        const cssClass = buff["Armor"] > 0 ? 'effect-positive' : 'effect-negative';
-        effects.push(`<div class="buff-effect ${cssClass}">Armor: ${sign}${buff["Armor"]}</div>`);
-    }
-    
-    if (buff["STR"] !== undefined && buff["STR"] !== "") {
-        const sign = buff["STR"] > 0 ? '+' : '';
-        const cssClass = buff["STR"] > 0 ? 'effect-positive' : 'effect-negative';
-        effects.push(`<div class="buff-effect ${cssClass}">STR: ${sign}${buff["STR"]}</div>`);
-    }
-    
-    if (buff["STA"] !== undefined && buff["STA"] !== "") {
-        const sign = buff["STA"] > 0 ? '+' : '';
-        const cssClass = buff["STA"] > 0 ? 'effect-positive' : 'effect-negative';
-        effects.push(`<div class="buff-effect ${cssClass}">STA: ${sign}${buff["STA"]}</div>`);
-    }
-    
-    if (buff["AGI"] !== undefined && buff["AGI"] !== "") {
-        const sign = buff["AGI"] > 0 ? '+' : '';
-        const cssClass = buff["AGI"] > 0 ? 'effect-positive' : 'effect-negative';
-        effects.push(`<div class="buff-effect ${cssClass}">AGI: ${sign}${buff["AGI"]}</div>`);
-    }
-    
-    if (buff["INT"] !== undefined && buff["INT"] !== "") {
-        const sign = buff["INT"] > 0 ? '+' : '';
-        const cssClass = buff["INT"] > 0 ? 'effect-positive' : 'effect-negative';
-        effects.push(`<div class="buff-effect ${cssClass}">INT: ${sign}${buff["INT"]}</div>`);
-    }
-    
+
+    // Helper function to add effect if value is non-zero
+    const addEffect = (label, value, unit = "") => {
+        if (value !== undefined && value !== null && value !== 0 && value !== "") {
+            const sign = value > 0 ? '+' : '';
+            // For ATK Speed, negative is actually a "positive" effect (faster)
+            const cssClass = (label === "ATK Speed" ? (value < 0 ? 'effect-positive' : 'effect-negative') : (value > 0 ? 'effect-positive' : 'effect-negative'));
+            effects.push(`<div class="buff-effect ${cssClass}">${label}: ${sign}${value}${unit}</div>`);
+        }
+    };
+
+    // Stat attributes from the buff object and their display labels/units
+    const statMappings = [
+        { key: "ATK Power", label: "ATK Power" },
+        { key: "Crit %", label: "Crit", unit: "%" },
+        { key: "ATK Speed", label: "ATK Speed" }, // Special handling for sign in addEffect
+        { key: "Energy Per Second", label: "Energy Per Sec" },
+        { key: "Health Per Second", label: "Health Per Sec" },
+        { key: "Armor", label: "Armor" },
+        { key: "STR", label: "STR" },
+        { key: "STA", label: "STA" },
+        { key: "AGI", label: "AGI" },
+        { key: "INT", label: "INT" }
+    ];
+
+    statMappings.forEach(statMap => {
+        // The values in buff object are already parsed to numbers (or 0) by loadBuffsData
+        const buffValue = buff[statMap.key];
+        addEffect(statMap.label, buffValue, statMap.unit);
+    });
+
     tooltipContent += effects.join('');
-    
+
     tooltip.innerHTML = tooltipContent;
     document.body.appendChild(tooltip);
-    
+
     // Position the tooltip
-    const rect = element.getBoundingClientRect();
-    tooltip.style.left = `${rect.right + 10}px`;
-    tooltip.style.top = `${rect.top}px`;
-    
-    // Make visible
-    setTimeout(() => {
+    const rect = element.getBoundingClientRect();    // Element being hovered
+    const tooltipRect = tooltip.getBoundingClientRect(); // Tooltip's own dimensions
+    const margin = 5; // Small margin from the element
+
+    // Attempt to position to the right of the element
+    let potentialLeft = rect.right + margin;
+    let potentialTop = rect.top + (rect.height / 2) - (tooltipRect.height / 2); // Try to vertically center relative to the icon
+
+    // Adjust if it goes off-screen right
+    if (potentialLeft + tooltipRect.width > window.innerWidth - margin) {
+        potentialLeft = rect.left - tooltipRect.width - margin; // Move to the left
+    }
+
+    // Adjust if it goes off-screen left (after trying to move it left)
+    if (potentialLeft < margin) {
+        potentialLeft = margin;
+    }
+
+    // Adjust if it goes off-screen bottom
+    if (potentialTop + tooltipRect.height > window.innerHeight - margin) {
+        potentialTop = window.innerHeight - tooltipRect.height - margin;
+    }
+
+    // Adjust if it goes off-screen top
+    if (potentialTop < margin) {
+        potentialTop = margin;
+    }
+
+    // Apply scroll offsets
+    tooltip.style.left = `${potentialLeft + window.scrollX}px`;
+    tooltip.style.top = `${potentialTop + window.scrollY}px`;
+    // --- END CORRECTED POSITIONING LOGIC ---
+
+    requestAnimationFrame(() => {
         tooltip.style.opacity = 1;
-    }, 10);
+    });
 }
 
 // Hide buff tooltip
@@ -1351,14 +1356,13 @@ function loadBuild(buildIndex) {
 }
 		// Add function to reset all equipment
 		function resetAllEquipment() {
-			// Get all equipment slots
-			const slots = document.querySelectorAll('.slot');
-			
-			// Remove equipment from each slot
-			slots.forEach(slot => {
-				const slotName = slot.dataset.slot;
-				equipItem(slotName, null);
-			});
+            const slots = document.querySelectorAll('.slot');
+            slots.forEach(slotElement => {
+                if (slotElement.dataset.slot) { // Only process if data-slot exists
+                    const slotName = slotElement.dataset.slot;
+                    equipItem(slotName, null);
+                }
+            });
 			
             saveCurrentStateToLocalStorage();
 			showNotification('All equipment has been removed', 'info');
@@ -1647,9 +1651,6 @@ levelSlider.addEventListener('input', function() {
     handleLevelChange();
 });
 
-// Rebirth checkbox
-rebirthCheckbox.addEventListener('change', handleRebirthChange);
-
 // Stat inputs
 agiValue.addEventListener('change', function() {
     handleStatChange('agi', this.value);
@@ -1717,8 +1718,12 @@ function setupEventListeners() {
         handleLevelChange();
     });
 
-    // Rebirth checkbox
-    rebirthCheckbox.addEventListener('change', handleRebirthChange);
+    // Rebirth skull
+    if (rebirthIconClickable) { // New
+        rebirthIconClickable.addEventListener('click', handleRebirthChange);
+    } else {
+        console.error("Rebirth icon container not found!");
+    }
 
     // Stat inputs
     agiValue.addEventListener('change', function() {
@@ -1892,7 +1897,13 @@ function loadCurrentStateFromLocalStorage() {
         currentStats.rebirth = savedData.rebirth || false;
         levelInput.value = currentStats.level;
         levelSlider.value = currentStats.level;
-        rebirthCheckbox.checked = currentStats.rebirth;
+        if (rebirthStatusIcon) {
+            if (currentStats.rebirth) {
+                rebirthStatusIcon.classList.add('active');
+            } else {
+                rebirthStatusIcon.classList.remove('active');
+            }
+        }
         if (currentStats.rebirth) {
              levelSlider.max = 80;
              levelInput.max = 80;
@@ -2366,7 +2377,7 @@ function displaySavedBuilds() {
             <strong>${build.name || 'Unnamed Build'}</strong>
             <div class="build-item-details">
                 By: ${build.creator || 'Unknown'} | Lvl: ${build.level}${ build.rebirth ?
-                    ' <img src="Icons/rebirth-icon.png" alt="Rebirth" style="height: 1.1em; vertical-align: middle; margin-left: 3px;" title="Rebirth">'
+                    ' <img src="assets/build-sandbox/icons/rebirth-icon.png" alt="Rebirth" style="height: 1.1em; vertical-align: middle; margin-left: 3px;" title="Rebirth">'
                     : ''
                 }
             </div>
@@ -2606,7 +2617,13 @@ function handleLoadBuildClick(buildId) {
     currentStats.rebirth = buildToLoad.rebirth;
     levelInput.value = currentStats.level;
     levelSlider.value = currentStats.level;
-    rebirthCheckbox.checked = currentStats.rebirth;
+    if (rebirthStatusIcon) {
+        if (currentStats.rebirth) {
+            rebirthStatusIcon.classList.add('active');
+        } else {
+            rebirthStatusIcon.classList.remove('active');
+        }
+    }
     // Update level slider/input max based on rebirth
     const maxLvl = currentStats.rebirth ? 80 : 60;
     levelSlider.max = maxLvl;

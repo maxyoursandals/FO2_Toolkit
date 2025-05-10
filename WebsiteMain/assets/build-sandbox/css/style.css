@@ -510,14 +510,14 @@
     
     .buff-grid {
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(7, 1fr);
         gap: 4px;
         margin-bottom: 10px;
     }
     
     .buff-icon {
-        width: 55px;
-        height: 55px;
+        width: 48px;
+        height: 48px;
         border-radius: 5px;
         border: 1px solid var(--border);
         background-color: var(--slot-bg);
@@ -769,7 +769,7 @@
             margin-bottom: 5px;
         }
         .level-filter-section .slider-container span {
-            min-width: 70px; /* Align text */
+            min-width: 75px; /* Align text */
             text-align: right;
         }
         .level-filter-section input[type="range"] {
@@ -843,7 +843,7 @@
 		 }
 
 		.build-item-details {
-			font-size: 0.8em;
+			font-size: 0.75em;
 			color: #aaa;
 			white-space: nowrap;
 			overflow: hidden;
@@ -969,9 +969,6 @@
 		}
 
 		/* Style for the reset button */
-		.action-button.negative {
-			/* background-color: #c03a2b63; */
-		}
 		.action-button.negative:hover {
 			background-color: #c03a2b63;
 		}
@@ -991,7 +988,28 @@
             /* transform: scale(0.8); */
             /* transform-origin: top left; */
         }
-        
+
+        #app-container .rebirth-icon-container {
+            cursor: pointer;
+            padding: 5px; /* Add some clickable area around the icon */
+            display: flex; /* For centering the image if needed */
+            align-items: center;
+            justify-content: center;
+            /* margin-right: auto; */ /* Keep this if you used Option 1 for button layout */
+        }
+
+        #app-container #rebirth-status-icon {
+            width: 24px;  /* Adjust size as needed */
+            height: 24px; /* Adjust size as needed */
+            opacity: 0.5; /* Greyed out by default (when not rebirth) */
+            transition: opacity 0.2s ease-in-out;
+            vertical-align: middle; /* Helps align with text if any was nearby */
+        }
+
+        #app-container #rebirth-status-icon.active {
+            opacity: 1; /* Full color when active */
+        }
+
         .top-nav {
             background-color: var(--panel);
             padding: 10px 20px;
@@ -1209,7 +1227,7 @@
             height: 48px;
             background-color: var(--slot-bg);
             border: 1px solid var(--border);
-            border-radius: 3px;
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
