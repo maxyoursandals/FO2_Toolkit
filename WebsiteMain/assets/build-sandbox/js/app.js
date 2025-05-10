@@ -280,7 +280,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         } else {
             console.warn("Buff data is empty, skipping buff grid initialization.");
         }
-        addResetBuffsButton();
 
         loadSavedBuilds();    // Load the list of saved builds (from localStorage)
         displaySavedBuilds(); // Display them (uses itemsByIdMap, buffsData for tooltips etc.)
@@ -375,7 +374,6 @@ const levelSlider = document.getElementById('level-slider');
 const rebirthCheckbox = document.getElementById('rebirth');
 const remainingPointsDisplay = document.getElementById('remaining-points');
 const resetButton = document.getElementById('reset-button');
-const distributeButton = document.getElementById('distribute-button');
 const itemSearchModal = document.getElementById('item-search-modal');
 const itemSearchInput = document.getElementById('item-search-input');
 const searchResults = document.getElementById('search-results');
@@ -588,44 +586,6 @@ function resetStats() {
     strValue.value = 20;
     intValue.value = 20;
     staValue.value = 20;
-    
-    updateRemainingPoints();
-    const results = recalculateBuildStats();
-    updateDisplay(results);
-    saveCurrentStateToLocalStorage();
-}
-
-// Distribute points evenly
-function distributePoints() {
-    resetStats();
-    
-    let remainingPoints = currentStats.pointsRemaining;
-    if (remainingPoints <= 0) return;
-    
-    // Distribute points evenly among all stats
-    const pointsPerStat = Math.floor(remainingPoints / 4);
-    const extraPoints = remainingPoints % 4;
-    
-    currentStats.statPoints.agi += pointsPerStat;
-    currentStats.statPoints.str += pointsPerStat;
-    currentStats.statPoints.int += pointsPerStat;
-    currentStats.statPoints.sta += pointsPerStat;
-    
-    // Distribute any remaining points
-    for (let i = 0; i < extraPoints; i++) {
-        switch (i) {
-            case 0: currentStats.statPoints.str++; break;
-            case 1: currentStats.statPoints.agi++; break;
-            case 2: currentStats.statPoints.sta++; break;
-            case 3: currentStats.statPoints.int++; break;
-        }
-    }
-    
-    // Update UI
-    agiValue.value = currentStats.statPoints.agi;
-    strValue.value = currentStats.statPoints.str;
-    intValue.value = currentStats.statPoints.int;
-    staValue.value = currentStats.statPoints.sta;
     
     updateRemainingPoints();
     const results = recalculateBuildStats();
@@ -1817,9 +1777,16 @@ function setupEventListeners() {
         });
     });
 
-    // Reset and Distribute buttons
+    // Reset button
     resetButton.addEventListener('click', resetStats);
-    distributeButton.addEventListener('click', distributePoints);
+
+    // Reset Buffs Button (Now static in HTML)
+    const resetBuffsBtn = document.getElementById('reset-buffs-button');
+    if (resetBuffsBtn) {
+        resetBuffsBtn.addEventListener('click', resetAllBuffs);
+    } else {
+        console.error("Reset Buffs button (reset-buffs-button) not found!");
+    }
 
     // Equipment slots - Attach listeners correctly within the loop
     document.querySelectorAll('.slot').forEach(slot => {
@@ -1866,21 +1833,6 @@ function resetAllBuffs() {
     const results = recalculateBuildStats();
     updateDisplay(results);
     saveCurrentStateToLocalStorage();
-    
-    showNotification('All buffs have been removed', 'info');
-}
-
-function addResetBuffsButton() {
-    const actionButtons = document.querySelector('.action-buttons');
-    if (actionButtons) {
-        const resetBuffsButton = document.createElement('button');
-        resetBuffsButton.className = 'action-button';
-        resetBuffsButton.id = 'reset-buffs-button';
-        resetBuffsButton.textContent = 'Reset Buffs';
-        resetBuffsButton.addEventListener('click', resetAllBuffs);
-        
-        actionButtons.appendChild(resetBuffsButton);
-    }
 }
 
 function saveCurrentStateToLocalStorage() {
