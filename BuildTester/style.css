@@ -1144,8 +1144,8 @@
 
         /* Individual buff icon */
         .build-item-buff-icon {
-            width: 64px;  /* << INCREASED SIZE */
-            height: 64px; /* << INCREASED SIZE */
+            width: 64px;
+            height: 64px;
             border: 1px solid var(--border);
             border-radius: 3px;
             background-color: var(--slot-bg);

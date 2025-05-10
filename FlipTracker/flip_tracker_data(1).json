@@ -1,5 +1,15 @@
 {
-  "activeListings": [],
+  "activeListings": [
+    {
+      "id": "listing-NaN",
+      "itemId": "1196",
+      "buyPrice": "500000",
+      "sellPrice": "600000",
+      "searchText": "The Essence of The Future",
+      "noFee": false,
+      "quantity": 1
+    }
+  ],
   "flipHistory": [
     {
       "id": "history-m9howy67nyvo5wagwzp",
@@ -630,6 +640,28 @@
       "profit": 200,
       "itemName": "Blunt Club",
       "noFeeApplied": true,
+      "quantity": 1
+    },
+    {
+      "id": "history-maiejy0ou1dz1s95nll",
+      "itemId": "1307",
+      "dateSold": 1746892269816,
+      "buyPrice": 125000,
+      "sellPrice": 175000,
+      "profit": 41250,
+      "itemName": "Blue Kraken Eye",
+      "noFeeApplied": false,
+      "quantity": 1
+    },
+    {
+      "id": "history-maiek5oponaj6fwgb4k",
+      "itemId": "196",
+      "dateSold": 1746892279753,
+      "buyPrice": 50000,
+      "sellPrice": 80000,
+      "profit": 26000,
+      "itemName": "Standard Pickaxe",
+      "noFeeApplied": false,
       "quantity": 1
     }
   ],
