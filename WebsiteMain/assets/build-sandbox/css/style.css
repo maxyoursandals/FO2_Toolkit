@@ -1,0 +1,1190 @@
+:root {
+            --background: #0c0e1a;
+            --panel: #1a1c2a;
+            --text: #e0e0e0;
+            --accent: #3d81db;
+            --accent-hover: #5b93e0;
+            --health: #e74c3c;
+            --energy: #3498db;
+            --stat-text: #e0e0e0;
+            --negative-button: #e74c3c;
+            --positive-button: #2ecc71;
+            --neutral-button: #3d81db;
+            --border: #2c2e40;
+            --slot-bg: #2c2e40;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1800px;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+        
+        .panel {
+            background-color: var(--panel);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .left-panel {
+            flex: 1;
+            position: relative;
+        }
+        
+        .middle-panel {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .right-panel {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 350px;
+        }
+
+        .right-panel .dps-row,
+        .right-panel .mitigation-row,
+        .right-panel .regen-row {
+            margin-bottom: 0px; /* Or margin-top, but pick one for consistency */
+        }
+
+        .mitigation-row {
+            margin-top: 0px;
+        }
+        
+        .derived-stats {
+			flex: 2;
+			display: flex;
+			align-items: stretch;
+			min-width: 0;
+		}
+        
+        .equipment-slots {
+            display: grid; /* USE GRID */
+            grid-template-columns: 1fr 1fr; /* TWO COLUMNS */
+            gap: 10px; /* Gap between slots */
+            align-content: start;
+        }
+        
+        .slot {
+            width: 75px;
+            height: 75px;
+            background-color: var(--slot-bg);
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid var(--border);
+			position: relative;
+        }
+        
+        .slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            image-rendering: pixelated;
+        }
+        
+		.character-display {
+			position: relative;
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+        
+        .stats-display {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .status-bars {
+            grid-column: span 2;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .bar {
+            flex: 1;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        
+        .energy-bar {
+            background-color: var(--energy);
+        }
+        
+        .health-bar {
+            background-color: var(--health);
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .level-select {
+            margin-bottom: 15px;
+        }
+        
+        .level-select label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        input[type="number"] {
+            width: 60px;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 5px;
+            border-radius: 5px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .stat-points {
+            margin-top: 20px;
+        }
+        
+        .stat-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            width: 50px;
+            font-weight: bold;
+            color: var(--stat-text);
+        }
+        
+        .AGI { color: #3498db; }
+        .STR { color: #e74c3c; }
+        .INT { color: #9b59b6; }
+        .STA { color: #2ecc71; }
+        
+        .stat-value {
+            width: 40px;
+            text-align: center;
+        }
+        
+        .stat-slider {
+            flex: 1;
+            margin: 0 10px;
+        }
+        
+        .stat-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .stat-button {
+            width: 25px;
+            height: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--neutral-button);
+            border: none;
+            border-radius: 3px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .stat-button.decrease {
+            background-color: var(--negative-button);
+        }
+        
+        .stat-button.increase {
+            background-color: var(--positive-button);
+        }
+        
+        .stat-button.reset {
+            background-color: var(--neutral-button);
+        }
+        
+        .remaining-points {
+            margin: 15px 0;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-button {
+            padding: 8px 15px;
+            background-color: var(--neutral-button);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .action-button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .rebirth-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 10px;
+        }
+
+        .item-search {
+            position: absolute;
+            width: 350px;
+            height: 300px;
+            background-color: rgba(26, 28, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            z-index: 110;
+            box-sizing: border-box;
+            display: none;
+            flex-direction: column;
+        }
+
+		.search-input {
+			width: 100%;
+			padding: 8px;
+			background-color: var(--background);
+			border: 1px solid var(--border);
+			color: var(--text);
+			border-radius: 5px;
+			margin-bottom: 10px;
+		}
+
+         /* Style the title */
+        .item-search #search-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+            flex-shrink: 0; /* Prevent shrinking */
+            color: var(--accent);
+        }
+
+        /* Style the input */
+        .item-search .search-input {
+            width: 100%; /* Take full width of the small panel */
+            margin-bottom: 8px;
+            flex-shrink: 0; /* Prevent shrinking */
+            /* Inherits styles, but ensure box-sizing */
+            box-sizing: border-box;
+        }
+
+        /* Adjust search results height within the fixed panel */
+        .item-search .search-results {
+            flex-grow: 1; /* Allow results list to take remaining vertical space */
+            overflow-y: auto; /* Add scrollbar if content exceeds height */
+            margin-bottom: 10px; /* Space above buttons */
+            /* Optional: Add visual separation */
+            background-color: rgba(12, 14, 26, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 5px;
+        }
+
+        /* Adjust search item padding if needed */
+        .search-item {
+            padding: 5px 8px; /* Adjust padding for smaller panel */
+            /* Ensure text doesn't wrap excessively */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Ensure buttons area doesn't shrink */
+        .item-search .search-buttons {
+            flex-shrink: 0;
+            justify-content: center; /* Center the cancel button */
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--panel);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            display: none;
+            max-width: 300px;
+        }
+        
+        .notification.error {
+            border-left-color: var(--negative-button);
+        }
+        
+        .notification.success {
+            border-left-color: var(--positive-button);
+        }
+		.clear-slot {
+			position: absolute;
+			bottom: -5px;
+			right: -5px;
+			width: 16px;
+			height: 16px;
+			background-color: var(--negative-button);
+			color: white;
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			cursor: pointer;
+			font-size: 10px;
+			z-index: 5;
+			opacity: 0.8;
+			display: none;
+		}
+
+		.slot:hover .clear-slot {
+			display: flex;
+		}
+		
+		.slot-container {
+			position: relative;
+			display: flex;
+			align-items: center;
+			height: 50px;
+			margin-bottom: 10px;
+		}
+
+		.left-slots .slot-container {
+			flex-direction: row;
+		}
+
+		.right-slots .slot-container {
+			flex-direction: row-reverse;
+		}
+
+		.stat-positive {
+			color: var(--positive-button);
+		}
+
+		.stat-negative {
+			color: var(--negative-button);
+		}
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between; /* Pushes label left, value right */
+            align-items: center;
+            padding: 1px 5px; /* Adjust padding as needed */
+        }
+
+    .buff-section {
+        margin-top: 20px;
+        border-top: 1px solid var(--border);
+        padding-top: 15px;
+    }
+    
+    .buff-section h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+    
+    .buff-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+        margin-bottom: 10px;
+    }
+    
+    .buff-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 5px;
+        border: 1px solid var(--border);
+        background-color: var(--slot-bg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        opacity: 0.5; /* Greyed out when inactive */
+        transition: opacity 0.2s;
+    }
+    
+    .buff-icon.active {
+        opacity: 1;
+        box-shadow: 0 0 5px var(--accent);
+    }
+    
+    .buff-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+        image-rendering: pixelated;
+    }
+    
+    .buff-icon .buff-text {
+        font-size: 10px;
+        text-align: center;
+        line-height: 1;
+        padding: 2px;
+    }
+    
+    .buff-tier {
+        position: absolute;
+        bottom: 1px;
+        right: 1px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-size: 12px;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        z-index: 1;
+    }
+    
+    .buff-tooltip {
+        position: absolute;
+        z-index: 100;
+        background-color: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        padding: 8px;
+        font-size: 12px;
+        width: 180px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    
+    .buff-tooltip .tooltip-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: var(--accent);
+    }
+    
+    .buff-effect {
+        margin: 2px 0;
+    }
+    
+    .effect-positive {
+        color: var(--positive-button);
+    }
+    
+    .effect-negative {
+        color: var(--negative-button);
+    }
+
+    /* Item Tooltip Styling */
+    .item-tooltip {
+            position: absolute; /* Position relative to the body */
+            z-index: 150;       /* Ensure it's above other elements */
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 12px;
+            width: auto;        /* Auto-adjust width */
+            min-width: 160px;
+            max-width: 280px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            pointer-events: none; /* Tooltip shouldn't block mouse events */
+            opacity: 0;
+            transition: opacity 0.15s ease-in-out;
+            /* white-space: nowrap; Remove this if you want text to wrap */
+            color: var(--text); /* Default text color */
+        }
+
+        .item-tooltip .tooltip-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--accent); /* Use accent color for name */
+            margin-bottom: 3px;
+            border-bottom: 1px solid var(--border); /* Separator line */
+            padding-bottom: 3px;
+        }
+
+        .item-tooltip .tooltip-level {
+            font-style: italic;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+        .item-tooltip .tooltip-stats div,
+        .item-tooltip .tooltip-other div {
+            margin: 3px 0; /* Spacing between stat lines */
+        }
+
+        .item-tooltip .tooltip-stats .stat-positive {
+            color: var(--positive-button);
+        }
+
+        .item-tooltip .tooltip-stats .stat-negative {
+            color: var(--negative-button);
+        }
+         /* Section for Armor, Damage, Atk Spd */
+        .item-tooltip .tooltip-other {
+             margin-top: 8px;
+             border-top: 1px solid var(--border);
+             padding-top: 5px;
+        }
+
+        .item-tooltip .tooltip-req {
+            margin-top: 8px;
+            border-top: 1px solid var(--border);
+            padding-top: 5px;
+            color: #ccc; /* Requirements color */
+            font-size: 11px; /* Slightly smaller */
+        }
+        .item-tooltip .tooltip-req div {
+             margin: 2px 0;
+        }
+		
+		.right-panel .stat-item {
+            /* Option A: Reduce the default margin for all stat items in the right panel */
+            margin-top: 0px; /* Or even less, e.g., 5px */
+
+            /* Keep other properties if they exist */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1px 5px;
+        }
+
+        .performance-section {
+            flex: 1; /* Allow this section to grow and shrink */
+            display: flex; /* Use flexbox for vertical layout */
+            flex-direction: column;
+            overflow: hidden; /* Important for scrollable table */
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+            margin-top: 15px; /* Add some space above */
+        }
+
+        .performance-section h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            flex-shrink: 0; /* Prevent header from shrinking */
+        }
+
+        .performance-table-container {
+            flex-grow: 1; /* Allow table container to fill space */
+            overflow-y: auto; /* Make ONLY the table container scrollable */
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background-color: var(--background); /* Match background */
+        }
+
+        .performance-table {
+            width: 100%;
+            border-collapse: collapse; /* Clean table borders */
+        }
+
+        .performance-table th,
+        .performance-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap; /* Prevent text wrapping initially */
+        }
+        .performance-table th {
+            background-color: var(--slot-bg);
+            position: sticky; /* Make headers stick */
+            top: 0; /* Stick to the top of the container */
+            cursor: pointer;
+            user-select: none; /* Prevent text selection on click */
+            z-index: 1; /* Ensure header is above scrolling content */
+        }
+        .performance-table th:hover {
+            background-color: var(--accent-hover);
+        }
+        .performance-table th .sort-indicator {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 10px;
+            opacity: 0.6;
+            width: 10px; /* Reserve space for indicator */
+        }
+        .performance-table th .sort-indicator.asc::after {
+            content: '▲';
+        }
+        .performance-table th .sort-indicator.desc::after {
+            content: '▼';
+        }
+
+        .performance-table tbody tr:hover {
+            background-color: var(--panel); /* Hover effect for rows */
+        }
+        .performance-table td:nth-child(1) { /* Mob Name */
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .performance-table td:nth-child(n+2) { /* Numeric columns */
+            text-align: right;
+            font-family: monospace; /* Consistent spacing for numbers */
+            min-width: 70px; /* Ensure minimum width */
+        }
+        /* Styles for Mob Level Filter */
+        .level-filter-section {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .level-filter-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .level-filter-section .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .level-filter-section .slider-container span {
+            min-width: 70px; /* Align text */
+            text-align: right;
+        }
+        .level-filter-section input[type="range"] {
+            flex-grow: 1;
+            margin: 0; /* Override default margin */
+        }
+		
+		.saved-builds-section {
+			flex-grow: 1;
+			flex-shrink: 1;
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin: 0 10px;
+			padding: 10px;
+			overflow: hidden;
+			box-sizing: border-box;
+			/* border: 1px dashed yellow; debug border */
+		}
+
+		.saved-builds-section h3 {
+			margin-top: 0;
+			margin-bottom: 10px;
+			text-align: center;
+			width: 100%;
+		}
+
+		.saved-builds-list {
+			width: 100%;
+			flex-grow: 1; /* Takes available vertical space IN THE SECTION */
+			overflow-y: auto;
+			border: 1px solid var(--border);
+			border-radius: 5px;
+			padding: 5px;
+			background-color: var(--background);
+			display: flex;
+			flex-direction: column;
+			gap: 5px;
+			margin-bottom: 10px; /* Space above save button */
+			min-height: 100px; /* Ensure it's visible */
+		}
+
+		.saved-build-item {
+			background-color: var(--panel);
+			border: 1px solid var(--border);
+			border-radius: 5px;
+			padding: 8px;
+			display: flex; /* Use flex for internal layout */
+			justify-content: space-between; /* Push buttons to the right */
+			align-items: center; /* Align items vertically */
+			cursor: pointer; /* Indicate clickable */
+			transition: background-color 0.2s;
+		}
+		.saved-build-item:hover {
+			background-color: var(--accent-hover);
+		}
+
+		.build-item-info {
+			flex-grow: 1; /* Allow text to take available space */
+			margin-right: 10px; /* Space before buttons */
+			overflow: hidden; /* Prevent long text overflow */
+		}
+
+		 .build-item-info strong {
+			 display: block; /* Name on its own line */
+			 white-space: nowrap;
+			 overflow: hidden;
+			 text-overflow: ellipsis; /* Ellipsis for long names */
+			 max-width: 100%;
+		 }
+
+		.build-item-details {
+			font-size: 0.8em;
+			color: #aaa;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis; /* Ellipsis for long details */
+			max-width: 100%;
+		}
+		.build-item-description {
+			font-size: 0.75em;
+			color: #bbb;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis; /* Ellipsis for long descriptions */
+			margin-top: 3px;
+			max-width: 100%;
+		}
+
+		.build-item-actions {
+			display: flex;
+			gap: 4px;
+			flex-shrink: 0; /* Prevent action buttons from shrinking */
+		}
+
+		.build-action-button {
+			background: none;
+			border: none;
+			color: var(--text);
+			cursor: pointer;
+			font-size: 14px; /* Adjust size */
+			padding: 2px 4px; /* Small padding */
+			line-height: 1;
+			border-radius: 3px;
+		}
+		.build-action-button:hover {
+			background-color: var(--slot-bg);
+			color: var(--accent);
+		}
+		.build-action-button.delete:hover {
+			color: var(--negative-button);
+		}
+		.build-action-button.edit:hover {
+		   color: var(--positive-button);
+		}
+		 .build-action-button.duplicate:hover {
+		   color: var(--neutral-button);
+		}
+
+
+		/* --- Build Details Modal --- */
+		.modal {
+			position: fixed;
+			z-index: 200; /* Ensure above other elements */
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			overflow: auto;
+			background-color: rgba(0,0,0,0.6); /* Dim background */
+			display: flex; /* Use flexbox for centering */
+			justify-content: center;
+			align-items: center;
+		}
+
+		.modal-content {
+			background-color: var(--panel);
+			padding: 25px;
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			width: 80%;
+			max-width: 450px;
+			position: relative;
+		}
+		 .modal-content label {
+			display: block;
+			margin-bottom: 5px;
+			font-size: 0.9em;
+		 }
+		  .modal-content input[type="text"],
+		  .modal-content textarea {
+			  width: calc(100% - 16px); /* Adjust width considering padding */
+			  margin-bottom: 15px;
+			  /* Ensure modal inputs use theme colors */
+			  background-color: var(--background);
+			   border: 1px solid var(--border);
+			   color: var(--text);
+			   padding: 8px;
+			   border-radius: 5px;
+		  }
+		   .modal-content textarea {
+				resize: vertical; /* Allow vertical resize */
+		   }
+
+		.close-button {
+			color: #aaa;
+			position: absolute;
+			top: 10px;
+			right: 15px;
+			font-size: 28px;
+			font-weight: bold;
+			cursor: pointer;
+		}
+
+		.close-button:hover,
+		.close-button:focus {
+			color: var(--text);
+			text-decoration: none;
+		}
+		
+		/* Container for buttons at bottom of saved builds */
+		.build-section-buttons {
+			display: flex; /* Arrange buttons side-by-side */
+			justify-content: space-around; /* Distribute space */
+			width: 100%; /* Take full width of the section */
+			margin-top: 10px; /* Space above the buttons */
+			flex-shrink: 0; /* Prevent container from shrinking */
+		}
+
+		/* Make buttons within the container potentially take equal space */
+		.build-section-buttons .action-button {
+			 flex-grow: 1; /* Allow buttons to grow */
+			 margin: 0 5px; /* Add small gap between buttons */
+			 /* Adjust padding if needed */
+			 /* padding: 8px 5px; */
+		}
+
+		/* Style for the reset button */
+		.action-button.negative {
+			background-color: var(--negative-button);
+		}
+		.action-button.negative:hover {
+			background-color: #c0392b; /* Darker red on hover */
+		}
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh; 
+            padding: 20px; 
+            box-sizing: border-box; 
+            width: 100%; 
+            align-items: center; 
+        }
+        
+        .top-nav {
+            background-color: var(--panel);
+            padding: 10px 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .nav-button {
+            padding: 8px 15px;
+            background-color: var(--neutral-button);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s;
+        }
+
+        .nav-button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .nav-button.active {
+            background-color: var(--accent);
+            font-weight: bold;
+        }
+
+        .page-content {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            width: 100%; /* Make page area take full width */
+            /* border: 1px dashed red; */
+        }
+
+        .page { /* Hides pages */
+            display: none;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+            justify-content: center;
+        }
+
+        .page.active { /* Shows active page */
+            display: flex;
+        }
+
+        /* Original container styles for the editor page */
+        #build-editor-page .container {
+            /* Your existing .container styles */
+            display: flex;
+            width: 100%;
+            max-width: 1920px;
+            gap: 20px;
+            height: 100%;
+        }
+        
+        #build-management-page {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px 20px 0 20px; /* Added padding-bottom 0 */
+            overflow-y: auto;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        #build-management-page .saved-builds-panel {
+            background-color: var(--panel);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            max-height: calc(100vh - 120px); /* Adjusted max-height based on typical header/footer */
+            overflow: hidden; /* Prevent panel itself from scrolling */
+        }
+
+        #build-management-page .saved-builds-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden; /* Contains the scrolling list */
+            margin: 0;
+            padding: 0;
+        }
+
+        #build-management-page .saved-builds-list {
+            flex-grow: 1;
+            width: 100%;
+            overflow-y: auto; /* This list scrolls */
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 8px;
+            background-color: var(--background);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+            min-height: 150px;
+        }
+
+        /* Main container for one saved build row */
+        .saved-build-item.expanded {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 10px;
+            gap: 5px; /* Reduced gap between content and actions */
+            cursor: default;
+        }
+
+        .saved-build-item.expanded:hover {
+            background-color: var(--panel);
+        }
+
+        /* Wrapper for the 4 main content columns */
+        .saved-build-item .build-item-content-wrapper {
+            display: flex;
+            flex-grow: 1;
+            gap: 15px; /* Moderate gap between columns */
+            min-width: 0;
+            width: calc(100% - 50px); /* Leave space for actions */
+            justify-content: flex-start;
+        }
+
+        .saved-build-item .build-column {
+            flex: 0 1 20%; /* <--- Use this instead */
+            min-width: 0; /* Still allow shrinking if absolutely necessary */
+            box-sizing: border-box;
+            padding: 0 8px; /* Slightly increased padding */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        /* Column 1: Build Info */
+        .saved-build-item .build-item-info {
+            flex: 1 1 15%;
+            cursor: pointer;
+            justify-content: center;
+        }
+        .saved-build-item .build-item-info:hover {
+            background-color: rgba(var(--accent-rgb, 61, 129, 219), 0.1);
+            border-radius: 3px;
+        }
+        .saved-build-item .build-item-info strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; margin-bottom: 2px; }
+        .saved-build-item .build-item-details { font-size: 0.8em; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: flex; align-items: center; }
+        .saved-build-item .build-item-description {
+            font-size: 0.75em;
+            color: #bbb;
+            margin-top: 4px;
+            max-width: 100%;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;     /* Limit to 2 lines for WebKit */
+            -webkit-box-orient: vertical;
+            line-clamp: 2;             /* Limit to 2 lines - standard */
+            overflow: hidden;
+            line-height: 1.3;          /* Adjust line-height as needed for spacing */
+        }
+
+        /* Column 2: Calculated Stats */
+        .saved-build-item .build-item-calculated-stats {
+            flex: 1 1 12%;
+            font-size: 0.8em; /* Slightly smaller */
+            line-height: 1.2;
+            color: #ccc;
+            justify-content: center; /* Center text block vertically */
+        }
+        .saved-build-item .build-item-calculated-stats div:not(.build-item-resource-bars) { margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .saved-build-item .build-item-calculated-stats b { color: var(--accent); display: inline-block; width: 50px; margin-right: 5px; }
+        .saved-build-item .build-item-calculated-stats .AGI { color: var(--energy); }
+        .saved-build-item .build-item-calculated-stats .STR { color: var(--health); }
+        .saved-build-item .build-item-calculated-stats .INT { color: #9b59b6; }
+        .saved-build-item .build-item-calculated-stats .STA { color: var(--positive-button); }
+        .build-item-resource-bars { display: flex; gap: 4px; margin: 3px 0; }
+        .build-item-bar { padding: 1px 4px; border-radius: 3px; font-size: 0.85em; color: white; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 85px; }
+        .health-bar-small { background-color: var(--health); }
+        .energy-bar-small { background-color: var(--energy); }
+
+
+        /* Column 3: Equipment Section */
+        .saved-build-item .build-item-equip-section {
+            flex: 1 1 30%;
+            align-items: flex-start; /* Align grid to the start (left) */
+            justify-content: center;
+        }
+
+        /* Single 8x2 equipment grid container */
+        .build-item-equip-grid-single {
+            display: grid;
+            grid-template-columns: repeat(8, 48px); /* 8 columns of 36px */
+            grid-template-rows: repeat(2, 48px);    /* 2 rows of 36px */
+            gap: 3px;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        /* Individual equipment slot */
+        .build-item-equip-slot {
+            width: 48px;
+            height: 48px;
+            background-color: var(--slot-bg);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .build-item-equip-slot.empty { background-color: rgba(44, 46, 64, 0.5); }
+        .build-item-equip-slot img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+        .build-item-equip-slot-text { font-size: 10px; color: #aaa; text-align: center; line-height: 1; }
+
+        /* Column 4: Buffs Section */
+        .saved-build-item .build-item-buffs-section {
+            flex: 1 1 30%;
+            display: flex;
+            flex-direction: row;  /* << Explicitly set to row */
+            flex-wrap: nowrap;      /* Allow wrapping */
+            gap: 4px;
+            align-items: center;  /* Vertically align items in a row */
+            justify-content: flex-start; /* Align icons to the start (left) */
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 5px;
+            max-width: 100%;
+        }
+
+        /* Individual buff icon */
+        .build-item-buff-icon {
+            width: 64px;
+            height: 64px;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            background-color: var(--slot-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .build-item-buff-icon img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+
+        /* Actions column */
+        .saved-build-item .build-item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+            align-self: center; /* Center vertically */
+            justify-content: center;
+            height: 100%; /* Try to match height */
+        }
+        .build-action-button { background: none; border: none; color: var(--text); cursor: pointer; font-size: 16px; padding: 2px 4px; line-height: 1; border-radius: 3px; display: flex; align-items: center; justify-content: center; }
+        .build-action-button:hover { background-color: var(--slot-bg); color: var(--accent); }
+        .build-action-button.delete:hover { color: var(--negative-button); }
+        .build-action-button.edit:hover { color: var(--positive-button); }
+        .build-action-button.duplicate:hover { color: var(--neutral-button); }
+
+
+        /* --- Bottom Buttons for Management Page (Unchanged from previous) --- */
+        #build-management-page .build-section-buttons {
+            margin-top: auto;
+            padding-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        #build-management-page .build-section-buttons .action-button {
+            min-width: 120px;
+            text-align: center;
+        }
