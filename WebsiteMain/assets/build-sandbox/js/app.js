@@ -244,9 +244,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         // --- 1. Fetch all external JSON data ---
         console.log("DOM Loaded. Starting data fetch...");
         const [itemsResponse, mobsResponse, buffsResponse] = await Promise.all([
-            fetch('items.json').catch(e => ({ ok: false, statusText: `Workspace items.json failed: ${e.message}`, json: () => Promise.resolve(null) })),
-            fetch('mobs.json').catch(e => ({ ok: false, statusText: `Workspace mobs.json failed: ${e.message}`, json: () => Promise.resolve(null) })),
-            fetch('buffs.json').catch(e => ({ ok: false, statusText: `Workspace buffs.json failed: ${e.message}`, json: () => Promise.resolve(null) }))
+            fetch('assets/build-sandbox/data/items.json').catch(e => ({ ok: false, statusText: `Workspace items.json failed: ${e.message}`, json: () => Promise.resolve(null) })),
+            fetch('assets/build-sandbox/data/mobs.json').catch(e => ({ ok: false, statusText: `Workspace mobs.json failed: ${e.message}`, json: () => Promise.resolve(null) })),
+            fetch('assets/build-sandbox/data/buffs.json').catch(e => ({ ok: false, statusText: `Workspace buffs.json failed: ${e.message}`, json: () => Promise.resolve(null) }))
         ]);
 
         if (!itemsResponse.ok) throw new Error(itemsResponse.statusText || "Failed to load items.json");
@@ -1113,7 +1113,7 @@ function createBuffIcon(buff, container) {
         .replace(/\s+/g, '-'); // Replace spaces with hyphens
 
     // Construct the expected image filename (assuming it's in the same folder as the HTML)
-    const iconFileName = `Icons/${baseName}-icon.png`;
+    const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
 
     // Always create an image tag.
     // The browser will show a broken image icon if the file doesn't exist.
@@ -2515,7 +2515,7 @@ function displaySavedBuilds() {
                      // Determine icon path (same logic as before)
                      const tierMatch = buff.Name.match(/\s(\d+)$/);
                      let baseName = buff.Name.toLowerCase().replace(/\s+\d+$/, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
-                     const iconFileName = `Icons/${baseName}-icon.png`; // Ensure Icons path is correct
+                     const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`; // Ensure Icons path is correct
 
                      buffIconDiv.innerHTML = `<img src="${iconFileName}" alt="${buff.Name}" title="${buff.Name}">`;
                      // Add buff tooltip listeners

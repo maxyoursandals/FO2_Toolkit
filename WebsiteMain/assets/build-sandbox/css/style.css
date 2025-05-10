@@ -1,5 +1,5 @@
 :root {
-            --background: #0c0e1a;
+            /* --background: #0c0e1a; */
             --panel: #1a1c2a;
             --text: #e0e0e0;
             --accent: #3d81db;
@@ -17,11 +17,11 @@
         body {
             background-color: var(--background);
             color: var(--text);
-            font-family: Arial, sans-serif;
+            /* font-family: Arial, sans-serif; */
             margin: 0;
             padding: 0;
-            height: 100vh;
-            overflow: hidden;
+            /* height: 100vh; */
+            /* overflow: hidden; */
         }
         
         .container {
