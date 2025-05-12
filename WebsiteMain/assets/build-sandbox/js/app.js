@@ -2546,3 +2546,29 @@ function handleDuplicateBuildClick(buildId) {
         showNotification("Error duplicating build.", 'error');
     }
 }
+
+// Function to handle responsive layout adjustments
+function handleResponsiveLayout() {
+    const windowWidth = window.innerWidth;
+    const container = document.querySelector('.container');
+    
+    // Handle Equipment Layout
+    const equipmentSlots = document.querySelectorAll('.equipment-slots');
+    if (windowWidth < 768) {
+        equipmentSlots.forEach(el => {
+            // More compact grid on small screens
+            el.style.gridTemplateColumns = 'repeat(auto-fill, minmax(60px, 1fr))';
+        });
+    } else {
+        equipmentSlots.forEach(el => {
+            // Reset to default on larger screens
+            el.style.gridTemplateColumns = '';
+        });
+    }
+    
+    // Additional responsive adjustments as needed
+}
+
+// Run on load and when resizing
+window.addEventListener('load', handleResponsiveLayout);
+window.addEventListener('resize', handleResponsiveLayout);
