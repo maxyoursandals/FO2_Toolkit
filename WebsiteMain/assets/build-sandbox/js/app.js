@@ -1725,6 +1725,26 @@ function setupEventListeners() {
         console.error("Rebirth icon container not found!");
     }
 
+    function setupItemDictionaryControls() {
+        const searchInput = document.getElementById('item-dictionary-search');
+        const categoryFilter = document.getElementById('item-dictionary-category-filter');
+        const sortCriteriaSelect = document.getElementById('item-dictionary-sort-criteria');
+        const sortOrderSelect = document.getElementById('item-dictionary-sort-order');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', populateItemDictionaryGrid);
+        }
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', populateItemDictionaryGrid);
+        }
+        if (sortCriteriaSelect) {
+            sortCriteriaSelect.addEventListener('change', populateItemDictionaryGrid);
+        }
+        if (sortOrderSelect) {
+            sortOrderSelect.addEventListener('change', populateItemDictionaryGrid);
+        }
+    }
+
     // Stat inputs
     agiValue.addEventListener('change', function() {
         handleStatChange('agi', this.value);
@@ -2726,40 +2746,481 @@ function handleDuplicateBuildClick(buildId) {
     }
 }
 
-    // --- Navigation ---
-    function setupNavigation() {
-        const navButtons = document.querySelectorAll('.nav-button');
-        const pages = document.querySelectorAll('.page');
+/**
+ * Populates the Item Dictionary grid with icons for all available items.
+ */
+function populateItemDictionaryGrid() {
+    const gridContainer = document.getElementById('item-dictionary-grid');
+    const searchInput = document.getElementById('item-dictionary-search');
+    const categoryFilter = document.getElementById('item-dictionary-category-filter');
+    const sortCriteriaSelect = document.getElementById('item-dictionary-sort-criteria');
+    const sortOrderSelect = document.getElementById('item-dictionary-sort-order');
 
-        navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetPageKey = button.dataset.page; // e.g., "build-editor"
-                const targetPageId = `${targetPageKey}-page`; // e.g., "build-editor-page"
-                console.log(`Navigating to: ${targetPageId}`); // Debug log
+    if (!gridContainer || !searchInput || !categoryFilter || !sortCriteriaSelect || !sortOrderSelect) {
+        console.error("[ItemDict] One or more UI elements for item dictionary not found!");
+        return;
+    }
 
-                // Update button active state
-                navButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
+    gridContainer.innerHTML = ''; // Clear previous content
 
-                // Update page visibility
-                let foundPage = false;
-                pages.forEach(page => {
-                    if (page.id === targetPageId) {
-                        page.classList.add('active');
-                        foundPage = true;
-                         console.log(`Showing page: ${page.id}`); // Debug log
-                    } else {
-                        page.classList.remove('active');
-                    }
-                });
-                 if (!foundPage) {
-                    console.error(`Target page with ID ${targetPageId} not found!`); // Debug log
-                 }
+    if (!itemsByIdMap || itemsByIdMap.size === 0) {
+        gridContainer.innerHTML = '<p style="text-align: center; color: #aaa;">No item data loaded or available.</p>';
+        return;
+    }
 
-                // Refresh saved builds list if switching to management view
-                if (targetPageKey === 'build-management') {
-                    displaySavedBuilds();
-                }
-            });
+    // Update global state from UI elements (or use them directly if not using global state for this)
+    itemDictionaryCurrentSearch = searchInput.value.toLowerCase();
+    itemDictionaryCurrentCategory = categoryFilter.value; // This value will be like "all", "weapon-all", or "weapon-sword"
+    itemDictionaryCurrentSortCriteria = sortCriteriaSelect.value;
+    itemDictionaryCurrentSortOrder = sortOrderSelect.value;
+
+    let filteredItems = Array.from(itemsByIdMap.values());
+
+    // 1. Filter by Search Term (Name)
+    if (itemDictionaryCurrentSearch) {
+        filteredItems = filteredItems.filter(item =>
+            item.Name && item.Name.toLowerCase().includes(itemDictionaryCurrentSearch)
+        );
+    }
+
+    if (itemDictionaryCurrentCategory !== 'all') {
+        if (itemDictionaryCurrentCategory.endsWith('-all')) {
+            // Main category selected (e.g., "weapon-all")
+            const mainTypeToFilter = itemDictionaryCurrentCategory.split('-all')[0];
+            filteredItems = filteredItems.filter(item =>
+                item.Type && item.Type.toLowerCase() === mainTypeToFilter
+            );
+        } else if (itemDictionaryCurrentCategory.includes('-')) {
+            // Sub-category selected (e.g., "weapon-sword" or "weapon-2h_sword")
+            const parts = itemDictionaryCurrentCategory.split('-');
+            const typeToFilter = parts[0];
+            // The rest joined by '-' becomes the subtype, matching the value format
+            const subtypeToFilter = parts.slice(1).join('-'); // e.g. "2h_sword" if it was "weapon-2h_sword"
+
+            filteredItems = filteredItems.filter(item =>
+                item.Type && item.Type.toLowerCase() === typeToFilter &&
+                item.Subtype && item.Subtype.toLowerCase().replace(/\s+/g, '_') === subtypeToFilter
+            );
+        }
+    }
+
+    // 3. Sort Items
+    filteredItems.sort((a, b) => {
+        let valA, valB;
+
+        switch (itemDictionaryCurrentSortCriteria) {
+            case 'name':
+                valA = (a.Name || '').toLowerCase();
+                valB = (b.Name || '').toLowerCase();
+                return itemDictionaryCurrentSortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            case 'level':
+                valA = a.Level !== undefined ? parseInt(a.Level) : -1; // Handle undefined levels
+                valB = b.Level !== undefined ? parseInt(b.Level) : -1;
+                return itemDictionaryCurrentSortOrder === 'asc' ? valA - valB : valB - valA;
+            // case 'sellPrice': // If you add sellPrice to items.json later
+            //     valA = a.sellPrice !== undefined ? parseFloat(a.sellPrice) : 0;
+            //     valB = b.sellPrice !== undefined ? parseFloat(b.sellPrice) : 0;
+            //     return itemDictionaryCurrentSortOrder === 'asc' ? valA - valB : valB - valA;
+            default:
+                return 0;
+        }
+    });
+
+    // 4. Render Grid Items
+    if (filteredItems.length === 0) {
+        gridContainer.innerHTML = '<p style="text-align: center; color: #aaa;">No items match your criteria.</p>';
+    } else {
+        filteredItems.forEach(item => {
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'grid-item-icon';
+            iconDiv.dataset.itemId = item['Item ID'];
+
+            if (item['Sprite-Link']) {
+                const img = document.createElement('img');
+                img.src = item['Sprite-Link'];
+                img.alt = item.Name;
+                img.onerror = function() {
+                    iconDiv.innerHTML = '?';
+                    iconDiv.title = `${item.Name} (Image Error)`;
+                    iconDiv.style.fontSize = '1.5em';
+                    iconDiv.style.color = '#aaa';
+                };
+                iconDiv.appendChild(img);
+            } else {
+                iconDiv.innerHTML = '?';
+                iconDiv.title = item.Name;
+                iconDiv.style.fontSize = '1.5em';
+                iconDiv.style.color = '#aaa';
+            }
+
+            iconDiv.addEventListener('mouseenter', (event) => showGridItemTooltip(event.currentTarget, item));
+            iconDiv.addEventListener('mouseleave', hideItemTooltip);
+            iconDiv.addEventListener('click', () => displayItemInViewer(item));
+
+            gridContainer.appendChild(iconDiv);
         });
     }
+    console.log(`[ItemDict] Displayed ${filteredItems.length} items in grid.`);
+}
+
+/**
+ * Shows a tooltip for an item in the dictionary grid.
+ * (Similar to showItemTooltip but takes item object directly and positions relative to grid element)
+ * @param {HTMLElement} element - The grid icon element being hovered.
+ * @param {object} item - The item data object.
+ */
+function showGridItemTooltip(element, item) {
+    if (!item) return;
+
+    hideItemTooltip(); // Remove existing tooltip first
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'item-tooltip'; // Reuse existing tooltip styles
+    tooltip.id = 'item-tooltip'; // Use the same ID for easy removal
+
+    // --- Build Tooltip Content (copied & adapted from original showItemTooltip logic) ---
+    let content = `<div class="tooltip-title">${item.Name}</div>`;
+    if (item.Level !== undefined) {
+        const subtypeText = item.Subtype && item.Subtype.trim() !== '' ? ` ${item.Subtype}` : '';
+        content += `<div class="tooltip-level">Level ${item.Level}${subtypeText}</div>`;
+    }
+    const allStatsHtml = [];
+    const statsToCheck = ['STA', 'STR', 'INT', 'AGI', 'Armor'];
+    const stringStatsToCheck = ['Damage'];
+    const specialStatsToCheck = ['Atk Spd'];
+
+    statsToCheck.forEach(statKey => {
+        if (item.hasOwnProperty(statKey) && item[statKey] !== undefined && item[statKey] !== 0 && item[statKey] !== '') {
+            const value = item[statKey];
+            const sign = value > 0 ? '+' : '';
+            const cssClass = value > 0 ? 'stat-positive' : 'stat-negative';
+            allStatsHtml.push(`<div class="${cssClass}">${statKey}: ${sign}${value}</div>`);
+        }
+    });
+    stringStatsToCheck.forEach(statKey => {
+         if (item.hasOwnProperty(statKey) && item[statKey] !== undefined && item[statKey] !== '') {
+             allStatsHtml.push(`<div>${statKey}: ${item[statKey]}</div>`);
+         }
+    });
+     specialStatsToCheck.forEach(statKey => {
+         if (item.hasOwnProperty(statKey) && item[statKey] !== undefined && item[statKey] !== 0 && item[statKey] !== '') {
+              allStatsHtml.push(`<div>Speed: ${item[statKey]}</div>`);
+              // Optional: display as seconds
+              // const speedInSeconds = (item[statKey] / 1000.0).toFixed(1);
+              // allStatsHtml.push(`<div>Speed: ${speedInSeconds}s</div>`);
+         }
+    });
+    if (allStatsHtml.length > 0) {
+        content += `<div class="tooltip-stats">${allStatsHtml.join('')}</div>`;
+    }
+
+    const requirements = [];
+    ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(reqKey => {
+        const statName = reqKey.replace('Req ', '');
+        if (item.hasOwnProperty(reqKey) && item[reqKey] !== undefined && item[reqKey] !== 0 && item[reqKey] !== '') {
+            requirements.push(`<div>Requires ${statName}: ${item[reqKey]}</div>`);
+        }
+    });
+     if (requirements.length > 0) {
+        if (allStatsHtml.length > 0) { // Add separator only if stats were shown
+             content += `<div style="border-top: 1px solid var(--border); margin: 5px 0;"></div>`;
+        }
+        content += `<div class="tooltip-req">${requirements.join('')}</div>`;
+    }
+    // --- End Tooltip Content ---
+
+    tooltip.innerHTML = content;
+    document.body.appendChild(tooltip);
+
+    // --- Position Tooltip ---
+    const elemRect = element.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const margin = 10;
+
+    // Try positioning to the right first
+    let left = elemRect.right + margin;
+    let top = elemRect.top + window.scrollY; // Use scrollY offset
+
+    // Adjust if off-screen right
+    if (left + tooltipRect.width > (window.innerWidth + window.scrollX)) {
+        left = elemRect.left - tooltipRect.width - margin; // Move to left
+    }
+    // Adjust if off-screen left
+    if (left < window.scrollX) {
+        left = window.scrollX + margin;
+    }
+
+     // Adjust vertical position - try to center, but stay within viewport
+     let potentialTop = elemRect.top + (elemRect.height / 2) - (tooltipRect.height / 2) + window.scrollY;
+     if (potentialTop < window.scrollY + margin) { // Check top boundary
+          top = window.scrollY + margin;
+     } else if (potentialTop + tooltipRect.height > (window.innerHeight + window.scrollY - margin)) { // Check bottom boundary
+          top = (window.innerHeight + window.scrollY) - tooltipRect.height - margin;
+     } else {
+          top = potentialTop; // Use centered position if it fits
+     }
+
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+
+    // Fade in
+    requestAnimationFrame(() => {
+        tooltip.style.opacity = 1;
+    });
+}
+
+/**
+ * Displays the details of a selected item in the Item Dictionary viewer panel.
+ * @param {object} item - The item data object to display.
+ */
+function displayItemInViewer(item) {
+    const viewerContainer = document.getElementById('item-dictionary-viewer');
+    if (!viewerContainer) {
+        console.error("Item Dictionary viewer container (#item-dictionary-viewer) not found!");
+        return;
+    }
+
+    viewerContainer.innerHTML = ''; // Clear previous content
+
+    if (!item) {
+        viewerContainer.innerHTML = '<p>Select an item from the grid to see details.</p>';
+        return;
+    }
+
+    // --- Build HTML Content for Viewer ---
+    let content = '';
+
+    // 1. Image (Optional, but nice)
+    if (item['Sprite-Link']) {
+        content += `<div style="text-align: center; margin-bottom: 15px;">
+                       <img src="${item['Sprite-Link']}" alt="${item.Name}" style="width: 64px; height: 64px; border: 1px solid var(--border); background-color: var(--slot-bg); border-radius: 4px; image-rendering: pixelated;">
+                   </div>`;
+    }
+
+    // 2. Name
+    content += `<h4 style="text-align: center; color: var(--accent); margin-bottom: 5px; border-bottom: 1px solid var(--border); padding-bottom: 5px;">${item.Name}</h4>`;
+
+    // 3. Level, Type, Subtype
+    const typeSubtype = `${item.Type || ''}${item.Subtype ? ' / ' + item.Subtype : ''}`;
+    content += `<div style="text-align: center; color: #aaa; font-style: italic; margin-bottom: 15px;">Level ${item.Level || 0} - ${typeSubtype}</div>`;
+
+    // 4. Stats Section
+    const statsHtml = [];
+    // Define keys and labels for clarity
+    const statMappings = [
+        { key: 'STA', label: 'STA', classPositive: 'stat-positive', classNegative: 'stat-negative' },
+        { key: 'STR', label: 'STR', classPositive: 'stat-positive', classNegative: 'stat-negative' },
+        { key: 'INT', label: 'INT', classPositive: 'stat-positive', classNegative: 'stat-negative' },
+        { key: 'AGI', label: 'AGI', classPositive: 'stat-positive', classNegative: 'stat-negative' },
+        { key: 'Armor', label: 'Armor', classPositive: 'stat-positive', classNegative: 'stat-negative' }, // Armor is usually positive
+        { key: 'Damage', label: 'Damage', classPositive: '', classNegative: '' }, // Damage is neutral display
+        { key: 'Atk Spd', label: 'Speed (ms)', classPositive: '', classNegative: '' } // Speed is neutral display
+    ];
+
+    statMappings.forEach(mapping => {
+        if (item.hasOwnProperty(mapping.key) && item[mapping.key] !== undefined && item[mapping.key] !== '' && item[mapping.key] !== 0) {
+            const value = item[mapping.key];
+            let displayValue = value;
+            let cssClass = '';
+
+            if (typeof value === 'number' && value !== 0) {
+                 cssClass = value > 0 ? mapping.classPositive : mapping.classNegative;
+                 displayValue = `${value > 0 ? '+' : ''}${value}`; // Add sign for numbers
+            } else {
+                // Handle string values like Damage "5-8" - no sign needed
+                displayValue = value;
+            }
+
+
+            statsHtml.push(`<div style="margin-bottom: 4px;"><span style="font-weight: bold; display: inline-block; width: 80px;">${mapping.label}:</span> <span class="${cssClass}">${displayValue}</span></div>`);
+        }
+    });
+
+    if (statsHtml.length > 0) {
+        content += `<h5>Stats</h5><div class="tooltip-stats" style="margin-bottom: 15px;">${statsHtml.join('')}</div>`; // Reuse tooltip-stats for potential styling
+    }
+
+    // 5. Requirements Section
+    const requirementsHtml = [];
+    ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(reqKey => {
+        const statName = reqKey.replace('Req ', '');
+        if (item.hasOwnProperty(reqKey) && item[reqKey] !== undefined && item[reqKey] !== 0 && item[reqKey] !== '') {
+            requirementsHtml.push(`<div style="margin-bottom: 4px;">Requires ${statName}: ${item[reqKey]}</div>`);
+        }
+    });
+
+    if (requirementsHtml.length > 0) {
+        content += `<h5 style="border-top: 1px solid var(--border); padding-top: 10px;">Requirements</h5><div class="tooltip-req" style="color: #ccc;">${requirementsHtml.join('')}</div>`; // Reuse tooltip-req
+    }
+    // --- End HTML Content ---
+
+    viewerContainer.innerHTML = content;
+}
+
+let dictionaryLoaded = false;
+let itemDictionaryCurrentSearch = '';
+let itemDictionaryCurrentCategory = 'all';
+let itemDictionaryCurrentSortCriteria = 'level'; // Default sort
+let itemDictionaryCurrentSortOrder = 'asc';      // Default order
+let allItemsForDictionary = []; // To store the initial flat list of items
+
+function populateItemCategoryFilter() {
+    const categoryFilter = document.getElementById('item-dictionary-category-filter');
+    if (!categoryFilter || !itemsByIdMap || itemsByIdMap.size === 0) {
+        console.warn("[ItemDict] Category filter or items not ready for population.");
+        return;
+    }
+
+    const categoriesMap = new Map(); // To store Types and their Set of Subtypes
+
+    itemsByIdMap.forEach(item => {
+        if (item.Type && item.Subtype) {
+            const type = item.Type.trim();
+            const subtype = item.Subtype.trim();
+            if (!type || !subtype) return; // Skip if type or subtype is empty
+
+            if (!categoriesMap.has(type)) {
+                categoriesMap.set(type, new Set());
+            }
+            categoriesMap.get(type).add(subtype);
+        } else if (item.Type) { // Handle items that might only have a Type
+            const type = item.Type.trim();
+            if (!type) return;
+            if (!categoriesMap.has(type)) {
+                categoriesMap.set(type, new Set()); // Initialize with an empty set for subtypes
+            }
+            // We could add a placeholder like "(Main Category)" if such items should be distinctly filterable
+            // For now, they'll just be part of "All [Type]"
+        }
+    });
+
+    // Clear existing options except the first "All Categories"
+    while (categoryFilter.options.length > 1) {
+        categoryFilter.remove(1); // Remove from the end until only one remains
+    }
+
+    const sortedMainTypes = Array.from(categoriesMap.keys()).sort();
+
+    sortedMainTypes.forEach(typeName => {
+        const optgroup = document.createElement('optgroup');
+        const capitalizedTypeName = typeName.charAt(0).toUpperCase() + typeName.slice(1);
+        optgroup.label = capitalizedTypeName;
+        categoryFilter.appendChild(optgroup);
+
+        // Option to select all items of this main Type
+        const allOfTypeOption = document.createElement('option');
+        allOfTypeOption.value = `${typeName.toLowerCase()}-all`; // e.g., "weapon-all"
+        allOfTypeOption.textContent = `All ${capitalizedTypeName}s`; // e.g., "All Weapons"
+        optgroup.appendChild(allOfTypeOption);
+
+        const subtypes = categoriesMap.get(typeName);
+        if (subtypes) {
+            const sortedSubtypes = Array.from(subtypes).sort();
+            sortedSubtypes.forEach(subtypeName => {
+                const option = document.createElement('option');
+                // Value: "type-subtype_normalized", e.g., "weapon-sword" or "weapon-2h_sword"
+                const normalizedSubtypeName = subtypeName.toLowerCase().replace(/\s+/g, '_');
+                option.value = `${typeName.toLowerCase()}-${normalizedSubtypeName}`;
+                // Text: "  Subtype Name" (indented for clarity)
+                option.textContent = `  ${subtypeName.charAt(0).toUpperCase() + subtypeName.slice(1)}`;
+                optgroup.appendChild(option);
+            });
+        }
+    });
+
+    console.log("[ItemDict] Populated category filter with subcategories using optgroups.");
+}
+
+function setupNavigation() {
+    // Be more specific with selectors if your HTML structure allows
+    const navButtons = document.querySelectorAll('.top-nav .nav-button');
+    const pages = document.querySelectorAll('.page-content .page'); // More specific selector
+
+    if (!navButtons.length || !pages.length) {
+        console.error("[Nav] Critical: Navigation buttons or page elements not found. Navigation will not work.");
+        // If pages aren't found, the rest of the function will fail.
+        // You might want to add an alert or display an error to the user here.
+        return;
+    }
+
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetPageKey = button.dataset.page;
+            const targetPageId = `${targetPageKey}-page`;
+            console.log(`[Nav] Clicked. Navigating to: ${targetPageId}`);
+
+            // Update button active state
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            // Update page visibility
+            let foundPage = false;
+            pages.forEach(page => {
+                if (page.id === targetPageId) {
+                    page.classList.add('active');
+                    foundPage = true;
+                    console.log(`[Nav] Activated page: ${page.id}`);
+                } else {
+                    page.classList.remove('active');
+                }
+            });
+
+            if (!foundPage) {
+                // This is a critical error if it happens. It means the HTML for the page
+                // (e.g., <div id="item-dictionary-page" class="page">) is missing,
+                // misspelled, or not where the 'pages' querySelector is looking.
+                console.error(`[Nav] CRITICAL ERROR: Target page with ID '${targetPageId}' NOT FOUND in DOM!`);
+                // You might want to default to a known page or show an error message to the user.
+                // For example, show the first page if the target isn't found:
+                // if (pages.length > 0) pages[0].classList.add('active');
+                // return; // Stop further processing for this click if page not found
+            }
+
+            // --- Page-specific actions ---
+
+            // Refresh saved builds list if switching to management view
+            if (targetPageKey === 'build-management') {
+                console.log("[Nav] Switched to Saved Builds. Refreshing list.");
+                displaySavedBuilds();
+            }
+
+            // Populate item dictionary grid when switching to its view
+            if (targetPageKey === 'item-dictionary') {
+                console.log("[Nav] Switched to Item Dictionary.");
+                if (!dictionaryLoaded) { // Load grid content only once
+                    console.log("[Nav] Populating item dictionary grid (first time).");
+                    populateItemDictionaryGrid(); // Make sure this function is defined
+                    dictionaryLoaded = true;
+                }
+            }
+        });
+    });
+
+    // --- Handle Initial Active State (Recommended) ---
+    // This part ensures the correct button is active if the HTML defines an initial active page.
+    const initialActivePage = document.querySelector('.page-content .page.active');
+    if (initialActivePage) {
+        const initialPageKey = initialActivePage.id.replace('-page', '');
+        const initialActiveButton = document.querySelector(`.top-nav .nav-button[data-page="${initialPageKey}"]`);
+
+        if (initialActiveButton && !initialActiveButton.classList.contains('active')) {
+            console.log("[Nav] Correcting initial active button to match active page in HTML.");
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            initialActiveButton.classList.add('active');
+        }
+
+        // If the initially active page (from HTML) is the item dictionary, populate it
+        if (initialPageKey === 'item-dictionary' && !dictionaryLoaded) {
+            console.log("[Nav] Initial page is Item Dictionary. Populating grid.");
+            populateItemDictionaryGrid();
+            dictionaryLoaded = true;
+        }
+    } else {
+        console.warn("[Nav] No page in HTML has the '.active' class initially.");
+        // Optionally, activate the first button and page by default if none are set in HTML
+        // if (navButtons.length > 0) {
+        //     navButtons[0].click(); // Simulate a click on the first button
+        // }
+    }
+}

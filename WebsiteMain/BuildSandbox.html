@@ -50,6 +50,7 @@
 								<div class="top-nav">
 									<button class="nav-button active" data-page="build-editor">Editor</button>
 									<button class="nav-button" data-page="build-management">Saved Builds</button>
+									<button class="nav-button" data-page="item-dictionary">Item Dictionary</button>
 								</div>
 							
 								<div class="page-content">
@@ -232,6 +233,37 @@
 												</div>
 												<div class="build-section-buttons">
 													
+												</div>
+											</div>
+										</div>
+									</div>
+
+									<div id="item-dictionary-page" class="page">
+										<div class="item-dictionary-container panel">
+											<div class="item-grid-panel">
+												<h3>All Items</h3>
+
+												<div class="item-grid-controls">
+													<input type="text" id="item-dictionary-search" placeholder="Search by name...">
+													<select id="item-dictionary-category-filter">
+														<option value="all">All Categories</option>
+														</select>
+													<select id="item-dictionary-sort-criteria">
+														<option value="level">Sort by Level</option>
+														<option value="name">Sort by Name</option>
+														</select>
+													<select id="item-dictionary-sort-order">
+														<option value="asc">Ascending</option>
+														<option value="desc">Descending</option>
+													</select>
+												</div>
+												<div id="item-dictionary-grid" class="item-grid-content">
+													</div>
+											</div>
+											<div class="item-viewer-panel">
+												<h3>Item Details</h3>
+												<div id="item-dictionary-viewer" class="item-viewer-content">
+													Select an item from the grid to see details.
 												</div>
 											</div>
 										</div>
