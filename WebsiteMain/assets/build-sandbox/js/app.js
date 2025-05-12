@@ -848,8 +848,7 @@ const FO2BuildState = {
 
             console.log("Successfully loaded state from localStorage.");
             this.recalculatePoints(); // Ensure pointsRemaining is correct after loading
-            // Initial calculation and UI update will be triggered after load in DOMContentLoaded
-
+            this.triggerRecalculationAndUpdateUI(); // Recalculate stats & update UI
             return true;
 
         } catch (e) {
@@ -2199,10 +2198,14 @@ function populateItemDictionaryGrid() {
         }
     });
 
-    // Render Grid Items
+    // Render Grid Items - MODIFIED TO ENSURE SINGLE CONTINUOUS GRID
     if (filteredItems.length === 0) {
         itemDictionaryGrid.innerHTML = '<p class="empty-message">No items match criteria.</p>';
     } else {
+        // Create a single container for all items - no separate rows or groups
+        const gridContainer = document.createElement('div');
+        gridContainer.className = 'grid-items-container'; // Optional: for additional styling
+        
         filteredItems.forEach(item => {
             const iconDiv = document.createElement('div');
             iconDiv.className = 'grid-item-icon';
@@ -2216,6 +2219,8 @@ function populateItemDictionaryGrid() {
             iconDiv.addEventListener('mouseenter', (e) => showGridItemTooltip(e.currentTarget, item));
             iconDiv.addEventListener('mouseleave', () => hideTooltip('item-tooltip'));
             iconDiv.addEventListener('click', () => displayItemInViewer(item));
+            
+            // Add directly to the grid instead of any sub-grouping
             itemDictionaryGrid.appendChild(iconDiv);
         });
     }

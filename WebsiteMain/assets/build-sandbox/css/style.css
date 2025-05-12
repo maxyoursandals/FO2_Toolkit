@@ -1303,11 +1303,11 @@
 
         /* Style for the main container of the item dictionary page */
         .item-dictionary-container {
-            display: flex; /* Use flexbox for side-by-side panels */
+            display: flex;
             width: 100%;
-            height: 100%; /* Fill the page content area */
-            gap: 20px; /* Space between panels */
-            padding: 15px; /* Padding inside the container */
+            height: 100%;
+            gap: 15px;
+            padding: 15px;
             box-sizing: border-box;
         }
 
@@ -1323,21 +1323,33 @@
             border: 1px solid var(--border);
         }
 
-        .item-grid-panel h3 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            flex-shrink: 0; /* Prevent header from shrinking */
-            text-align: center;
+        .item-grid-panel {
+            flex: 0 0 60%;
+            background-color: var(--background);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
         }
 
-        /* Style for the scrollable grid content */
+        .item-grid-panel h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
         .item-grid-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); /* Responsive grid */
+            display: flex;
+            flex-wrap: wrap;
             gap: 8px;
-            overflow-y: auto; /* Make the grid area scrollable */
-            flex-grow: 1; /* Allow grid to fill available space */
-            padding: 5px; /* Padding around the icons */
+            overflow-y: auto;
+            flex-grow: 1;
+            padding: 5px;
+            align-content: flex-start;
+            align-items: flex-start;
         }
 
         /* Style for individual item icons in the grid */
@@ -1352,7 +1364,7 @@
             justify-content: center;
             align-items: center;
             transition: background-color 0.2s;
-            position: relative; /* Needed for potential tooltips */
+            position: relative;
         }
 
         .grid-item-icon img {
@@ -1369,54 +1381,88 @@
 
         /* Style for the right panel (item viewer) */
         .item-viewer-panel {
-            flex: 1; /* Let viewer take up less space initially */
-            background-color: var(--background); /* Or var(--panel) */
+            flex: 0 0 25%;
+            background-color: var(--background);
             border-radius: 8px;
             padding: 15px;
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            overflow-y: auto; /* Allow viewer to scroll if content overflows */
+            overflow-y: auto;
+            min-width: 180px;
         }
 
         .item-viewer-panel h3 {
             margin-top: 0;
-            margin-bottom: 10px;
-            flex-shrink: 0;
+            margin-bottom: 15px;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .item-viewer-content {
             flex-grow: 1;
-            /* Add styles for how item details are displayed */
-            /* Example: */
             font-size: 0.9em;
             line-height: 1.6;
         }
-        
-        /* Styles for the Item Dictionary Controls Container */
-        .item-grid-controls {
+
+        .item-filters-panel {
+            flex: 0 0 15%;
+            background-color: var(--background);
+            border-radius: 8px;
+            padding: 15px;
             display: flex;
-            flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
-            gap: 10px;       /* Space between control elements */
-            margin-bottom: 15px; /* Space below controls, before the grid */
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border); /* Optional separator line */
+            flex-direction: column;
+            border: 1px solid var(--border);
+            min-width: 150px;
         }
 
-        /* Styling for input and select elements within the controls */
-        .item-grid-controls input[type="text"],
-        .item-grid-controls select {
+        .item-filters-panel h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .filter-section {
+            margin-bottom: 15px;
+        }
+
+        .filter-section label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .filter-section input,
+        .filter-section select {
+            width: 100%;
             padding: 8px;
-            background-color: var(--slot-bg); /* Using --slot-bg for consistency */
+            background-color: var(--slot-bg);
             border: 1px solid var(--border);
             color: var(--text);
             border-radius: 5px;
-            font-size: 0.9em;
-            flex-grow: 1; /* Allow elements to grow and fill space */
-            min-width: 130px; /* Minimum width to prevent them from becoming too small */
         }
 
-        .item-grid-controls input[type="text"] {
-            flex-basis: 200px; /* Give search a bit more initial space */
+        @media screen and (max-width: 950px) {
+            .item-dictionary-container {
+                flex-direction: column;
+            }
+            
+            .item-filters-panel {
+                flex: 0 0 auto;
+                width: 100%;
+                min-height: 0;
+            }
+            
+            .item-grid-panel {
+                flex: 1 1 auto;
+                width: 100%;
+                min-height: 300px;
+            }
+            
+            .item-viewer-panel {
+                flex: 0 0 auto;
+                width: 100%;
+                min-height: 200px;
+            }
         }
