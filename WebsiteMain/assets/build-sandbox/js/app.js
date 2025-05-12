@@ -597,58 +597,80 @@ function resetStats() {
 // Equipment handling
 let currentSlot = null;
 
-function openItemSearch(slotElement) {
-     const slotName = slotElement.dataset.slot;
-     currentSlot = slotName; // Keep track of which slot was clicked
+function openItemSearch(slotElementOrName) {
+    let slotElement;
+    let slotName;
+    
+    // Determine if we're passed a DOM element or a string
+    if (typeof slotElementOrName === 'string') {
+        // We were passed a slot name string, find the element
+        slotName = slotElementOrName;
+        slotElement = document.querySelector(`.slot[data-slot="${slotName}"]`);
+        if (!slotElement) {
+            console.error(`Cannot find slot element with data-slot="${slotName}"`);
+            showNotification(`Error: Cannot find slot for ${slotName}`, "error");
+            return;
+        }
+    } else if (slotElementOrName instanceof Element) {
+        // We were passed an element, extract the slot name
+        slotElement = slotElementOrName;
+        slotName = slotElement.dataset.slot;
+        if (!slotName) {
+            console.error("Invalid slot element: missing data-slot attribute", slotElement);
+            showNotification("Error: Invalid equipment slot", "error");
+            return;
+        }
+    } else {
+        // Invalid parameter
+        console.error("Invalid parameter passed to openItemSearch:", slotElementOrName);
+        showNotification("Error: Cannot open item search", "error");
+        return;
+    }
+    
+    // Now we have both slotElement and slotName, proceed as before
+    currentSlot = slotName;
 
-     // Update Title
-     const searchTitle = document.getElementById('search-title');
-     if (searchTitle) {
-         searchTitle.textContent = `Select for ${slotName.charAt(0).toUpperCase() + slotName.slice(1)}`;
-     }
+    // Update Title
+    const searchTitle = document.getElementById('search-title');
+    if (searchTitle) {
+        searchTitle.textContent = `Select for ${slotName.charAt(0).toUpperCase() + slotName.slice(1)}`;
+    }
 
-     // --- Dynamic Positioning Logic ---
-     const slotRect = slotElement.getBoundingClientRect(); // Get position of the clicked slot
-     const panelWidth = 150; // The fixed width we set in CSS
-     const panelHeight = 300; // The fixed height we set in CSS
-     const margin = 5; // Small space between slot and panel
+    // --- Dynamic Positioning Logic ---
+    const slotRect = slotElement.getBoundingClientRect();
+    const panelWidth = 350; // Adjusted based on actual CSS width
+    const panelHeight = 300; 
+    const margin = 5;
 
-     // Calculate initial desired position (below and slightly right of the slot)
-     let potentialTop = slotRect.bottom + margin + window.scrollY;
-     let potentialLeft = slotRect.left + window.scrollX; // Align left edge initially
+    // Position calculations
+    let potentialTop = slotRect.bottom + margin + window.scrollY;
+    let potentialLeft = slotRect.left + window.scrollX;
 
-     // Check viewport boundaries and adjust
-     // Check Bottom boundary
-     if (potentialTop + panelHeight > (window.innerHeight + window.scrollY)) {
-         potentialTop = slotRect.top - panelHeight - margin + window.scrollY; // Move above the slot
-     }
-     // Check Top boundary (if moved above)
-     if (potentialTop < window.scrollY) {
-          potentialTop = window.scrollY + margin; // Stick near top if still out
-     }
+    // Boundary checks
+    if (potentialTop + panelHeight > (window.innerHeight + window.scrollY)) {
+        potentialTop = slotRect.top - panelHeight - margin + window.scrollY;
+    }
+    if (potentialTop < window.scrollY) {
+        potentialTop = window.scrollY + margin;
+    }
+    if (potentialLeft + panelWidth > (window.innerWidth + window.scrollX)) {
+        potentialLeft = window.innerWidth + window.scrollX - panelWidth - margin;
+    }
+    if (potentialLeft < window.scrollX) {
+        potentialLeft = window.scrollX + margin;
+    }
 
-     // Check Right boundary
-     if (potentialLeft + panelWidth > (window.innerWidth + window.scrollX)) {
-          potentialLeft = window.innerWidth + window.scrollX - panelWidth - margin; // Stick near right edge
-     }
-     // Check Left boundary
-     if (potentialLeft < window.scrollX) {
-         potentialLeft = window.scrollX + margin; // Stick near left edge
-     }
+    // Apply position
+    itemSearchModal.style.top = `${potentialTop}px`;
+    itemSearchModal.style.left = `${potentialLeft}px`;
 
-     // Apply the calculated position
-     itemSearchModal.style.top = `${potentialTop}px`;
-     itemSearchModal.style.left = `${potentialLeft}px`;
-     // --- End Dynamic Positioning Logic ---
-
-     // Show the panel using flex display (matches our CSS)
-     itemSearchModal.style.display = 'flex';
-     itemSearchInput.value = '';
-     itemSearchInput.focus(); // Focus after display is set
-
-     // Populate search results
-     populateSearchResults(); // Populate with relevant items
- }
+    // Show modal and populate
+    itemSearchModal.style.display = 'flex';
+    itemSearchInput.value = '';
+    itemSearchInput.focus();
+    
+    populateSearchResults();
+}
 
 function closeItemSearch() {
     itemSearchModal.style.display = 'none';
@@ -1000,6 +1022,8 @@ function handleRebirthChange() {
         } else {
             rebirthStatusIcon.classList.remove('active');
         }
+    } else {
+        console.warn("Rebirth status icon element not found (rebirthStatusIcon)");
     }
 
     // Update max level for slider and input
@@ -1009,6 +1033,7 @@ function handleRebirthChange() {
     } else {
         levelSlider.max = 60;
         levelInput.max = 60; // Also set max for number input
+        // If current level is above 60, cap it at 60 when rebirth is toggled off
         if (currentStats.level > 60) {
             currentStats.level = 60;
             levelInput.value = 60;
@@ -1319,7 +1344,32 @@ function loadBuild(buildIndex) {
         // Update UI
         levelInput.value = build.level;
         levelSlider.value = build.level;
-        rebirthCheckbox.checked = build.rebirth;
+        
+        // Update rebirth icon (NOT checkbox)
+        if (rebirthStatusIcon) {
+            if (build.rebirth) {
+                rebirthStatusIcon.classList.add('active');
+            } else {
+                rebirthStatusIcon.classList.remove('active');
+            }
+        } else {
+            console.warn("Rebirth status icon not found during build load");
+        }
+        
+        // Update level slider/input max based on rebirth
+        if (build.rebirth) {
+            levelSlider.max = 80;
+            levelInput.max = 80;
+        } else {
+            levelSlider.max = 60;
+            levelInput.max = 60;
+            // Ensure level doesn't exceed non-rebirth max
+            if (build.level > 60) {
+                currentStats.level = 60;
+                levelInput.value = 60;
+                levelSlider.value = 60;
+            }
+        }
         
         agiValue.value = build.stats.agi;
         strValue.value = build.stats.str;
@@ -1333,7 +1383,7 @@ function loadBuild(buildIndex) {
                 currentStats.equipment[slot] = null;
                 const slotElement = document.querySelector(`.slot[data-slot="${slot}"]`);
                 if (slotElement) {
-                    slotElement.innerHTML = `<img src="/api/placeholder/40/40" alt="${slot}">`;
+                    slotElement.innerHTML = `<img src="assets/build-sandbox/icons/${slot}-icon.png" alt="${slot}">`;
                 }
             });
             
@@ -1815,21 +1865,38 @@ function setupEventListeners() {
 
     // Equipment slots - Attach listeners correctly within the loop
     document.querySelectorAll('.slot').forEach(slot => {
-        // Make sure it's not a placeholder before adding listeners
-        if (!slot.classList.contains('placeholder')) {
-            // CLICK LISTENER MODIFIED: pass 'this' (the clicked element)
-            slot.addEventListener('click', function() {
-                openItemSearch(this); // Pass the element itself
-            });
-
-            // Tooltip listeners (remain the same)
-            slot.addEventListener('mouseenter', function() {
-                showItemTooltip(this);
-            });
-            slot.addEventListener('mouseleave', function() {
-                hideItemTooltip();
-            });
+        // Skip placeholder slots
+        if (slot.classList.contains('placeholder')) {
+            return;
         }
+        
+        // Get the slot name from the data-slot attribute
+        const slotName = slot.getAttribute('data-slot');
+        
+        if (!slotName) {
+            console.warn("Found slot element without data-slot attribute:", slot);
+            return;
+        }
+        
+        // Add click event for opening item search
+        slot.addEventListener('click', function(event) {
+            // Don't open search if the clear button was clicked
+            if (event.target.classList && event.target.classList.contains('clear-slot')) {
+                return;
+            }
+            
+            // Pass the DOM element (this) to openItemSearch
+            openItemSearch(this);
+        });
+
+        // Add tooltip listeners
+        slot.addEventListener('mouseenter', function() {
+            showItemTooltip(this);
+        });
+        
+        slot.addEventListener('mouseleave', function() {
+            hideItemTooltip();
+        });
     });
 
     // Item search input
@@ -1888,10 +1955,9 @@ function saveCurrentStateToLocalStorage() {
 
     try {
         localStorage.setItem('fo2BuildTesterSave', JSON.stringify(saveData));
-        console.log("Build saved to localStorage (including slider levels)."); // Optional confirmation
+        console.log("Build saved to localStorage (including slider levels).");
     } catch (e) {
         console.error("Failed to save build to localStorage:", e);
-        // Handle potential errors (e.g., storage full)
         showNotification("Could not save build state.", "error");
     }
 }
@@ -1917,6 +1983,8 @@ function loadCurrentStateFromLocalStorage() {
         currentStats.rebirth = savedData.rebirth || false;
         levelInput.value = currentStats.level;
         levelSlider.value = currentStats.level;
+        
+        // Update rebirth status icon (not checkbox)
         if (rebirthStatusIcon) {
             if (currentStats.rebirth) {
                 rebirthStatusIcon.classList.add('active');
@@ -1924,6 +1992,7 @@ function loadCurrentStateFromLocalStorage() {
                 rebirthStatusIcon.classList.remove('active');
             }
         }
+        
         if (currentStats.rebirth) {
              levelSlider.max = 80;
              levelInput.max = 80;
@@ -1951,58 +2020,76 @@ function loadCurrentStateFromLocalStorage() {
         // Load slider positions into global variables if they exist
         performanceMinLevel = parseInt(savedData.minFilterLevel) || 1; // Default to 1 if missing/invalid
         performanceMaxLevel = parseInt(savedData.maxFilterLevel) || 80; // Default to placeholder 80 if missing/invalid
-         // Basic validation: ensure min isn't > max after loading (setupLevelFilterSliders will handle final clamping)
-         if (performanceMinLevel > performanceMaxLevel) {
+        
+        // Basic validation: ensure min isn't > max after loading
+        if (performanceMinLevel > performanceMaxLevel) {
              performanceMinLevel = 1; // Reset min if invalid state loaded
              performanceMaxLevel = 80; // Reset max to placeholder
-         }
-         console.log(`Loaded slider levels into globals: Min=${performanceMinLevel}, Max=${performanceMaxLevel}`);
+        }
+        
+        console.log(`Loaded slider levels into globals: Min=${performanceMinLevel}, Max=${performanceMaxLevel}`);
 
-        if (savedData.equipment && itemsData && itemsByIdMap.size > 0) {
-            resetAllEquipment();
+        // Clear existing equipment first
+        resetAllEquipment();
+        
+        // Load equipment - ensure itemsByIdMap is populated
+        if (savedData.equipment && itemsByIdMap && itemsByIdMap.size > 0) {
             console.log("Loading equipment from saved data...");
             for (const slot in savedData.equipment) {
                 const itemIdToLoad = savedData.equipment[slot];
+                // Use itemsByIdMap to get the full item object from the ID
                 const itemToEquip = itemsByIdMap.get(itemIdToLoad);
+                
                 if (itemToEquip) {
                     equipItem(slot, itemToEquip);
                 } else {
-                     if (itemIdToLoad !== undefined && itemIdToLoad !== null) {
+                    if (itemIdToLoad !== undefined && itemIdToLoad !== null) {
                         console.warn(`Could not find item with ID ${itemIdToLoad} in itemsByIdMap for slot ${slot} during load.`);
-                     } else {
+                    } else {
                         console.warn(`Invalid or missing Item ID found in saved data for slot ${slot}.`);
-                     }
+                    }
                 }
             }
         } else {
-             console.log("Skipping equipment load (No saved equipment, items not loaded, or map empty).");
-             resetAllEquipment();
+            console.log("Skipping equipment load (No saved equipment, items not loaded, or map empty).");
         }
 
-         if (savedData.activeBuffNames && buffsData) {
-             const buffGrid = document.getElementById('buff-grid');
-             if (buffGrid && buffGrid.children.length > 0) { // Ensure grid is populated
-                 resetAllBuffs();
-                 console.log("Loading active buffs...");
-                 savedData.activeBuffNames.forEach(buffNameToLoad => {
-                     let buffToActivate = null;
-                     let buffElement = null;
-                     for (const category in buffsData) {
-                         buffToActivate = buffsData[category].find(b => b.Name === buffNameToLoad);
-                         if (buffToActivate) break;
-                     }
-                     if (buffToActivate) {
-                         buffElement = buffGrid.querySelector(`.buff-icon[data-buff-name="${buffNameToLoad}"]`);
-                         if(buffElement && !buffElement.classList.contains('active')) {
-                             toggleBuff(buffToActivate, buffElement);
-                         } else if (!buffElement) { console.warn(`Buff element missing for ${buffNameToLoad}`); }
-                     } else { console.warn(`Buff data missing for ${buffNameToLoad}`); }
-                 });
-             } else { console.warn("Buff grid not populated, skipping buff load."); }
-         } else {
-              console.log("Skipping buff load (No saved buffs or buff data missing).");
-              resetAllBuffs();
-         }
+        // Load active buffs
+        if (savedData.activeBuffNames && buffsData) {
+            const buffGrid = document.getElementById('buff-grid');
+            if (buffGrid && buffGrid.children.length > 0) { // Ensure grid is populated
+                resetAllBuffs();
+                console.log("Loading active buffs...");
+                savedData.activeBuffNames.forEach(buffNameToLoad => {
+                    let buffToActivate = null;
+                    
+                    // Search for the buff by name across all categories
+                    for (const category in buffsData) {
+                        if (Array.isArray(buffsData[category])) {
+                            buffToActivate = buffsData[category].find(b => b.Name === buffNameToLoad);
+                            if (buffToActivate) break;
+                        }
+                    }
+                    
+                    if (buffToActivate) {
+                        // Find the buff element in the grid
+                        const buffElement = buffGrid.querySelector(`.buff-icon[data-buff-name="${buffNameToLoad}"]`);
+                        if (buffElement && !buffElement.classList.contains('active')) {
+                            toggleBuff(buffToActivate, buffElement);
+                        } else if (!buffElement) {
+                            console.warn(`Buff element missing for ${buffNameToLoad}`);
+                        }
+                    } else {
+                        console.warn(`Buff data missing for ${buffNameToLoad}`);
+                    }
+                });
+            } else {
+                console.warn("Buff grid not populated, skipping buff load.");
+            }
+        } else {
+            console.log("Skipping buff load (No saved buffs or buff data missing).");
+            resetAllBuffs();
+        }
 
         updateRemainingPoints();
         const loadedResults = recalculateBuildStats();
@@ -2015,8 +2102,6 @@ function loadCurrentStateFromLocalStorage() {
         // Reset slider globals on error too
         performanceMinLevel = 1;
         performanceMaxLevel = 80; // Reset to placeholder
-        // Optionally reset other parts of the state here?
-        // resetStats(); resetAllEquipment(); resetAllBuffs();
     }
 }
 
@@ -2024,37 +2109,67 @@ function calculatePerformance(dps, minLevel, maxLevel) {
     const performanceData = [];
     const hideBosses = hideBossesCheckbox ? hideBossesCheckbox.checked : false;
 
-    if (!mobDataCache || dps <= 0) {
+    // Early return if we don't have valid mob data or DPS is zero/negative
+    if (!mobDataCache || !Array.isArray(mobDataCache) || mobDataCache.length === 0) {
+        console.warn("Performance calculation: No mob data available");
+        return performanceData;
+    }
+    
+    if (dps <= 0) {
+        console.warn("Performance calculation: DPS is zero or negative");
         return performanceData;
     }
 
     // Filter mobs by level range AND boss status (using name lookup) if checkbox is checked
     const filteredMobs = mobDataCache.filter(mob => {
+        // Ensure we have a valid mob with a level
+        if (!mob || mob.level === undefined || mob.level === null) {
+            return false;
+        }
+        
         const levelMatch = mob.level >= minLevel && mob.level <= maxLevel;
-        // NEW Check: Include the mob if:
-        // 1. The checkbox is NOT checked OR
-        // 2. The mob's name is NOT in the bossNameSet
+        
+        // Check if the mob should be excluded because it's a boss
         const bossMatch = !hideBosses || !bossNameSet.has(mob.name);
+        
         return levelMatch && bossMatch;
     });
 
-    // The rest of the function (calculating ttk, gph etc. for filteredMobs) remains the same...
+    // Calculate performance metrics for filtered mobs
     filteredMobs.forEach(mob => {
-        if (mob.health <= 0) return;
-
-        const timeToKill = mob.health / dps;
-        let goldPerHour = 0;
-        let xpPerHour = 0; 
-
-        if (timeToKill > 0) {
-            const killsPerHour = 3600 / timeToKill;
-            goldPerHour = killsPerHour * mob.avgGoldPerKill;
-            xpPerHour = killsPerHour * mob.xp; // Calculate faction XP per hour using mob.xp
+        // Skip mobs with invalid health
+        if (!mob.health || mob.health <= 0) {
+            console.warn(`Mob "${mob.name}" has invalid health: ${mob.health}`);
+            return;
         }
 
+        // Calculate time to kill (with safety check for division by zero)
+        const timeToKill = mob.health / dps;
+        
+        // Initialize values
+        let goldPerHour = 0;
+        let xpPerHour = 0;
+
+        // Only calculate rates if we can kill the mob in a positive amount of time
+        if (timeToKill > 0 && isFinite(timeToKill)) {
+            // Calculate kills per hour (3600 seconds in an hour)
+            const killsPerHour = 3600 / timeToKill;
+            
+            // Calculate gold per hour (with safety checks)
+            goldPerHour = killsPerHour * (mob.avgGoldPerKill || 0);
+            
+            // Calculate XP per hour (with safety check)
+            xpPerHour = killsPerHour * (mob.xp || 0);
+            
+            // Ensure we don't have NaN or infinite values
+            if (!isFinite(goldPerHour)) goldPerHour = 0;
+            if (!isFinite(xpPerHour)) xpPerHour = 0;
+        }
+
+        // Add the mob's performance data to our results array
         performanceData.push({
-            name: mob.name,
-            level: mob.level,
+            name: mob.name || "Unknown Mob",
+            level: mob.level || 0,
             ttk: timeToKill,
             gph: goldPerHour,
             xph: xpPerHour
@@ -2064,13 +2179,19 @@ function calculatePerformance(dps, minLevel, maxLevel) {
     return performanceData;
 }
 
-// Helper to format numbers nicely
+// Helper to format numbers nicely with safety checks
 function formatNumber(num) {
-     if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
-     if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
-     if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
-     return Math.round(num).toString(); // Round smaller numbers
- }
+    // Handle non-numeric, NaN, Infinity, or null/undefined values
+    if (num === null || num === undefined || !isFinite(num)) {
+        return "0";
+    }
+    
+    // Now that we know it's a valid number:
+    if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+    if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+    return Math.round(num).toString(); // Round smaller numbers
+}
 
 
 function updatePerformanceTable(performanceData) {
@@ -2107,21 +2228,52 @@ function updatePerformanceTable(performanceData) {
         }
     });
 
-
     // Populate table
     performanceData.forEach(mobPerf => {
         const row = tbody.insertRow();
-        row.insertCell().textContent = mobPerf.name;
-        row.insertCell().textContent = mobPerf.level;
+        
+        // Name column
+        const nameCell = row.insertCell();
+        nameCell.textContent = mobPerf.name;
+        
+        // Level column 
+        const levelCell = row.insertCell();
+        levelCell.textContent = mobPerf.level;
+        
+        // Time To Kill column with improved formatting
         const ttkCell = row.insertCell();
-            if (mobPerf.ttk > 99) {
-                const minutes = mobPerf.ttk / 60;
-                ttkCell.textContent = minutes.toFixed(1) + 'm'; // e.g., "1.7m"
-            } else {
-                ttkCell.textContent = Math.round(mobPerf.ttk) + 's'; // e.g., "98s" or "99s"
-            }
-        row.insertCell().textContent = formatNumber(mobPerf.gph);    // Gold per hour
-        row.insertCell().textContent = formatNumber(mobPerf.xph);    // XP per hour
+        
+        // Handle special cases for TTK display
+        if (!isFinite(mobPerf.ttk) || mobPerf.ttk <= 0) {
+            // Infinite or negative time means it can't be killed
+            ttkCell.textContent = "N/A";
+            ttkCell.title = "Cannot calculate kill time";
+        } else if (mobPerf.ttk > 99) {
+            // For large times, show in minutes with 1 decimal
+            const minutes = mobPerf.ttk / 60;
+            ttkCell.textContent = minutes.toFixed(1) + 'm';
+            ttkCell.title = `${mobPerf.ttk.toFixed(1)} seconds`;
+        } else {
+            // For smaller times (under 99 seconds), show in seconds
+            ttkCell.textContent = Math.round(mobPerf.ttk) + 's';
+            ttkCell.title = `${mobPerf.ttk.toFixed(1)} seconds`;
+        }
+        
+        // Gold per hour with safety check
+        const gphCell = row.insertCell();
+        if (isFinite(mobPerf.gph) && mobPerf.gph > 0) {
+            gphCell.textContent = formatNumber(mobPerf.gph);
+        } else {
+            gphCell.textContent = "0";
+        }
+        
+        // XP per hour with safety check
+        const xphCell = row.insertCell();
+        if (isFinite(mobPerf.xph) && mobPerf.xph > 0) {
+            xphCell.textContent = formatNumber(mobPerf.xph);
+        } else {
+            xphCell.textContent = "0";
+        }
     });
 }
 
@@ -2628,22 +2780,27 @@ function handleLoadBuildClick(buildId) {
     console.log("Loading build:", buildToLoad.name);
 
     const editorButton = document.querySelector('.nav-button[data-page="build-editor"]');
-         if (editorButton) {
-             editorButton.click(); // Simulate click to switch page
-         }
+    if (editorButton) {
+        editorButton.click(); // Switch to editor page
+    }
 
     // Apply Level & Rebirth
-    currentStats.level = buildToLoad.level;
-    currentStats.rebirth = buildToLoad.rebirth;
+    currentStats.level = buildToLoad.level || 1;
+    currentStats.rebirth = buildToLoad.rebirth || false;
     levelInput.value = currentStats.level;
     levelSlider.value = currentStats.level;
+    
+    // Update rebirth status icon - NOT checkbox
     if (rebirthStatusIcon) {
         if (currentStats.rebirth) {
             rebirthStatusIcon.classList.add('active');
         } else {
             rebirthStatusIcon.classList.remove('active');
         }
+    } else {
+        console.warn("Rebirth status icon element not found during build load");
     }
+    
     // Update level slider/input max based on rebirth
     const maxLvl = currentStats.rebirth ? 80 : 60;
     levelSlider.max = maxLvl;
@@ -2661,52 +2818,63 @@ function handleLoadBuildClick(buildId) {
     intValue.value = currentStats.statPoints.int;
     staValue.value = currentStats.statPoints.sta;
 
-   // Apply slider levels
-   performanceMinLevel = buildToLoad.minFilterLevel || 1;
-   performanceMaxLevel = buildToLoad.maxFilterLevel || actualMaxMobLevel;
+    // Apply slider levels
+    performanceMinLevel = buildToLoad.minFilterLevel || 1;
+    performanceMaxLevel = buildToLoad.maxFilterLevel || actualMaxMobLevel;
     // Re-setup sliders to apply loaded values and clamp them
     setupLevelFilterSliders();
 
-    // Apply Equipment
-    resetAllEquipment(); // Clear existing gear first
-    if (buildToLoad.equipment && itemsByIdMap.size > 0) {
+    // Apply Equipment - Clear existing gear first
+    resetAllEquipment();
+    
+    // Only proceed if we have a valid itemsByIdMap
+    if (buildToLoad.equipment && itemsByIdMap && itemsByIdMap.size > 0) {
         for (const slot in buildToLoad.equipment) {
             const itemId = buildToLoad.equipment[slot];
+            // Get full item object from the map using the ID
             const item = itemsByIdMap.get(itemId);
             if (item) {
                 equipItem(slot, item); // Use existing equip function
             } else {
-               console.warn(`Item ID ${itemId} for slot ${slot} not found in map during load.`);
+                console.warn(`Item ID ${itemId} for slot ${slot} not found in map during load.`);
             }
         }
+    } else {
+        console.warn("Unable to load equipment: itemsByIdMap not ready or equipment missing");
     }
 
     // Apply Buffs
     resetAllBuffs(); // Clear existing buffs
     if (buildToLoad.activeBuffNames && buffsData) {
-       const buffGrid = document.getElementById('buff-grid');
+        const buffGrid = document.getElementById('buff-grid');
         buildToLoad.activeBuffNames.forEach(buffName => {
             let buffToActivate = null;
             // Find buff in our loaded buffsData
             for(const category in buffsData) {
-                buffToActivate = buffsData[category].find(b => b.Name === buffName);
-                if (buffToActivate) break;
+                if (Array.isArray(buffsData[category])) {
+                    buffToActivate = buffsData[category].find(b => b.Name === buffName);
+                    if (buffToActivate) break;
+                }
             }
 
             if (buffToActivate) {
                 const buffElement = buffGrid.querySelector(`.buff-icon[data-buff-name="${buffName}"]`);
                 if(buffElement) {
-                    toggleBuff(buffToActivate, buffElement); // Use existing toggle function
-                } else { console.warn(`Buff element not found for ${buffName}`); }
-            } else { console.warn(`Buff data not found for ${buffName}`); }
+                    toggleBuff(buffToActivate, buffElement);
+                } else {
+                    console.warn(`Buff element not found for ${buffName}`);
+                }
+            } else {
+                console.warn(`Buff data not found for ${buffName}`);
+            }
         });
     }
 
     // Final updates
-    updateRemainingPoints(); // Update point display
-    const results = recalculateBuildStats(); // Recalculate derived stats
-    updateDisplay(results); // Update the main display and performance table
-    saveCurrentStateToLocalStorage(); // Save this loaded state as the current one for refresh persistence
+    updateRemainingPoints();
+    const results = recalculateBuildStats();
+    updateDisplay(results);
+    saveCurrentStateToLocalStorage();
 
     showNotification(`Loaded build: ${buildToLoad.name}`, 'success');
 }
