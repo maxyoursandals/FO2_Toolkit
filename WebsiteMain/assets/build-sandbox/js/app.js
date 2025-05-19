@@ -1,421 +1,1177 @@
 /**
- * Fantasy Online 2 - Build Sandbox Refactored Code
- *
- * This version refactors the original global variable approach
- * into a structured state management pattern using the FO2BuildState object.
+ * FO2 Build Sandbox - Modular Architecture
+ * 
+ * Module structure:
+ * 1. config.js - Game constants and configuration
+ * 2. utils.js - General utility functions
+ * 3. dom-utils.js - DOM helper functions
+ * 4. event-system.js - Custom event system
+ * 5. ui-factory.js - UI component creation
+ * 6. data-service.js - Data processing
+ * 7. stats-calculator.js - Game mechanics calculations
+ * 8. state-manager.js - Application state management
+ * 9. ui-controller.js - UI update and event handling
+ * 10. app.js - Main application initialization
  */
 
-// --- Constants ---
-const SAVED_BUILDS_KEY = 'fo2BuildTesterBuildsList'; // Key for localStorage list
-const MAX_BUILD_DESCRIPTION_LENGTH = 100; // Character limit for build descriptions
+// ------------------------------------------------------------------
+// config.js - Game constants and configuration
+// ------------------------------------------------------------------
 
-// --- DOM Element References (Constants) ---
-const levelInput = document.getElementById('level');
-const levelSlider = document.getElementById('level-slider');
-const rebirthIconClickable = document.getElementById('rebirth-icon-clickable');
-const rebirthStatusIcon = document.getElementById('rebirth-status-icon');
-const remainingPointsDisplay = document.getElementById('remaining-points');
-const resetButton = document.getElementById('reset-button');
-const itemSearchModal = document.getElementById('item-search-modal');
-const itemSearchInput = document.getElementById('item-search-input');
-const searchResults = document.getElementById('search-results');
-const cancelSearchButton = document.getElementById('cancel-search');
-const notification = document.getElementById('notification');
-const hideBossesCheckbox = document.getElementById('hide-bosses-checkbox');
-const agiValue = document.getElementById('agi-value');
-const strValue = document.getElementById('str-value');
-const intValue = document.getElementById('int-value');
-const staValue = document.getElementById('sta-value');
-const staDisplay = document.getElementById('sta-display');
-const strDisplay = document.getElementById('str-display');
-const agiDisplay = document.getElementById('agi-display');
-const intDisplay = document.getElementById('int-display');
-const atkpowerDisplay = document.getElementById('atkpower-display');
-const critDisplay = document.getElementById('crit-display');
-const dodgeDisplay = document.getElementById('dodge-display');
-const armorDisplay = document.getElementById('armor-display');
-const atkspeedDisplay = document.getElementById('atkspeed-display');
-const damageDisplay = document.getElementById('damage-display');
-const energyValue = document.getElementById('energy-value');
-const healthValue = document.getElementById('health-value');
-const dpsDisplayElement = document.getElementById('dps-display');
-const mitigationDisplayElement = document.getElementById('mitigation-display');
-const hpRegenDisplayElement = document.getElementById('hp-regen-display');
-const energyRegenDisplayElement = document.getElementById('energy-regen-display');
-const buildDetailsModal = document.getElementById('build-details-modal');
-const modalBuildIdInput = document.getElementById('modal-build-id');
-const modalBuildNameInput = document.getElementById('modal-build-name');
-const modalBuildCreatorInput = document.getElementById('modal-build-creator');
-const modalBuildDescriptionInput = document.getElementById('modal-build-description');
-const modalSaveButton = document.getElementById('modal-save-button');
-const activeBuffsCountDisplay = document.getElementById('active-buffs-count');
-const resetEquipmentButton = document.getElementById('reset-equipment-button');
-const resetBuffsBtn = document.getElementById('reset-buffs-button');
-const saveBuildBtn = document.getElementById('save-build-button');
-const buffGrid = document.getElementById('buff-grid');
-const performanceTbody = document.getElementById('performance-tbody');
-const minLevelFilterSlider = document.getElementById('mob-level-min-slider');
-const maxLevelFilterSlider = document.getElementById('mob-level-max-slider');
-const minLevelFilterDisplay = document.getElementById('min-level-display');
-const maxLevelFilterDisplay = document.getElementById('max-level-display');
-const savedBuildsListContainer = document.getElementById('saved-builds-list');
-const itemDictionaryGrid = document.getElementById('item-dictionary-grid');
-const itemDictionaryViewer = document.getElementById('item-dictionary-viewer');
-const itemDictionarySearchInput = document.getElementById('item-dictionary-search');
-const itemDictionaryCategoryFilter = document.getElementById('item-dictionary-category-filter');
-const itemDictionarySortCriteria = document.getElementById('item-dictionary-sort-criteria');
-const itemDictionarySortOrder = document.getElementById('item-dictionary-sort-order');
-const modalCloseBtn = buildDetailsModal ? buildDetailsModal.querySelector('.close-button') : null;
-const allEquipmentSlotsElements = document.querySelectorAll('.slot'); // For equipItem UI updates & listeners
-
-// --- Global State Manager Object ---
-const FO2BuildState = {
-    // --- Game Configuration (Constants) ---
-    gameConfig: {
-        baseStats: {
-            hp: 18, // Base HP per level (approx, adjust if needed)
-            energy: 20, // Base Energy per level (approx, adjust if needed)
-            atkPower: 40, // Base AP
-            atkSpeed: 1400, // Base unarmed attack speed (ms)
-            critical: 6.43, // Base critical %
-            dodge: 0.00, // Base dodge % (was 5.00, but calculation adds base 0 now)
-            armor: 0, // Base armor
-            damage: { min: 7, max: 10 } // Base unarmed damage
-        },
-        maxLevelNormal: 60,
-        maxLevelRebirth: 80,
-        baseStatPoints: 20, // The base value for stats (AGI, STR, INT, STA)
-        initialPoints: 2, // Points at level 1
-        pointsPerLevel: 2, // Points gained per level after 1
-        rebirthBonusLevelInterval: 4, // Gain 1 point every X levels during rebirth
-        bossNames: new Set([ // Moved boss list here
-            "Evil McBadguy", "King Crab", "Skele Champion", "Boulder Colorado", "The Alpha",
-            "Undead Master Chef", "McBadguy Redux", "Destroyer of Will", "Destroyer of Faith",
-            "Destroyer of Mind", "Gamer's Right Hand", "Gamer's Left Hand", "Alrahur",
-            "Anubis", "Gamer's Head", "Stuff of Nightmares", "The Badger King", "Bearserker",
-            "Rotten Overlord", "Glacier Union Officer", "Devilish Star", "Froctopus",
-            "Evil Pie", "The Future", "Evil McFreezeGuy", "Gen. Biodegradable", "The Kraken",
-            "Sea Snake", "Chat", "Cat", "Flying Dutchman", "Troglodyte Scourge", "Taunted Throne",
-            "The Dark Elf King", "Wild Turkey", "General Turnip", "Ketchup Krusher", "Root Rotter",
-            "Gourd Digger", "Carrot Spearman", "Eggsecutioner", "Tater Tyrant"
-        ])
+const FO2Config = {
+    // Storage Keys
+    STORAGE: {
+        SAVED_BUILDS_KEY: 'fo2BuildTesterBuildsList',
+        CURRENT_STATE_KEY: 'fo2BuildTesterState'
     },
-
-    // --- Application Data (Loaded from external sources) ---
-    data: {
-        // Categorized items { weapon: { subtype: [...] }, equipment: { subtype: [...] } }
-        items: {
-            weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
-            equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
-        },
-        itemsById: new Map(), // Map<ItemID, ItemObject>
-        mobs: [], // Processed array of mob objects { id, name, level, health, xp, avgGoldPerKill, ... }
-        mobsMaxLevel: 1, // Highest level found in mobs data
-        // Categorized buffs { "Buff": [...], "Morph": [...] }
-        buffs: { "Buff": [], "Morph": [] }
+    
+    // UI Constants
+    UI: {
+        MAX_BUILD_DESCRIPTION_LENGTH: 100,
+        NOTIFICATION_DURATION: 3000,
+        MAX_ACTIVE_BUFFS: 5
     },
-
-    // --- Current Build State ---
-    currentBuild: {
-        level: 1,
-        rebirth: false,
-        statPoints: { // Points *allocated* by the player (e.g., 25 means 5 points spent)
-            agi: 20,
-            str: 20,
-            int: 20,
-            sta: 20
+    
+    // Game Mechanics
+    GAME: {
+        BASE_STATS: {
+            hp: 18,
+            energy: 20,
+            atkPower: 40,
+            atkSpeed: 1400,
+            critical: 6.43,
+            dodge: 0.00,
+            armor: 0,
+            damage: { min: 7, max: 10 }
         },
-        pointsRemaining: 2, // Calculated based on level, rebirth, and spent points
-        equipment: {}, // Map<SlotName, ItemObject | null>
-        activeBuffs: [], // Array of active BuffObjects
-        calculatedStats: {} // Store the result of the last calculation { finalStats, finalHP, ..., finalDPS }
-    },
-
-    // --- UI State ---
-    ui: {
-        performance: {
-            sortColumn: 'name',
-            sortAscending: true,
-            minLevel: 1,
-            maxLevel: 80, // Will be dynamically adjusted based on mobsMaxLevel
-            hideBosses: false
+        // Level caps
+        LEVEL: {
+            NORMAL_CAP: 60,
+            REBIRTH_CAP: 80,
+            BASE_STAT_POINTS: 20,
+            INITIAL_POINTS: 2,
+            POINTS_PER_LEVEL: 2,
+            REBIRTH_BONUS_INTERVAL: 4
         },
-        itemDictionary: {
-            search: '',
-            category: 'all',
-            sortCriteria: 'level',
-            sortOrder: 'asc'
+        // Critical hit calculation
+        CRITICAL: {
+            BASE_GAIN_RATIO: 1/14,  // Gain from AGI/INT
+            SOFT_CAP: 80,          // % where diminishing returns begin
+            REDUCTION_FACTOR: 0.5  // Factor applied after soft cap
         },
-        currentItemSearchSlot: null // Track which slot is being edited
-    },
-
-    // --- Saved Builds (Loaded/Saved separately to localStorage) ---
-    savedBuilds: [], // Array of saved build objects
-
-    // --- State Update Methods ---
-
-    updateLevel(newLevel) {
-        newLevel = parseInt(newLevel);
-        if (isNaN(newLevel)) newLevel = 1;
-
-        const maxLevel = this.currentBuild.rebirth ?
-            this.gameConfig.maxLevelRebirth :
-            this.gameConfig.maxLevelNormal;
-
-        newLevel = Math.max(1, Math.min(newLevel, maxLevel)); // Clamp level
-
-        this.currentBuild.level = newLevel;
-        this.recalculatePoints(); // Update points remaining
-
-        this.triggerRecalculationAndUpdateUI(); // Recalculate stats & update UI
-        return newLevel; // Return the clamped level
-    },
-
-    toggleRebirth() {
-        this.currentBuild.rebirth = !this.currentBuild.rebirth;
-
-        // Adjust level if it exceeds the new max level
-        const maxLevel = this.currentBuild.rebirth ?
-            this.gameConfig.maxLevelRebirth :
-            this.gameConfig.maxLevelNormal;
-        if (this.currentBuild.level > maxLevel) {
-            this.currentBuild.level = maxLevel;
+        // Dodge calculation tiers
+        DODGE: {
+            TIER1_CAP: 160,
+            TIER1_RATE: 0.25,
+            TIER2_CAP: 320,
+            TIER2_RATE: 0.125,
+            TIER3_CAP: 640,
+            TIER3_RATE: 0.0625,
+            TIER4_RATE: 0.03125
+        },
+        // Health and Energy calculation
+        RESOURCES: {
+            BASE_HP_CONSTANT: 1080,
+            BASE_ENERGY_CONSTANT: 1200,
+            HP_PER_STA_POINT: 20,
+            ENERGY_PER_INT_POINT: 15
+        },
+        // Armor and mitigation
+        ARMOR: {
+            ARMOR_PER_STR: 5,
+            MITIGATION_K_BASE: 200,
+            MITIGATION_K_LEVEL_FACTOR: 50
+        },
+        // Attack power calculation
+        ATTACK_POWER: {
+            STR_PRIMARY_BONUS: 3,
+            OTHER_PRIMARY_BONUS: 2,
+            STR_SECONDARY_BONUS: 1
+        },
+        // Damage calculation
+        DAMAGE: {
+            AP_SCALE_DIVISOR: 14,   // Divisor for AP to damage conversion
+            MIN_ATTACK_SPEED: 100   // Minimum attack speed in ms
         }
-
-        this.recalculatePoints(); // Update points remaining
-        this.triggerRecalculationAndUpdateUI(); // Recalculate stats & update UI
-        return this.currentBuild.rebirth; // Return the new state
     },
+    
+    // Lists of boss mobs
+    BOSS_NAMES: new Set([
+        "Evil McBadguy", "King Crab", "Skele Champion", "Boulder Colorado", "The Alpha",
+        "Undead Master Chef", "McBadguy Redux", "Destroyer of Will", "Destroyer of Faith",
+        "Destroyer of Mind", "Gamer's Right Hand", "Gamer's Left Hand", "Alrahur",
+        "Anubis", "Gamer's Head", "Stuff of Nightmares", "The Badger King", "Bearserker",
+        "Rotten Overlord", "Glacier Union Officer", "Devilish Star", "Froctopus",
+        "Evil Pie", "The Future", "Evil McFreezeGuy", "Gen. Biodegradable", "The Kraken",
+        "Sea Snake", "Chat", "Cat", "Flying Dutchman", "Troglodyte Scourge", "Taunted Throne",
+        "The Dark Elf King", "Wild Turkey", "General Turnip", "Ketchup Krusher", "Root Rotter",
+        "Gourd Digger", "Carrot Spearman", "Eggsecutioner", "Tater Tyrant"
+    ])
+};
 
-    updateStat(stat, value) {
-        value = parseInt(value);
-        const base = this.gameConfig.baseStatPoints;
-        if (isNaN(value) || value < base) value = base; // Clamp minimum
+// ------------------------------------------------------------------
+// utils.js - General utility functions
+// ------------------------------------------------------------------
 
-        const currentValue = this.currentBuild.statPoints[stat];
-        const pointDifference = value - currentValue; // How many points the user wants to add/remove
-
-        // Check if adding points exceeds remaining points
-        if (pointDifference > 0 && pointDifference > this.currentBuild.pointsRemaining) {
-            value = currentValue + this.currentBuild.pointsRemaining; // Limit to available points
+const FO2Utils = {
+    /**
+     * Formats a number with K, M, B suffixes for large values
+     * @param {number} num - The number to format
+     * @returns {string} The formatted number
+     */
+    formatNumber(num) {
+        if (num === null || num === undefined || !isFinite(num)) return "0";
+        if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+        if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+        if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+        return Math.round(num).toString();
+    },
+    
+    /**
+     * Generates a simple unique ID (for saved builds)
+     * @returns {string} A unique identifier
+     */
+    generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    },
+    
+    /**
+     * Parses a damage string (e.g., "10-20", "5", "1K-2K")
+     * @param {string} damageString - The damage string to parse
+     * @returns {{minDamage: number, maxDamage: number}} The parsed min/max damage
+     */
+    parseDamageString(damageString) {
+        let minDamage = 0, maxDamage = 0;
+        
+        if (damageString && typeof damageString === 'string') {
+            const kMatch = damageString.match(/(\d+)K-(\d+)K/i);
+            const rangeMatch = damageString.match(/(\d+)-(\d+)/);
+            const singleMatch = damageString.match(/^(\d+)$/);
+            
+            if (kMatch) {
+                minDamage = (parseInt(kMatch[1]) || 0) * 1000;
+                maxDamage = (parseInt(kMatch[2]) || 0) * 1000;
+            } else if (rangeMatch) {
+                minDamage = parseInt(rangeMatch[1]) || 0;
+                maxDamage = parseInt(rangeMatch[2]) || 0;
+            } else if (singleMatch) {
+                minDamage = maxDamage = parseInt(singleMatch[1]) || 0;
+            }
         }
-
-        this.currentBuild.statPoints[stat] = value;
-        this.recalculatePoints(); // Update points remaining
-
-        this.triggerRecalculationAndUpdateUI(); // Recalculate stats & update UI
-        return value; // Return the clamped value
+        
+        return { minDamage, maxDamage };
     },
+    
+    /**
+     * Safe JSON parsing with error handling
+     * @param {string} str - The JSON string to parse
+     * @param {*} defaultValue - Default value if parsing fails
+     * @returns {*} The parsed object or default value
+     */
+    safeJSONParse(str, defaultValue = null) {
+        try {
+            if (!str) return defaultValue;
+            return JSON.parse(str);
+        } catch (e) {
+            console.error('JSON Parse Error:', e);
+            return defaultValue;
+        }
+    },
+    
+    /**
+     * Clamps a number between min and max values
+     * @param {number} value - The value to clamp
+     * @param {number} min - Minimum allowed value
+     * @param {number} max - Maximum allowed value
+     * @returns {number} The clamped value
+     */
+    clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    },
+    
+    /**
+     * Deep clones an object (handles arrays and standard objects)
+     * @param {*} obj - The object to clone
+     * @returns {*} A deep copy of the object
+     */
+    deepClone(obj) {
+        if (obj === null || typeof obj !== 'object') {
+            return obj;
+        }
+        
+        if (Array.isArray(obj)) {
+            return obj.map(item => this.deepClone(item));
+        }
+        
+        const result = {};
+        for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                result[key] = this.deepClone(obj[key]);
+            }
+        }
+        
+        return result;
+    }
+};
 
-    resetStats() {
-        const base = this.gameConfig.baseStatPoints;
-        this.currentBuild.statPoints = {
-            agi: base,
-            str: base,
-            int: base,
-            sta: base
+// ------------------------------------------------------------------
+// dom-utils.js - DOM helper functions
+// ------------------------------------------------------------------
+
+const DOMUtils = {
+    /**
+     * Safely gets an element by ID with error handling
+     * @param {string} id - The element ID
+     * @returns {HTMLElement|null} The element or null
+     */
+    getElement(id) {
+        const element = document.getElementById(id);
+        if (!element) {
+            console.warn(`Element with ID "${id}" not found`);
+        }
+        return element;
+    },
+    
+    /**
+     * Creates an element with properties and children
+     * @param {string} tag - Element tag name
+     * @param {Object} props - Element properties
+     * @param {Array} children - Child elements or text nodes
+     * @returns {HTMLElement} The created element
+     */
+    createElement(tag, props = {}, children = []) {
+        const element = document.createElement(tag);
+        
+        // Set properties
+        Object.entries(props).forEach(([key, value]) => {
+            if (key === 'className') {
+                element.className = value;
+            } else if (key === 'dataset') {
+                Object.entries(value).forEach(([dataKey, dataValue]) => {
+                    element.dataset[dataKey] = dataValue;
+                });
+            } else if (key === 'style') {
+                Object.entries(value).forEach(([styleKey, styleValue]) => {
+                    element.style[styleKey] = styleValue;
+                });
+            } else if (key === 'attributes') {
+                Object.entries(value).forEach(([attrName, attrValue]) => {
+                    element.setAttribute(attrName, attrValue);
+                });
+            } else if (key.startsWith('on') && typeof value === 'function') {
+                // Handle event listeners
+                const eventName = key.substring(2).toLowerCase();
+                element.addEventListener(eventName, value);
+            } else {
+                element[key] = value;
+            }
+        });
+        
+        // Append children
+        children.forEach(child => {
+            if (typeof child === 'string') {
+                element.appendChild(document.createTextNode(child));
+            } else if (child instanceof Node) {
+                element.appendChild(child);
+            }
+        });
+        
+        return element;
+    },
+    
+    /**
+     * Clears all children from an element
+     * @param {HTMLElement} element - The element to clear
+     */
+    clearElement(element) {
+        if (!element) return;
+        while (element.firstChild) {
+            element.removeChild(element.firstChild);
+        }
+    },
+    
+    /**
+     * Shows a notification message
+     * @param {string} message - The message to display
+     * @param {'info'|'success'|'error'} type - The notification type
+     * @param {number} duration - Duration to show in ms
+     */
+    showNotification(message, type = 'info', duration = FO2Config.UI.NOTIFICATION_DURATION) {
+        const notification = this.getElement('notification');
+        if (!notification) return;
+        
+        notification.textContent = message;
+        notification.className = 'notification ' + type;
+        notification.style.display = 'block';
+        
+        // Clear any existing timeout
+        if (notification._timeoutId) {
+            clearTimeout(notification._timeoutId);
+        }
+        
+        // Set new timeout
+        notification._timeoutId = setTimeout(() => {
+            notification.style.display = 'none';
+        }, duration);
+    },
+    
+    /**
+     * Sets up a tabbed navigation system
+     * @param {string} buttonSelector - Selector for tab buttons
+     * @param {string} pageSelector - Selector for tab pages
+     */
+    setupTabbedNavigation(buttonSelector, pageSelector) {
+        const buttons = document.querySelectorAll(buttonSelector);
+        const pages = document.querySelectorAll(pageSelector);
+        
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                const target = button.dataset.page;
+                const targetPage = document.getElementById(`${target}-page`);
+                
+                // Update active button
+                buttons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update active page
+                pages.forEach(page => page.classList.remove('active'));
+                if (targetPage) targetPage.classList.add('active');
+                
+                // Trigger page changed event
+                EventSystem.publish('page-changed', { page: target });
+            });
+        });
+    }
+};
+
+// ------------------------------------------------------------------
+// event-system.js - Custom event system
+// ------------------------------------------------------------------
+
+const EventSystem = {
+    _events: {},
+    
+    /**
+     * Subscribe to an event
+     * @param {string} eventName - Name of the event
+     * @param {Function} callback - Function to call when event occurs
+     * @returns {Function} Unsubscribe function
+     */
+    subscribe(eventName, callback) {
+        if (!this._events[eventName]) {
+            this._events[eventName] = [];
+        }
+        
+        this._events[eventName].push(callback);
+        
+        // Return unsubscribe function
+        return () => {
+            this._events[eventName] = this._events[eventName].filter(cb => cb !== callback);
         };
-        this.recalculatePoints();
-        this.triggerRecalculationAndUpdateUI();
     },
-
-    // Calculates total points available based on level and rebirth
-    calculateAvailablePoints() {
-        let points = this.gameConfig.initialPoints; // Base points at level 1
-        points += (this.currentBuild.level - 1) * this.gameConfig.pointsPerLevel; // Points per level
-
-        // Rebirth bonus
-        if (this.currentBuild.rebirth) {
-            points += Math.floor(this.currentBuild.level / this.gameConfig.rebirthBonusLevelInterval);
+    
+    /**
+     * Publish an event to all subscribers
+     * @param {string} eventName - Name of the event
+     * @param {*} data - Data to pass to subscribers
+     */
+    publish(eventName, data) {
+        if (!this._events[eventName]) return;
+        
+        this._events[eventName].forEach(callback => {
+            callback(data);
+        });
+    },
+    
+    /**
+     * Remove all subscriptions for an event
+     * @param {string} eventName - Name of the event
+     */
+    clear(eventName) {
+        if (eventName) {
+            this._events[eventName] = [];
+        } else {
+            this._events = {};
         }
-        return points;
-    },
+    }
+};
 
-    // Calculates points spent based on stats allocated above base
-    calculateUsedPoints() {
-        const base = this.gameConfig.baseStatPoints;
-        return (
-            (this.currentBuild.statPoints.agi - base) +
-            (this.currentBuild.statPoints.str - base) +
-            (this.currentBuild.statPoints.int - base) +
-            (this.currentBuild.statPoints.sta - base)
-        );
-    },
+// ------------------------------------------------------------------
+// ui-factory.js - UI component creation
+// ------------------------------------------------------------------
 
-    // Updates the pointsRemaining property
-    recalculatePoints() {
-        const available = this.calculateAvailablePoints();
-        const used = this.calculateUsedPoints();
-        this.currentBuild.pointsRemaining = available - used;
+const UIFactory = {
+    /**
+     * Creates an equipment slot element
+     * @param {string} slotName - The name of the slot
+     * @param {Object|null} item - The equipped item or null
+     * @param {Function} clickHandler - Function to call on slot click
+     * @returns {HTMLElement} The created slot element
+     */
+    createSlot(slotName, item, clickHandler) {
+        const slotElement = DOMUtils.createElement('div', {
+            className: 'slot',
+            dataset: { slot: slotName },
+            onclick: (e) => {
+                // Only handle clicks on the slot itself, not on clear button
+                if (!e.target.classList.contains('clear-slot')) {
+                    clickHandler(e);
+                }
+            }
+        });
+        
+        this.updateSlotContent(slotElement, slotName, item);
+        return slotElement;
     },
-
-    equipItem(slot, itemObject) {
-        this.currentBuild.equipment[slot] = itemObject; // Update state (itemObject can be null to unequip)
-        this.triggerRecalculationAndUpdateUI(); // Recalculate & update UI
-    },
-
-    resetEquipment() {
-        this.currentBuild.equipment = {}; // Clear all equipment
-        this.triggerRecalculationAndUpdateUI();
-    },
-
-    addBuff(buffObject) {
-        if (this.currentBuild.activeBuffs.length < 5 && !this.currentBuild.activeBuffs.some(b => b.Name === buffObject.Name)) {
-            this.currentBuild.activeBuffs.push(buffObject);
-            this.triggerRecalculationAndUpdateUI();
-            return true; // Indicate success
+    
+    /**
+     * Updates the content of an equipment slot
+     * @param {HTMLElement} slotElement - The slot element to update
+     * @param {string} slotName - The name of the slot
+     * @param {Object|null} item - The equipped item or null
+     */
+    updateSlotContent(slotElement, slotName, item) {
+        DOMUtils.clearElement(slotElement);
+        
+        if (item) {
+            // Item equipped - show item image or fallback
+            if (item["Sprite-Link"]) {
+                slotElement.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slotName}" title="${item.Name || slotName}" style="image-rendering: pixelated;">`;
+            } else {
+                slotElement.innerHTML = `<div class="slot-text-fallback" title="${item.Name || ''}">${item.Name ? item.Name.substring(0, 3) : '?'}</div>`;
+            }
+            
+            // Add clear button
+            const clearButton = DOMUtils.createElement('div', {
+                className: 'clear-slot',
+                textContent: 'x',
+                title: 'Remove item',
+                onclick: (e) => {
+                    e.stopPropagation();
+                    EventSystem.publish('slot-item-removed', { slot: slotName });
+                }
+            });
+            
+            slotElement.appendChild(clearButton);
+        } else {
+            // No item - show default icon
+            let iconName = slotName;
+            if (slotName === 'ring1' || slotName === 'ring2') iconName = 'ring';
+            if (slotName === 'trinket1' || slotName === 'trinket2') iconName = 'trinket';
+            
+            const defaultIcon = DOMUtils.createElement('img', {
+                src: `assets/build-sandbox/icons/${iconName}-icon.png`,
+                alt: slotName.charAt(0).toUpperCase() + slotName.slice(1),
+                onerror: function() {
+                    this.parentNode.innerHTML = `<div class="slot-text-fallback">${this.alt.substring(0, 3)}</div>`;
+                }
+            });
+            
+            slotElement.appendChild(defaultIcon);
         }
-        return false; // Indicate failure (already present or max buffs)
     },
-
-    removeBuff(buffName) {
-        const initialLength = this.currentBuild.activeBuffs.length;
-        this.currentBuild.activeBuffs = this.currentBuild.activeBuffs.filter(b => b.Name !== buffName);
-        if (this.currentBuild.activeBuffs.length < initialLength) {
-            this.triggerRecalculationAndUpdateUI();
-            return true; // Indicate success
+    
+    /**
+     * Creates a buff icon element
+     * @param {Object} buff - The buff data
+     * @param {boolean} isActive - Whether the buff is active
+     * @param {Function} toggleHandler - Function to call on toggle
+     * @returns {HTMLElement} The created buff element
+     */
+    createBuffIcon(buff, isActive, toggleHandler) {
+        const tierMatch = buff.Name.match(/\s(\d+)$/);
+        const tier = tierMatch ? tierMatch[1] : null;
+        
+        let baseName = buff.Name.toLowerCase()
+            .replace(/\s+\d+$/, '')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-');
+        
+        const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
+        
+        const buffDiv = DOMUtils.createElement('div', {
+            className: isActive ? 'buff-icon active' : 'buff-icon',
+            dataset: {
+                buffName: buff.Name,
+                category: buff.Category
+            },
+            onclick: () => toggleHandler(buff),
+            onmouseenter: (e) => this.showBuffTooltip(buff, e.currentTarget),
+            onmouseleave: () => this.hideTooltip('buff-tooltip')
+        });
+        
+        const imgElement = DOMUtils.createElement('img', {
+            src: iconFileName,
+            alt: buff.Name,
+            onerror: function() {
+                this.parentNode.innerHTML = '?';
+                this.parentNode.title = buff.Name;
+            }
+        });
+        
+        buffDiv.appendChild(imgElement);
+        
+        if (tier) {
+            const tierSpan = DOMUtils.createElement('span', {
+                className: 'buff-tier',
+                textContent: tier
+            });
+            
+            buffDiv.appendChild(tierSpan);
         }
-        return false; // Indicate failure (buff not found)
+        
+        return buffDiv;
+    },
+    
+    /**
+     * Creates a tooltip and positions it
+     * @param {HTMLElement} element - The element to attach to
+     * @param {string} contentHtml - The HTML content
+     * @param {string} tooltipId - The ID for the tooltip
+     * @param {string} tooltipClass - The CSS class for the tooltip
+     */
+    createTooltip(element, contentHtml, tooltipId = 'item-tooltip', tooltipClass = 'item-tooltip') {
+        this.hideTooltip(tooltipId);
+        
+        const tooltip = DOMUtils.createElement('div', {
+            className: tooltipClass,
+            id: tooltipId,
+            innerHTML: contentHtml
+        });
+        
+        document.body.appendChild(tooltip);
+        
+        // Position tooltip
+        const elemRect = element.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const margin = 10;
+        
+        // Default position: right, vertical center
+        let left = elemRect.right + margin;
+        let top = elemRect.top + (elemRect.height / 2) - (tooltipRect.height / 2) + window.scrollY;
+        
+        // Adjust if off-screen
+        if (left + tooltipRect.width > window.innerWidth - margin) {
+            // Try left side instead
+            left = elemRect.left - tooltipRect.width - margin;
+            if (left < margin) left = margin;
+        }
+        
+        if (top < window.scrollY + margin) {
+            top = window.scrollY + margin;
+        } else if (top + tooltipRect.height > window.innerHeight + window.scrollY - margin) {
+            top = window.innerHeight + window.scrollY - tooltipRect.height - margin;
+        }
+        
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+        
+        // Fade in
+        requestAnimationFrame(() => { tooltip.style.opacity = 1; });
+        
+        return tooltip;
+    },
+    
+    /**
+     * Hides a tooltip by ID
+     * @param {string} tooltipId - The ID of the tooltip to hide
+     */
+    hideTooltip(tooltipId = 'item-tooltip') {
+        const existingTooltip = document.getElementById(tooltipId);
+        if (existingTooltip) {
+            existingTooltip.remove();
+        }
     },
 
-    resetBuffs() {
-        this.currentBuild.activeBuffs = [];
-        this.triggerRecalculationAndUpdateUI();
+    /**
+     * Shows an item tooltip
+     * @param {HTMLElement} element - The element to attach to
+     * @param {Object} item - The item data
+     */
+    showItemTooltip(element, item) {
+        if (!item) return;
+        
+        const content = this.generateItemTooltipContent(item);
+        this.createTooltip(element, content, 'item-tooltip');
     },
+    
+    /**
+     * Shows a buff tooltip
+     * @param {Object} buff - The buff data
+     * @param {HTMLElement} element - The element to attach to
+     */
+    showBuffTooltip(buff, element) {
+        if (!buff) return;
+        
+        const content = this.generateBuffTooltipContent(buff);
+        this.createTooltip(element, content, 'buff-tooltip', 'buff-tooltip');
+    },
+    
+    /**
+     * Generates item tooltip HTML content
+     * @param {Object} item - The item data
+     * @returns {string} HTML content for tooltip
+     */
+    generateItemTooltipContent(item) {
+        let content = `<div class="tooltip-title">${item.Name}</div>`;
+        
+        if (item.Level !== undefined) {
+            content += `<div class="tooltip-level">Level ${item.Level}${item.Subtype ? ` ${item.Subtype}` : ''}</div>`;
+        }
+        
+        // Stats section
+        const statsHtml = [];
+        ['STA', 'STR', 'INT', 'AGI', 'Armor'].forEach(stat => {
+            if (item[stat]) {
+                const value = item[stat];
+                const cssClass = value > 0 ? 'stat-positive' : 'stat-negative';
+                statsHtml.push(`<div class="${cssClass}">${stat}: ${value > 0 ? '+' : ''}${value}</div>`);
+            }
+        });
+        
+        if (item.Damage) statsHtml.push(`<div>Damage: ${item.Damage}</div>`);
+        if (item['Atk Spd']) statsHtml.push(`<div>Speed: ${item['Atk Spd']}</div>`);
+        
+        if (statsHtml.length > 0) {
+            content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
+        }
+        
+        // Requirements section
+        const reqHtml = [];
+        ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(req => {
+            if (item[req]) {
+                reqHtml.push(`<div>Requires ${req.replace('Req ', '')}: ${item[req]}</div>`);
+            }
+        });
+        
+        if (reqHtml.length > 0) {
+            if (statsHtml.length > 0) content += `<div class="tooltip-separator"></div>`;
+            content += `<div class="tooltip-req">${reqHtml.join('')}</div>`;
+        }
+        
+        return content;
+    },
+    
+    /**
+     * Generates buff tooltip HTML content
+     * @param {Object} buff - The buff data
+     * @returns {string} HTML content for tooltip
+     */
+    generateBuffTooltipContent(buff) {
+        let content = `<div class="tooltip-title">${buff.Name} (${buff.Category})</div>`;
+        
+        const effects = [];
+        const statMappings = [
+            { key: "ATK Power", label: "ATK Power" },
+            { key: "Crit %", label: "Crit", unit: "%" },
+            { key: "ATK Speed", label: "ATK Speed" },
+            { key: "Energy Per Second", label: "Energy Per Sec" },
+            { key: "Health Per Second", label: "Health Per Sec" },
+            { key: "Armor", label: "Armor" },
+            { key: "STR", label: "STR" },
+            { key: "STA", label: "STA" },
+            { key: "AGI", label: "AGI" },
+            { key: "INT", label: "INT" }
+        ];
+        
+        statMappings.forEach(mapping => {
+            const value = buff[mapping.key];
+            if (value !== undefined && value !== null && value !== 0 && value !== "") {
+                const sign = value > 0 ? '+' : '';
+                const cssClass = (mapping.key === "ATK Speed") 
+                    ? (value < 0 ? 'effect-positive' : 'effect-negative') 
+                    : (value > 0 ? 'effect-positive' : 'effect-negative');
+                    
+                effects.push(`<div class="buff-effect ${cssClass}">${mapping.label}: ${sign}${value}${mapping.unit || ''}</div>`);
+            }
+        });
+        
+        content += effects.join('');
+        return content;
+    },
+    
+    /**
+     * Creates a saved build item for the list
+     * @param {Object} build - The build data
+     * @param {Object} calculatedStats - Calculated statistics for the build
+     * @param {Object} dataContext - Data needed to display the build
+     * @returns {HTMLElement} The created build element
+     */
+    createSavedBuildItem(build, calculatedStats, dataContext) {
+        const { itemsById, buffs } = dataContext;
+        
+        // Main container
+        const buildItem = DOMUtils.createElement('div', {
+            className: 'saved-build-item expanded',
+            dataset: { buildId: build.id }
+        });
+        
+        // Content wrapper (4 main columns)
+        const contentWrapper = DOMUtils.createElement('div', {
+            className: 'build-item-content-wrapper'
+        });
+        
+        // Column 1: Info
+        const infoDiv = DOMUtils.createElement('div', {
+            className: 'build-item-info build-column',
+            onclick: () => EventSystem.publish('load-build', { buildId: build.id })
+        }, [
+            DOMUtils.createElement('strong', {}, [build.name || 'Unnamed Build']),
+            DOMUtils.createElement('div', { className: 'build-item-details' }, [
+                `By: ${build.creator || 'Unknown'} | Lvl: ${build.level}`,
+                build.rebirth ? DOMUtils.createElement('img', {
+                    src: 'assets/build-sandbox/icons/rebirth-icon.png',
+                    className: 'rebirth-inline-icon',
+                    alt: 'R',
+                    title: 'Rebirth'
+                }) : null
+            ].filter(Boolean)),
+            DOMUtils.createElement('div', {
+                className: 'build-item-description'
+            }, [build.description || 'No description.'])
+        ]);
+        
+        // Column 2: Calculated Stats
+        const statsDiv = DOMUtils.createElement('div', {
+            className: 'build-item-calculated-stats build-column'
+        });
+        
+        if (calculatedStats) {
+            statsDiv.innerHTML = `
+                <div class="build-item-resource-bars">
+                    <div class="build-item-bar health-bar-small">HP: ${calculatedStats.finalHP}</div>
+                    <div class="build-item-bar energy-bar-small">Energy: ${calculatedStats.finalEnergy}</div>
+                </div>
+                <div>
+                    <span class="AGI">${calculatedStats.finalStats.agi}</span>/<span class="STR">${calculatedStats.finalStats.str}</span>/<span class="INT">${calculatedStats.finalStats.int}</span>/<span class="STA">${calculatedStats.finalStats.sta}</span>
+                </div>
+                <div><b>DPS:</b> ${Math.round(calculatedStats.finalDPS)} <b>Armor:</b> ${calculatedStats.finalArmor}</div>
+                <div><b>Crit:</b> ${calculatedStats.finalCrit.toFixed(2)}% <b>Dodge:</b>${calculatedStats.finalDodge.toFixed(2)}%</div>
+                <div><b>Dmg:</b> (${calculatedStats.finalMinDamage}-${calculatedStats.finalMaxDamage}) <b>Spd:</b>${(calculatedStats.finalAttackSpeed / 1000.0).toFixed(1)}s</div>
+                <div><b>Mgtn:</b> ${calculatedStats.mitigationPercent.toFixed(2)}%</div>
+                <div><b>HP/s:</b> ${calculatedStats.finalHPRegenPerSecond.toFixed(1)} <b>ENG/s:</b> ${calculatedStats.finalEnergyRegenPerSecond.toFixed(1)}</div>`;
+        } else {
+            statsDiv.innerHTML = '<div class="error-message">Stats N/A</div>';
+        }
+        
+        // Column 3: Equipment Grid
+        const equipDiv = DOMUtils.createElement('div', {
+            className: 'build-item-equip-section build-column'
+        });
+        
+        const equipGrid = DOMUtils.createElement('div', {
+            className: 'build-item-equip-grid-single'
+        });
+        
+        // Slot layout matching the editor's layout
+        const allEquipmentSlotsLayout = [
+            'face', 'head', 'shoulder', 'back', 'legs', 'chest', 'weapon', 'offhand',
+            'ring1', 'ring2', 'trinket1', 'trinket2', 'guild', 'faction', '', ''
+        ];
+        
+        allEquipmentSlotsLayout.forEach(slotName => {
+            const slotDiv = DOMUtils.createElement('div', {
+                className: slotName ? 'build-item-equip-slot' : 'build-item-equip-slot empty'
+            });
+            
+            let item = null;
+            if (slotName && build.equipment?.[slotName]) {
+                item = itemsById.get(build.equipment[slotName]);
+            }
+            
+            if (item && item["Sprite-Link"]) {
+                slotDiv.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slotName}" title="${item.Name || slotName}" style="image-rendering: pixelated;">`;
+            } else if (item) {
+                slotDiv.innerHTML = `<div class="build-item-equip-slot-text" title="${item.Name}">${item.Name.substring(0, 3)}</div>`;
+            } else {
+                slotDiv.classList.add('empty');
+            }
+            
+            if (item) {
+                slotDiv.addEventListener('mouseenter', function() {
+                    UIFactory.showItemTooltip(slotDiv, item);
+                });
+                slotDiv.addEventListener('mouseleave', function() {
+                    UIFactory.hideTooltip('item-tooltip');
+                });
+            }
+            
+            equipGrid.appendChild(slotDiv);
+        });
+        
+        equipDiv.appendChild(equipGrid);
 
-    // --- Data Loading Methods ---
+        // Column 4: Buffs
+        const buffsDiv = DOMUtils.createElement('div', {
+            className: 'build-item-buffs-section build-column'
+        });
+        
+        if (build.activeBuffNames?.length > 0) {
+            build.activeBuffNames.forEach(buffName => {
+                let buff = null;
+                for (const cat in buffs) {
+                    buff = buffs[cat]?.find(b => b.Name === buffName);
+                    if (buff) break;
+                }
+                
+                if (buff) {
+                    const buffIconDiv = DOMUtils.createElement('div', {
+                        className: 'build-item-buff-icon'
+                    });
+                    
+                    const baseName = buff.Name.toLowerCase()
+                        .replace(/\s+\d+$/, '')
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .trim()
+                        .replace(/\s+/g, '-');
+                    
+                    const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
+                    
+                    const img = DOMUtils.createElement('img', {
+                        src: iconFileName,
+                        alt: buff.Name,
+                        title: buff.Name,
+                        onerror: function() { buffIconDiv.innerHTML = '?'; }
+                    });
+                    
+                    buffIconDiv.appendChild(img);
+                    
+                    buffIconDiv.addEventListener('mouseenter', (e) => UIFactory.showBuffTooltip(buff, e.currentTarget));
+                    buffIconDiv.addEventListener('mouseleave', () => UIFactory.hideTooltip('buff-tooltip'));
+                    
+                    buffsDiv.appendChild(buffIconDiv);
+                }
+            });
+        } else {
+            buffsDiv.innerHTML = '<div class="build-item-no-buffs">No buffs</div>';
+        }
+        
+        // Add the four columns to content wrapper
+        contentWrapper.appendChild(infoDiv);
+        contentWrapper.appendChild(statsDiv);
+        contentWrapper.appendChild(equipDiv);
+        contentWrapper.appendChild(buffsDiv);
+        
+        // Action buttons container
+        const actionsDiv = DOMUtils.createElement('div', {
+            className: 'build-item-actions'
+        }, [
+            DOMUtils.createElement('button', {
+                className: 'build-action-button duplicate',
+                title: 'Duplicate Build',
+                textContent: '➕',
+                onclick: (e) => {
+                    e.stopPropagation();
+                    EventSystem.publish('duplicate-build', { buildId: build.id });
+                }
+            }),
+            DOMUtils.createElement('button', {
+                className: 'build-action-button edit',
+                title: 'Edit Details',
+                textContent: '✏️',
+                onclick: (e) => {
+                    e.stopPropagation();
+                    EventSystem.publish('edit-build', { buildId: build.id });
+                }
+            }),
+            DOMUtils.createElement('button', {
+                className: 'build-action-button delete',
+                title: 'Delete Build',
+                textContent: '❌',
+                onclick: (e) => {
+                    e.stopPropagation();
+                    EventSystem.publish('delete-build', { buildId: build.id });
+                }
+            })
+        ]);
+        
+        buildItem.appendChild(contentWrapper);
+        buildItem.appendChild(actionsDiv);
+        
+        return buildItem;
+    },
+    
+    /**
+     * Creates a search result item for item search modal
+     * @param {Object} item - The item data
+     * @param {Function} selectHandler - Function to call when item is selected
+     * @returns {HTMLElement} The created search result item
+     */
+    createSearchResultItem(item, selectHandler) {
+        return DOMUtils.createElement('div', {
+            className: 'search-item',
+            textContent: `(Lvl ${item.Level || '?'}) ${item.Name}`,
+            title: `AGI:${item.AGI || 0} STR:${item.STR || 0} INT:${item.INT || 0} STA:${item.STA || 0} Armor:${item.Armor || 0}`,
+            onclick: () => selectHandler(item)
+        });
+    },
+    
+    /**
+     * Creates a grid item for the item dictionary
+     * @param {Object} item - The item data
+     * @param {Function} clickHandler - Function to call when clicked
+     * @returns {HTMLElement} The created grid item
+     */
+    createItemGridIcon(item, clickHandler) {
+        const iconDiv = DOMUtils.createElement('div', {
+            className: 'grid-item-icon',
+            dataset: { itemId: item['Item ID'] },
+            onclick: () => clickHandler(item),
+            onmouseenter: (e) => UIFactory.showItemTooltip(e.currentTarget, item),
+            onmouseleave: () => UIFactory.hideTooltip('item-tooltip')
+        });
+        
+        if (item['Sprite-Link']) {
+            const img = DOMUtils.createElement('img', {
+                src: item['Sprite-Link'],
+                alt: item.Name,
+                style: 'image-rendering: pixelated;',
+                onerror: () => {
+                    iconDiv.innerHTML = '?';
+                    iconDiv.title = `${item.Name} (Image Error)`;
+                }
+            });
+            
+            iconDiv.appendChild(img);
+        } else {
+            iconDiv.textContent = '?';
+            iconDiv.title = item.Name;
+        }
+        
+        return iconDiv;
+    },
+    
+    /**
+     * Creates detailed item view for the dictionary
+     * @param {Object} item - The item data
+     * @returns {HTMLElement} The created item view
+     */
+    createItemDetailView(item) {
+        const container = document.createElement('div');
+        
+        if (!item) {
+            container.innerHTML = '<p class="empty-message">Select an item.</p>';
+            return container;
+        }
+        
+        let content = '';
+        if (item['Sprite-Link']) {
+            content += `<div class="viewer-image"><img src="${item['Sprite-Link']}" alt="${item.Name}" style="image-rendering: pixelated;"></div>`;
+        }
+        
+        content += `<h4 class="viewer-title">${item.Name}</h4>`;
+        content += `<div class="viewer-level-type">Level ${item.Level || 0} - ${item.Type || ''}${item.Subtype ? ` / ${item.Subtype}` : ''}</div>`;
+        
+        // Stats section
+        const statsHtml = [];
+        const statMappings = [
+            { key: 'STA', label: 'STA', classPositive: 'stat-positive', classNegative: 'stat-negative' },
+            { key: 'STR', label: 'STR', classPositive: 'stat-positive', classNegative: 'stat-negative' },
+            { key: 'INT', label: 'INT', classPositive: 'stat-positive', classNegative: 'stat-negative' },
+            { key: 'AGI', label: 'AGI', classPositive: 'stat-positive', classNegative: 'stat-negative' },
+            { key: 'Armor', label: 'Armor', classPositive: 'stat-positive', classNegative: 'stat-negative' },
+            { key: 'Damage', label: 'Damage', classPositive: '', classNegative: '' },
+            { key: 'Atk Spd', label: 'Speed (ms)', classPositive: '', classNegative: '' }
+        ];
+        
+        statMappings.forEach(mapping => {
+            if (item.hasOwnProperty(mapping.key) && item[mapping.key] !== undefined && item[mapping.key] !== '' && item[mapping.key] !== 0) {
+                const value = item[mapping.key];
+                let displayValue = value;
+                let cssClass = '';
+                
+                if (typeof value === 'number') {
+                    cssClass = value > 0 ? mapping.classPositive : mapping.classNegative;
+                    displayValue = `${value > 0 ? '+' : ''}${value}`;
+                }
+                
+                statsHtml.push(`<div class="viewer-stat-line"><span class="viewer-stat-label">${mapping.label}:</span> <span class="${cssClass}">${displayValue}</span></div>`);
+            }
+        });
+        
+        if (statsHtml.length > 0) {
+            content += `<h5>Stats</h5><div class="viewer-stats">${statsHtml.join('')}</div>`;
+        }
+        
+        // Requirements section
+        const reqHtml = [];
+        ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(req => {
+            if (item.hasOwnProperty(req) && item[req] !== undefined && item[req] !== 0 && item[req] !== '') {
+                reqHtml.push(`<div class="viewer-req-line">Requires ${req.replace('Req ', '')}: ${item[req]}</div>`);
+            }
+        });
+        
+        if (reqHtml.length > 0) {
+            content += `<h5>Requirements</h5><div class="viewer-reqs">${reqHtml.join('')}</div>`;
+        }
+        
+        container.innerHTML = content;
+        return container;
+    }
+};
+
+// ------------------------------------------------------------------
+// data-service.js - Data processing service
+// ------------------------------------------------------------------
+
+const DataService = {
+    /**
+     * Process and normalize item data
+     * @param {Array} itemArray - Raw item data array
+     * @returns {Object} Processed data
+     */
     processItemData(itemArray) {
         try {
             if (!itemArray || !Array.isArray(itemArray) || itemArray.length === 0) {
-                showNotification("No item data loaded or data is invalid.", "error");
-                console.warn("No item data provided to processItemData or data is not an array.");
-                // Reset data state
-                this.data.items = { weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] }, equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] } };
-                this.data.itemsById.clear();
-                return false;
+                DOMUtils.showNotification("No item data loaded or data is invalid.", "error");
+                console.warn("No item data provided or data is not an array.");
+                return {
+                    items: {
+                        weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
+                        equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
+                    },
+                    itemsById: new Map()
+                };
             }
-
+            
             const categorizedItems = {
                 weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
                 equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
             };
-            this.data.itemsById.clear(); // Clear previous map data
-
+            
+            const itemsById = new Map();
+            
             itemArray.forEach(item => {
                 // Sanitize and parse numeric fields
                 if (item.Level !== undefined) item.Level = parseInt(item.Level) || 0;
                 if (item.Armor !== undefined && item.Armor !== "") item.Armor = parseInt(item.Armor) || 0; else item.Armor = 0;
                 if (item["Atk Spd"] !== undefined && item["Atk Spd"] !== "") item["Atk Spd"] = parseInt(item["Atk Spd"]) || 0; else item["Atk Spd"] = 0;
+                
                 ["STA", "STR", "INT", "AGI", "Req STA", "Req STR", "Req INT", "Req AGI"].forEach(stat => {
                     item[stat] = parseInt(item[stat]) || 0;
                 });
-
+                
                 // Process damage string
-                const damageValues = processDamageString(item.Damage);
+                const damageValues = FO2Utils.parseDamageString(item.Damage);
                 item.minDamage = damageValues.minDamage;
                 item.maxDamage = damageValues.maxDamage;
-
+                
                 // Categorize
                 if (item.Type && item.Subtype) {
                     const type = item.Type.toLowerCase();
                     const subtype = item.Subtype.toLowerCase();
+                    
                     if (categorizedItems[type] && categorizedItems[type].hasOwnProperty(subtype)) {
                         categorizedItems[type][subtype].push(item);
                     } else {
                         console.warn(`Unknown item type/subtype combination: ${type}/${subtype} for item ${item.Name}`);
                     }
                 } else {
-                     console.warn(`Item missing Type or Subtype: ${item.Name || item["Item ID"]}`);
+                    console.warn(`Item missing Type or Subtype: ${item.Name || item["Item ID"]}`);
                 }
-
+                
                 // Populate ID map
                 if (item.hasOwnProperty('Item ID') && item['Item ID'] !== undefined) {
-                    this.data.itemsById.set(item['Item ID'], item);
+                    itemsById.set(item['Item ID'], item);
                 }
             });
-
+            
             // Sort items within each subtype by level
             for (const type in categorizedItems) {
                 for (const subtype in categorizedItems[type]) {
                     categorizedItems[type][subtype].sort((a, b) => (a.Level || 0) - (b.Level || 0));
                 }
             }
-
-            this.data.items = categorizedItems; // Assign to state
-            console.log(`Item data processed. ${this.data.itemsById.size} items mapped by ID.`);
-            showNotification(`Successfully processed ${itemArray.length} items.`, 'success');
-            return true;
-
+            
+            console.log(`Item data processed. ${itemsById.size} items mapped by ID.`);
+            DOMUtils.showNotification(`Successfully processed ${itemArray.length} items.`, 'success');
+            
+            return { items: categorizedItems, itemsById };
         } catch (error) {
             console.error("Error processing item data:", error);
-            showNotification("Error processing item data. Check console.", "error");
-            this.data.items = { weapon: {}, equipment: {} }; // Reset
-            this.data.itemsById.clear();
-            return false;
+            DOMUtils.showNotification("Error processing item data. Check console.", "error");
+            
+            return {
+                items: {
+                    weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
+                    equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
+                },
+                itemsById: new Map()
+            };
         }
     },
-
-    processMobsData(mobsJsonData) {
-         try {
+    
+    /**
+     * Process and normalize mobs data
+     * @param {Object} mobsJsonData - Raw mobs data
+     * @param {Map} itemsById - Map of items by ID for drop calculations
+     * @returns {Object} Processed mobs data
+     */
+    processMobsData(mobsJsonData, itemsById) {
+        try {
             if (!mobsJsonData || !mobsJsonData.mobs || !Array.isArray(mobsJsonData.mobs)) {
                 console.error("Invalid mobs data structure:", mobsJsonData);
-                showNotification("Error: Invalid mob data format.", "error");
-                this.data.mobs = [];
-                this.data.mobsMaxLevel = 1;
-                return false;
+                DOMUtils.showNotification("Error: Invalid mob data format.", "error");
+                return { mobs: [], mobsMaxLevel: 1 };
             }
-
-            this.data.mobs = mobsJsonData.mobs.map(mob => {
+            
+            const mobs = mobsJsonData.mobs.map(mob => {
                 const avgGold = ((mob.goldMin || 0) + (mob.goldMax || 0)) / 2;
                 let avgItemGold = 0;
-                // Calculate average gold from item drops (requires itemsById to be populated)
-                if (mob.drops && this.data.itemsById.size > 0) {
+                
+                // Calculate average gold from item drops
+                if (mob.drops && itemsById && itemsById.size > 0) {
                     mob.drops.forEach(drop => {
-                        const itemDetails = this.data.itemsById.get(drop.itemId);
+                        const itemDetails = itemsById.get(drop.itemId);
                         const sellPrice = itemDetails ? Number(itemDetails.sellPrice) : 0;
+                        
                         if (!isNaN(sellPrice) && sellPrice > 0 && drop.dropRate) {
                             avgItemGold += (sellPrice * (Number(drop.dropRate) / 100.0));
                         }
                     });
                 }
+                
                 const totalAvgGoldPerKill = avgGold + avgItemGold;
+                
                 return {
                     id: mob.id,
                     name: mob.name,
                     level: mob.level || 0,
                     health: mob.health || 1,
-                    xp: mob.factionXp || 0, // Using factionXp as XP source
+                    xp: mob.factionXp || 0,
                     avgGoldPerKill: totalAvgGoldPerKill,
-                    isBoss: this.gameConfig.bossNames.has(mob.name) // Pre-calculate if it's a boss
+                    isBoss: FO2Config.BOSS_NAMES.has(mob.name)
                 };
             });
-
-            // Calculate max mob level from processed data
-            if (this.data.mobs.length > 0) {
-                this.data.mobsMaxLevel = Math.max(...this.data.mobs.map(m => m.level || 0), 1);
-            } else {
-                this.data.mobsMaxLevel = 1;
-            }
-            console.log(`Processed ${this.data.mobs.length} mobs. Max level: ${this.data.mobsMaxLevel}.`);
-            return true;
-
+            
+            // Calculate max mob level
+            const mobsMaxLevel = mobs.length > 0
+                ? Math.max(...mobs.map(m => m.level || 0), 1)
+                : 1;
+                
+            console.log(`Processed ${mobs.length} mobs. Max level: ${mobsMaxLevel}.`);
+            
+            return { mobs, mobsMaxLevel };
         } catch (error) {
             console.error("Error processing mobs data:", error);
-            showNotification("Error processing mob data. Check console.", "error");
-            this.data.mobs = [];
-            this.data.mobsMaxLevel = 1;
-            return false;
+            DOMUtils.showNotification("Error processing mob data. Check console.", "error");
+            return { mobs: [], mobsMaxLevel: 1 };
         }
     },
-
+    
+    /**
+     * Process and normalize buffs data
+     * @param {Array} buffsArray - Raw buffs data
+     * @returns {Object} Processed buffs data
+     */
     processBuffsData(buffsArray) {
-         try {
+        try {
             if (!buffsArray || !Array.isArray(buffsArray)) {
                 console.error("Invalid buffs data provided.");
-                this.data.buffs = { "Buff": [], "Morph": [] }; // Reset
-                return false;
+                return { "Buff": [], "Morph": [] };
             }
-
+            
             // Parse numeric fields for each buff
             buffsArray.forEach(buff => {
                 buff["ATK Power"] = parseInt(buff["ATK Power"]) || 0;
@@ -429,65 +1185,200 @@ const FO2BuildState = {
                 buff["AGI"] = parseInt(buff["AGI"]) || 0;
                 buff["INT"] = parseInt(buff["INT"]) || 0;
             });
-
+            
             // Categorize buffs
-            this.data.buffs = {
+            const categorizedBuffs = {
                 "Buff": buffsArray.filter(buff => buff.Category === "Buff"),
                 "Morph": buffsArray.filter(buff => buff.Category === "Morph")
             };
-
+            
             console.log("Buffs data processed and categorized.");
-            return true;
+            return categorizedBuffs;
         } catch (error) {
             console.error("Error processing buffs data:", error);
-            showNotification("Error processing buffs data. Check console.", "error");
-            this.data.buffs = { "Buff": [], "Morph": [] }; // Reset on error
-            return false;
+            DOMUtils.showNotification("Error processing buffs data. Check console.", "error");
+            return { "Buff": [], "Morph": [] };
         }
     },
+    
+    /**
+     * Load data from server API endpoints
+     * @returns {Promise<Object>} Loaded data
+     */
+    async loadAllData() {
+        try {
+            DOMUtils.showNotification("Loading game data...", "info");
+            
+            // Fetch all data files in parallel
+            const [itemsResponse, mobsResponse, buffsResponse] = await Promise.all([
+                fetch('assets/build-sandbox/data/items.json').catch(e => {
+                    console.error("Fetch items failed:", e);
+                    return { ok: false, json: () => null };
+                }),
+                fetch('assets/build-sandbox/data/mobs.json').catch(e => {
+                    console.error("Fetch mobs failed:", e);
+                    return { ok: false, json: () => null };
+                }),
+                fetch('assets/build-sandbox/data/buffs.json').catch(e => {
+                    console.error("Fetch buffs failed:", e);
+                    return { ok: false, json: () => null };
+                })
+            ]);
+            
+            if (!itemsResponse.ok || !mobsResponse.ok || !buffsResponse.ok) {
+                throw new Error("One or more data files failed to load. Check network or file paths.");
+            }
+            
+            const rawItemsArray = await itemsResponse.json();
+            const rawMobsData = await mobsResponse.json();
+            const rawBuffsArray = await buffsResponse.json();
+            
+            if (rawItemsArray === null || rawMobsData === null || rawBuffsArray === null) {
+                throw new Error("One or more data files parsed to null.");
+            }
+            
+            console.log("Data fetched successfully.");
+            
+            // Process each data type in correct order
+            const itemData = this.processItemData(rawItemsArray);
+            const buffsData = this.processBuffsData(rawBuffsArray);
+            const mobsData = this.processMobsData(rawMobsData, itemData.itemsById);
+            
+            DOMUtils.showNotification("Game data loaded successfully!", "success");
+            
+            return {
+                items: itemData.items,
+                itemsById: itemData.itemsById,
+                mobs: mobsData.mobs,
+                mobsMaxLevel: mobsData.mobsMaxLevel,
+                buffs: buffsData
+            };
+        } catch (error) {
+            console.error("Error loading data:", error);
+            DOMUtils.showNotification(`Failed to load game data: ${error.message}`, "error");
+            throw error;
+        }
+    }
+};
 
-    // --- Stat Calculation Trigger ---
-    triggerRecalculationAndUpdateUI() {
-        // 1. Recalculate core build stats
-        this.currentBuild.calculatedStats = this.performFullStatCalculation();
+// ------------------------------------------------------------------
+// stats-calculator.js - Game mechanics calculations
+// ------------------------------------------------------------------
 
-        // 2. Update main UI display elements
-        updateDisplay(this.currentBuild.calculatedStats); // Pass the calculated results
-
-        // 3. Update performance table (uses calculated DPS and UI filters)
-        const perfData = this.calculatePerformance();
-        updatePerformanceTable(perfData);
-
-        // 4. Save the current state
-        this.saveCurrentStateToLocalStorage();
+const StatsCalculator = {
+    /**
+     * Calculate dodge chance based on agility
+     * @param {number} totalAgi - Final agility value
+     * @returns {number} Dodge percentage
+     */
+    calculateDodge(totalAgi) {
+        let calculatedDodge = 0;
+        const agi = Math.max(0, totalAgi);
+        const dodge = FO2Config.GAME.DODGE;
+        
+        // Tier 1: 1-160 AGI (0.25% per point)
+        let pointsInTier1 = Math.min(agi, dodge.TIER1_CAP);
+        calculatedDodge += pointsInTier1 * dodge.TIER1_RATE;
+        if (agi <= dodge.TIER1_CAP) return calculatedDodge;
+        
+        // Tier 2: 161-320 AGI (0.125% per point)
+        let pointsInTier2 = Math.min(agi - dodge.TIER1_CAP, dodge.TIER2_CAP - dodge.TIER1_CAP);
+        calculatedDodge += pointsInTier2 * dodge.TIER2_RATE;
+        if (agi <= dodge.TIER2_CAP) return calculatedDodge;
+        
+        // Tier 3: 321-640 AGI (0.0625% per point)
+        let pointsInTier3 = Math.min(agi - dodge.TIER2_CAP, dodge.TIER3_CAP - dodge.TIER2_CAP);
+        calculatedDodge += pointsInTier3 * dodge.TIER3_RATE;
+        if (agi <= dodge.TIER3_CAP) return calculatedDodge;
+        
+        // Tier 4: 641+ AGI (0.03125% per point)
+        let pointsInTier4 = agi - dodge.TIER3_CAP;
+        calculatedDodge += pointsInTier4 * dodge.TIER4_RATE;
+        
+        return calculatedDodge;
     },
-
-    // --- Unified Stat Calculation Engine ---
-    // Calculates stats based *only* on the current state within FO2BuildState
-    performFullStatCalculation() {
-        const build = this.currentBuild;
-        const config = this.gameConfig;
-        const base = this.gameConfig.baseStats;
-
-        // 1. Initialize Final Character Stats (AGI, STR, INT, STA)
+    
+    /**
+     * Calculate critical hit chance based on AGI and INT
+     * @param {Object} finalStats - Character stats after equipment and buffs
+     * @param {number} baseCritical - Base critical chance value
+     * @returns {number} Critical hit percentage
+     */
+    calculateCritical(finalStats, baseCritical) {
+        let critical = baseCritical;
+        const baseStatValue = FO2Config.GAME.LEVEL.BASE_STAT_POINTS;
+        const critConfig = FO2Config.GAME.CRITICAL;
+        
+        let rawCritAddition = 0;
+        if (finalStats.agi > baseStatValue) {
+            rawCritAddition += (finalStats.agi - baseStatValue) * critConfig.BASE_GAIN_RATIO;
+        }
+        if (finalStats.int > baseStatValue) {
+            rawCritAddition += (finalStats.int - baseStatValue) * critConfig.BASE_GAIN_RATIO;
+        }
+        
+        // Apply diminishing returns above SOFT_CAP
+        if (critical + rawCritAddition <= critConfig.SOFT_CAP) {
+            critical += rawCritAddition;
+        } else {
+            if (critical < critConfig.SOFT_CAP) {
+                const fullValueAddition = critConfig.SOFT_CAP - critical;
+                critical = critConfig.SOFT_CAP;
+                const reducedAddition = (rawCritAddition - fullValueAddition) * critConfig.REDUCTION_FACTOR;
+                critical += reducedAddition;
+            } else {
+                critical += rawCritAddition * critConfig.REDUCTION_FACTOR;
+            }
+        }
+        
+        return critical;
+    },
+    
+    /**
+     * Calculates mitigation percentage from armor
+     * @param {number} armor - Character's armor value
+     * @param {number} level - Character's level
+     * @returns {number} Damage mitigation percentage
+     */
+    calculateMitigation(armor, level) {
+        if (armor <= 0) return 0;
+        
+        const kValue = FO2Config.GAME.ARMOR.MITIGATION_K_BASE + 
+                       FO2Config.GAME.ARMOR.MITIGATION_K_LEVEL_FACTOR * level;
+        
+        return (armor / (kValue + armor)) * 100;
+    },
+    
+    /**
+     * Perform full stat calculation based on build state
+     * @param {Object} buildState - Character build state
+     * @param {Object} gameConfig - Game configuration
+     * @returns {Object} Calculated stats
+     */
+    performFullStatCalculation(buildState, gameConfig) {
+        const build = buildState;
+        const base = gameConfig.GAME.BASE_STATS;
+        const levelConfig = gameConfig.GAME.LEVEL;
+        
+        // 1. Initialize Final Character Stats
         const finalCharacterStats = {
-            agi: config.baseStatPoints + (build.statPoints.agi - config.baseStatPoints),
-            str: config.baseStatPoints + (build.statPoints.str - config.baseStatPoints),
-            int: config.baseStatPoints + (build.statPoints.int - config.baseStatPoints),
-            sta: config.baseStatPoints + (build.statPoints.sta - config.baseStatPoints)
+            agi: levelConfig.BASE_STAT_POINTS + (build.statPoints.agi - levelConfig.BASE_STAT_POINTS),
+            str: levelConfig.BASE_STAT_POINTS + (build.statPoints.str - levelConfig.BASE_STAT_POINTS),
+            int: levelConfig.BASE_STAT_POINTS + (build.statPoints.int - levelConfig.BASE_STAT_POINTS),
+            sta: levelConfig.BASE_STAT_POINTS + (build.statPoints.sta - levelConfig.BASE_STAT_POINTS)
         };
-
+        
         // 2. Accumulators for direct bonuses
         let totalDirectArmorBonus = 0;
         let totalDirectAPBonus = 0;
         let totalHPRegenPerSecond = 0;
         let totalEnergyRegenPerSecond = 0;
-
+        
         // 3. Base weapon characteristics
         let currentWeaponMinDamage = base.damage.min;
         let currentWeaponMaxDamage = base.damage.max;
         let currentBaseAttackSpeed = base.atkSpeed;
-
+        
         // 4. Process Equipped Items
         for (const slot in build.equipment) {
             const item = build.equipment[slot];
@@ -497,7 +1388,7 @@ const FO2BuildState = {
                 finalCharacterStats.int += item.INT || 0;
                 finalCharacterStats.sta += item.STA || 0;
                 totalDirectArmorBonus += item.Armor || 0;
-
+                
                 if (slot === 'weapon' && item.minDamage !== undefined && item.maxDamage !== undefined) {
                     currentWeaponMinDamage = item.minDamage;
                     currentWeaponMaxDamage = item.maxDamage;
@@ -505,11 +1396,11 @@ const FO2BuildState = {
                 }
             }
         }
-
+        
         // 5. Process Active Buffs
         let rawBuffCritPercentContribution = 0;
-        let atkSpeedBuffApplied = false; // Assuming non-stacking speed buffs for now
-
+        let atkSpeedBuffApplied = false; // Assuming non-stacking speed buffs
+        
         build.activeBuffs.forEach(buff => {
             finalCharacterStats.agi += buff.AGI || 0;
             finalCharacterStats.str += buff.STR || 0;
@@ -520,94 +1411,116 @@ const FO2BuildState = {
             rawBuffCritPercentContribution += buff["Crit %"] || 0;
             totalHPRegenPerSecond += Number(buff["Health Per Second"]) || 0;
             totalEnergyRegenPerSecond += Number(buff["Energy Per Second"]) || 0;
-
+            
             if (buff["ATK Speed"] && !atkSpeedBuffApplied) {
                 currentBaseAttackSpeed += parseInt(buff["ATK Speed"]) || 0;
                 atkSpeedBuffApplied = true;
             }
         });
-
+        
         // --- 6. Calculate Final Derived Stats ---
-
-        // HP and Energy (Using constants defined within this method for clarity)
-        const baseHpConst = 1080;
-        const baseEnergyConst = 1200;
-        let finalHP = Math.round(baseHpConst / 60 * build.level);
-        let finalEnergy = Math.round(baseEnergyConst / 60 * build.level);
-        finalHP += Math.max(0, finalCharacterStats.sta - config.baseStatPoints) * 20;
-        finalEnergy += Math.max(0, finalCharacterStats.int - config.baseStatPoints) * 15;
-
+        
+        // HP and Energy
+        const resourceConfig = gameConfig.GAME.RESOURCES;
+        let finalHP = Math.round(resourceConfig.BASE_HP_CONSTANT / 60 * build.level);
+        let finalEnergy = Math.round(resourceConfig.BASE_ENERGY_CONSTANT / 60 * build.level);
+        
+        finalHP += Math.max(0, finalCharacterStats.sta - levelConfig.BASE_STAT_POINTS) * resourceConfig.HP_PER_STA_POINT;
+        finalEnergy += Math.max(0, finalCharacterStats.int - levelConfig.BASE_STAT_POINTS) * resourceConfig.ENERGY_PER_INT_POINT;
+        
         // Armor
-        let finalArmor = Math.max(0, finalCharacterStats.str - config.baseStatPoints) * 5; // Armor from STR
-        finalArmor += totalDirectArmorBonus; // Armor from items and buffs
+        const armorConfig = gameConfig.GAME.ARMOR;
+        let finalArmor = Math.max(0, finalCharacterStats.str - levelConfig.BASE_STAT_POINTS) * armorConfig.ARMOR_PER_STR;
+        finalArmor += totalDirectArmorBonus;
         finalArmor = Math.max(0, finalArmor);
-
+        
         // Mitigation
-        let mitigationPercent = 0;
-        const kValue = 200 + 50 * build.level; // Mitigation formula constant
-        if ((kValue + finalArmor) > 0) {
-            mitigationPercent = (finalArmor / (kValue + finalArmor)) * 100;
-        }
-
+        let mitigationPercent = this.calculateMitigation(finalArmor, build.level);
+        
         // Attack Speed
-        let finalAttackSpeed = Math.max(100, currentBaseAttackSpeed); // Ensure minimum speed
-
+        let finalAttackSpeed = Math.max(gameConfig.GAME.DAMAGE.MIN_ATTACK_SPEED, currentBaseAttackSpeed);
+        
         // Attack Power (AP)
         let finalAP = base.atkPower; // Start with base AP
-        let highestStatValue = config.baseStatPoints; // Start comparison from base
+        const apConfig = gameConfig.GAME.ATTACK_POWER;
+        
+        // Find highest stat
+        let highestStatValue = levelConfig.BASE_STAT_POINTS;
         let isStrHighestDriver = false;
-        // Find the highest stat value >= base
-        if (finalCharacterStats.str >= config.baseStatPoints) { highestStatValue = finalCharacterStats.str; isStrHighestDriver = true; }
-        if (finalCharacterStats.agi > highestStatValue) { highestStatValue = finalCharacterStats.agi; isStrHighestDriver = false; }
-        if (finalCharacterStats.int > highestStatValue) { highestStatValue = finalCharacterStats.int; isStrHighestDriver = false; }
-        if (finalCharacterStats.sta > highestStatValue) { highestStatValue = finalCharacterStats.sta; isStrHighestDriver = false; }
+        
+        if (finalCharacterStats.str >= levelConfig.BASE_STAT_POINTS) {
+            highestStatValue = finalCharacterStats.str;
+            isStrHighestDriver = true;
+        }
+        if (finalCharacterStats.agi > highestStatValue) {
+            highestStatValue = finalCharacterStats.agi;
+            isStrHighestDriver = false;
+        }
+        if (finalCharacterStats.int > highestStatValue) {
+            highestStatValue = finalCharacterStats.int;
+            isStrHighestDriver = false;
+        }
+        if (finalCharacterStats.sta > highestStatValue) {
+            highestStatValue = finalCharacterStats.sta;
+            isStrHighestDriver = false;
+        }
+        
         // STR takes precedence if equal to another highest stat
-        if (!isStrHighestDriver && finalCharacterStats.str === highestStatValue && finalCharacterStats.str >= config.baseStatPoints) { isStrHighestDriver = true; }
-
+        if (!isStrHighestDriver && finalCharacterStats.str === highestStatValue && finalCharacterStats.str >= levelConfig.BASE_STAT_POINTS) {
+            isStrHighestDriver = true;
+        }
+        
+        // Calculate AP bonuses
         let apFromPrimaryStats = 0;
         let apFromSecondaryStr = 0;
-        if (highestStatValue >= config.baseStatPoints) { // Only add AP if highest stat is above base
+        
+        if (highestStatValue >= levelConfig.BASE_STAT_POINTS) {
             if (isStrHighestDriver) {
-                apFromPrimaryStats = (finalCharacterStats.str - config.baseStatPoints) * 3;
+                apFromPrimaryStats = (finalCharacterStats.str - levelConfig.BASE_STAT_POINTS) * apConfig.STR_PRIMARY_BONUS;
             } else {
-                apFromPrimaryStats = (highestStatValue - config.baseStatPoints) * 2;
-                if (finalCharacterStats.str > config.baseStatPoints) { // Add secondary STR bonus if STR > base
-                    apFromSecondaryStr = (finalCharacterStats.str - config.baseStatPoints) * 1;
+                apFromPrimaryStats = (highestStatValue - levelConfig.BASE_STAT_POINTS) * apConfig.OTHER_PRIMARY_BONUS;
+                if (finalCharacterStats.str > levelConfig.BASE_STAT_POINTS) {
+                    apFromSecondaryStr = (finalCharacterStats.str - levelConfig.BASE_STAT_POINTS) * apConfig.STR_SECONDARY_BONUS;
                 }
             }
         }
+        
         finalAP += Math.max(0, apFromPrimaryStats);
         finalAP += Math.max(0, apFromSecondaryStr);
-        finalAP += totalDirectAPBonus; // Add direct AP from buffs
-        finalAP = Math.max(0, finalAP); // Ensure AP is not negative
-
+        finalAP += totalDirectAPBonus;
+        finalAP = Math.max(0, finalAP);
+        
         // Critical Chance
-        let critFromStats = calculateCritical(finalCharacterStats, base.critical); // Pass base crit
+        let critFromStats = this.calculateCritical(finalCharacterStats, base.critical);
         let finalCrit = critFromStats;
+        
         // Apply buff crit with diminishing returns
         if (rawBuffCritPercentContribution !== 0) {
-            if (finalCrit + rawBuffCritPercentContribution <= 80) {
+            const critConfig = gameConfig.GAME.CRITICAL;
+            
+            if (finalCrit + rawBuffCritPercentContribution <= critConfig.SOFT_CAP) {
                 finalCrit += rawBuffCritPercentContribution;
-            } else if (finalCrit < 80) {
-                const fullValue = 80 - finalCrit;
-                const reducedValue = (rawBuffCritPercentContribution - fullValue) * 0.5;
-                finalCrit = 80 + reducedValue;
-            } else { // finalCrit is already >= 80
-                finalCrit += rawBuffCritPercentContribution * 0.5;
+            } else if (finalCrit < critConfig.SOFT_CAP) {
+                const fullValue = critConfig.SOFT_CAP - finalCrit;
+                const reducedValue = (rawBuffCritPercentContribution - fullValue) * critConfig.REDUCTION_FACTOR;
+                finalCrit = critConfig.SOFT_CAP + reducedValue;
+            } else {
+                finalCrit += rawBuffCritPercentContribution * critConfig.REDUCTION_FACTOR;
             }
         }
+        
         finalCrit = Math.max(0, finalCrit);
-
+        
         // Dodge Chance
-        let finalDodge = calculateNewDodge(finalCharacterStats.agi); // Uses base dodge of 0 implicitly
+        let finalDodge = this.calculateDodge(finalCharacterStats.agi);
         finalDodge = Math.max(0, finalDodge);
-
+        
         // Final Min/Max Damage
         const attackSpeedInSeconds = finalAttackSpeed / 1000.0;
-        const damageBonusFromAP = Math.floor((finalAP * attackSpeedInSeconds) / 14);
+        const damageBonusFromAP = Math.floor((finalAP * attackSpeedInSeconds) / gameConfig.GAME.DAMAGE.AP_SCALE_DIVISOR);
         let finalMinDamage = currentWeaponMinDamage + damageBonusFromAP;
         let finalMaxDamage = currentWeaponMaxDamage + damageBonusFromAP;
-
+        
         // DPS
         let finalDPS = 0;
         if (finalAttackSpeed > 0) {
@@ -617,10 +1530,10 @@ const FO2BuildState = {
             const critMultiplier = 1.0 + (finalCrit / 100.0);
             finalDPS = avgHit * attacksPerSec * critMultiplier;
         }
-
+        
         // Return the calculated results
         return {
-            finalStats: finalCharacterStats, // AGI, STR, INT, STA after all bonuses
+            finalStats: finalCharacterStats,
             finalHP,
             finalEnergy,
             finalArmor,
@@ -636,110 +1549,51 @@ const FO2BuildState = {
             finalEnergyRegenPerSecond: totalEnergyRegenPerSecond
         };
     },
-
-    // Calculates stats for a *saved build object*, resolving IDs/names
-    calculateStatsForSavedBuildObject(buildObject) {
-        if (!buildObject || !this.data.itemsById || !this.data.buffs) {
-            console.error("calculateStatsForSavedBuildObject: Missing build data, item map, or buff data.");
-            return null; // Return null or a default structure
-        }
-
-        // Resolve item IDs to full item objects
-        const resolvedEquipment = {};
-        if (buildObject.equipment) {
-            for (const slot in buildObject.equipment) {
-                const itemId = buildObject.equipment[slot];
-                if (itemId !== undefined && itemId !== null) {
-                    const item = this.data.itemsById.get(itemId);
-                    if (item) {
-                        resolvedEquipment[slot] = item;
-                    } else {
-                        console.warn(`calculateStatsForSavedBuildObject: Item ID ${itemId} for slot ${slot} not found.`);
-                    }
-                }
-            }
-        }
-
-        // Resolve buff names to full buff objects
-        const resolvedBuffs = [];
-        if (buildObject.activeBuffNames) {
-            buildObject.activeBuffNames.forEach(buffName => {
-                let foundBuff = null;
-                for (const category in this.data.buffs) {
-                    if(this.data.buffs[category]){
-                        foundBuff = this.data.buffs[category].find(b => b.Name === buffName);
-                        if (foundBuff) break;
-                    }
-                }
-                if (foundBuff) {
-                    resolvedBuffs.push(foundBuff);
-                } else {
-                    console.warn(`calculateStatsForSavedBuildObject: Buff named "${buffName}" not found.`);
-                }
-            });
-        }
-
-        // Simulate calculation by temporarily overriding parts of the state calculation logic
-        // (More complex: might be better to pass params directly to a modified calculation func)
-        // Or, create a temporary state object to pass to the existing calculation function.
-
-        // Simpler Approach: Pass necessary data directly to a stateless calculation function
-        // (Requires modifying performFullStatCalculation slightly or creating a variant)
-
-        // For now, let's call a conceptual *stateless* version
-        // Assume performStatelessCalculation exists and takes all needed parts
-        return performStatelessCalculation(
-            buildObject.level,
-            buildObject.rebirth,
-            buildObject.stats, // Allocated points
-            resolvedEquipment,
-            resolvedBuffs,
-            this.gameConfig // Pass game config including base stats
-        );
-    },
-
-    // Calculates performance against mobs based on current build's DPS and UI filters
-    calculatePerformance() {
+    
+    /**
+     * Calculate performance against mobs using current build's DPS
+     * @param {number} currentDPS - Current build's DPS
+     * @param {Array} mobList - List of mobs to calculate against
+     * @param {Object} filters - Performance filters (min/max levels, hide bosses)
+     * @returns {Array} Performance data array
+     */
+    calculatePerformance(currentDPS, mobList, filters) {
         const performanceData = [];
-        const currentDPS = this.currentBuild.calculatedStats?.finalDPS || 0; // Use calculated DPS
-        const filters = this.ui.performance;
-        const mobList = this.data.mobs;
-
+        
         if (!mobList || mobList.length === 0) {
             console.warn("Performance calculation: No mob data available");
             return performanceData;
         }
+        
         if (currentDPS <= 0) {
-            // console.warn("Performance calculation: DPS is zero or negative");
-            // Don't log warning if DPS is 0, just return empty results
             return performanceData;
         }
-
+        
         const filteredMobs = mobList.filter(mob => {
             if (!mob || mob.level === undefined || mob.level === null) return false;
             const levelMatch = mob.level >= filters.minLevel && mob.level <= filters.maxLevel;
-            const bossMatch = !filters.hideBosses || !mob.isBoss; // Use pre-calculated isBoss flag
+            const bossMatch = !filters.hideBosses || !mob.isBoss;
             return levelMatch && bossMatch;
         });
-
+        
         filteredMobs.forEach(mob => {
             if (!mob.health || mob.health <= 0) {
-                // console.warn(`Mob "${mob.name}" has invalid health: ${mob.health}`);
-                return; // Skip mob
+                return; // Skip mob with invalid health
             }
-
+            
             const timeToKill = mob.health / currentDPS;
             let goldPerHour = 0;
             let xpPerHour = 0;
-
+            
             if (timeToKill > 0 && isFinite(timeToKill)) {
                 const killsPerHour = 3600 / timeToKill;
                 goldPerHour = killsPerHour * (mob.avgGoldPerKill || 0);
                 xpPerHour = killsPerHour * (mob.xp || 0);
+                
                 if (!isFinite(goldPerHour)) goldPerHour = 0;
                 if (!isFinite(xpPerHour)) xpPerHour = 0;
             }
-
+            
             performanceData.push({
                 name: mob.name || "Unknown Mob",
                 level: mob.level || 0,
@@ -748,1827 +1602,1939 @@ const FO2BuildState = {
                 xph: xpPerHour
             });
         });
-
+        
         return performanceData;
     },
+    
+    /**
+     * Calculate stats for a saved build object
+     * @param {Object} buildObject - Saved build data
+     * @param {Object} data - Data needed for calculation (itemsById, buffs)
+     * @param {Object} gameConfig - Game configuration
+     * @returns {Object|null} Calculated stats or null if invalid
+     */
+    calculateStatsForSavedBuildObject(buildObject, data, gameConfig) {
+        if (!buildObject || !data.itemsById || !data.buffs) {
+            console.error("calculateStatsForSavedBuildObject: Missing build data, item map, or buff data.");
+            return null;
+        }
+        
+        // Create a temporary build state with the saved data
+        const tempState = {
+            level: buildObject.level || 1,
+            rebirth: buildObject.rebirth || false,
+            statPoints: buildObject.stats || {
+                agi: gameConfig.GAME.LEVEL.BASE_STAT_POINTS,
+                str: gameConfig.GAME.LEVEL.BASE_STAT_POINTS,
+                int: gameConfig.GAME.LEVEL.BASE_STAT_POINTS,
+                sta: gameConfig.GAME.LEVEL.BASE_STAT_POINTS
+            },
+            equipment: {},
+            activeBuffs: []
+        };
+        
+        // Resolve item IDs to full item objects
+        if (buildObject.equipment) {
+            for (const slot in buildObject.equipment) {
+                const itemId = buildObject.equipment[slot];
+                if (itemId !== undefined && itemId !== null) {
+                    const item = data.itemsById.get(itemId);
+                    if (item) {
+                        tempState.equipment[slot] = item;
+                    } else {
+                        console.warn(`calculateStatsForSavedBuildObject: Item ID ${itemId} for slot ${slot} not found.`);
+                    }
+                }
+            }
+        }
+        
+        // Resolve buff names to full buff objects
+        if (buildObject.activeBuffNames) {
+            buildObject.activeBuffNames.forEach(buffName => {
+                let foundBuff = null;
+                for (const category in data.buffs) {
+                    if (data.buffs[category]) {
+                        foundBuff = data.buffs[category].find(b => b.Name === buffName);
+                        if (foundBuff) break;
+                    }
+                }
+                
+                if (foundBuff) {
+                    tempState.activeBuffs.push(foundBuff);
+                } else {
+                    console.warn(`calculateStatsForSavedBuildObject: Buff named "${buffName}" not found.`);
+                }
+            });
+        }
+        
+        // Calculate stats using the temp state
+        return this.performFullStatCalculation(tempState, gameConfig);
+    }
+};
 
-    // --- Persistence Methods ---
+// ------------------------------------------------------------------
+// state-manager.js - Application state management
+// ------------------------------------------------------------------
+
+const StateManager = {
+    /**
+     * State data - initialized with default values
+     */
+    state: {
+        // Game Data
+        data: {
+            items: {
+                weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
+                equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
+            },
+            itemsById: new Map(),
+            mobs: [],
+            mobsMaxLevel: 1,
+            buffs: { "Buff": [], "Morph": [] }
+        },
+        
+        // Current Build
+        currentBuild: {
+            level: 1,
+            rebirth: false,
+            statPoints: {
+                agi: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+                str: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+                int: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+                sta: FO2Config.GAME.LEVEL.BASE_STAT_POINTS
+            },
+            pointsRemaining: FO2Config.GAME.LEVEL.INITIAL_POINTS,
+            equipment: {},
+            activeBuffs: [],
+            calculatedStats: {}
+        },
+        
+        // UI State
+        ui: {
+            performance: {
+                sortColumn: 'name',
+                sortAscending: true,
+                minLevel: 1,
+                maxLevel: 80,
+                hideBosses: false
+            },
+            itemDictionary: {
+                search: '',
+                category: 'all',
+                sortCriteria: 'level',
+                sortOrder: 'asc'
+            },
+            currentItemSearchSlot: null
+        },
+        
+        // Saved Builds
+        savedBuilds: []
+    },
+    
+    /**
+     * Initialize state manager
+     * @returns {Promise} Promise that resolves when state is initialized
+     */
+    async initialize() {
+        try {
+            // Load data from API
+            this.state.data = await DataService.loadAllData();
+            
+            // Load saved builds
+            this.loadSavedBuildsList();
+            
+            // Load current state
+            const stateLoaded = this.loadCurrentStateFromLocalStorage();
+            
+            // Calculate initial stats
+            this.recalculatePoints();
+            
+            // If state wasn't loaded, trigger initial calculation
+            if (!stateLoaded) {
+                this.triggerRecalculationAndUpdateUI();
+            }
+            
+            console.log('State manager initialized successfully.');
+            return true;
+        } catch (error) {
+            console.error('Failed to initialize state manager:', error);
+            throw error;
+        }
+    },
+    
+    /**
+     * Get current state (for read-only purposes)
+     * @returns {Object} Current state
+     */
+    getState() {
+        return FO2Utils.deepClone(this.state);
+    },
+    
+    /**
+     * Update level and recalculate stats
+     * @param {number} newLevel - New level value
+     * @returns {number} Clamped level value
+     */
+    updateLevel(newLevel) {
+        newLevel = parseInt(newLevel);
+        if (isNaN(newLevel)) newLevel = 1;
+        
+        const maxLevel = this.state.currentBuild.rebirth ?
+            FO2Config.GAME.LEVEL.REBIRTH_CAP :
+            FO2Config.GAME.LEVEL.NORMAL_CAP;
+        
+        newLevel = FO2Utils.clamp(newLevel, 1, maxLevel);
+        
+        this.state.currentBuild.level = newLevel;
+        this.recalculatePoints();
+        this.triggerRecalculationAndUpdateUI();
+        
+        return newLevel;
+    },
+    
+    /**
+     * Toggle rebirth status and recalculate
+     * @returns {boolean} New rebirth state
+     */
+    toggleRebirth() {
+        this.state.currentBuild.rebirth = !this.state.currentBuild.rebirth;
+        
+        // Adjust level if it exceeds the new max level
+        const maxLevel = this.state.currentBuild.rebirth ?
+            FO2Config.GAME.LEVEL.REBIRTH_CAP :
+            FO2Config.GAME.LEVEL.NORMAL_CAP;
+            
+        if (this.state.currentBuild.level > maxLevel) {
+            this.state.currentBuild.level = maxLevel;
+        }
+        
+        this.recalculatePoints();
+        this.triggerRecalculationAndUpdateUI();
+        
+        return this.state.currentBuild.rebirth;
+    },
+    
+    /**
+     * Update a stat value
+     * @param {string} stat - Stat name (agi, str, int, sta)
+     * @param {number} value - New value
+     * @returns {number} Clamped stat value
+     */
+    updateStat(stat, value) {
+        value = parseInt(value);
+        const base = FO2Config.GAME.LEVEL.BASE_STAT_POINTS;
+        
+        if (isNaN(value) || value < base) {
+            value = base;
+        }
+        
+        const currentValue = this.state.currentBuild.statPoints[stat];
+        const pointDifference = value - currentValue;
+        
+        // Check if adding points exceeds remaining points
+        if (pointDifference > 0 && pointDifference > this.state.currentBuild.pointsRemaining) {
+            value = currentValue + this.state.currentBuild.pointsRemaining;
+        }
+        
+        this.state.currentBuild.statPoints[stat] = value;
+        this.recalculatePoints();
+        this.triggerRecalculationAndUpdateUI();
+        
+        return value;
+    },
+    
+    /**
+     * Reset all stats to base values
+     */
+    resetStats() {
+        const base = FO2Config.GAME.LEVEL.BASE_STAT_POINTS;
+        
+        this.state.currentBuild.statPoints = {
+            agi: base,
+            str: base,
+            int: base,
+            sta: base
+        };
+        
+        this.recalculatePoints();
+        this.triggerRecalculationAndUpdateUI();
+    },
+    
+    /**
+     * Calculate total available stat points
+     * @returns {number} Available points
+     */
+    calculateAvailablePoints() {
+        let points = FO2Config.GAME.LEVEL.INITIAL_POINTS;
+        points += (this.state.currentBuild.level - 1) * FO2Config.GAME.LEVEL.POINTS_PER_LEVEL;
+        
+        // Rebirth bonus
+        if (this.state.currentBuild.rebirth) {
+            points += Math.floor(this.state.currentBuild.level / FO2Config.GAME.LEVEL.REBIRTH_BONUS_INTERVAL);
+        }
+        
+        return points;
+    },
+    
+    /**
+     * Calculate points spent on stats
+     * @returns {number} Used points
+     */
+    calculateUsedPoints() {
+        const base = FO2Config.GAME.LEVEL.BASE_STAT_POINTS;
+        const stats = this.state.currentBuild.statPoints;
+        
+        return (
+            (stats.agi - base) +
+            (stats.str - base) +
+            (stats.int - base) +
+            (stats.sta - base)
+        );
+    },
+    
+    /**
+     * Recalculate remaining points
+     */
+    recalculatePoints() {
+        const available = this.calculateAvailablePoints();
+        const used = this.calculateUsedPoints();
+        
+        this.state.currentBuild.pointsRemaining = available - used;
+    },
+    
+    /**
+     * Equip an item in a slot
+     * @param {string} slot - Equipment slot name
+     * @param {Object|null} itemObject - Item to equip or null to unequip
+     */
+    equipItem(slot, itemObject) {
+        this.state.currentBuild.equipment[slot] = itemObject;
+        this.triggerRecalculationAndUpdateUI();
+    },
+    
+    /**
+     * Reset all equipment
+     */
+    resetEquipment() {
+        this.state.currentBuild.equipment = {};
+        this.triggerRecalculationAndUpdateUI();
+    },
+    
+    /**
+     * Add a buff to active buffs
+     * @param {Object} buffObject - Buff to add
+     * @returns {boolean} Whether buff was added
+     */
+    addBuff(buffObject) {
+        const maxBuffs = FO2Config.UI.MAX_ACTIVE_BUFFS;
+        const buffs = this.state.currentBuild.activeBuffs;
+        
+        if (buffs.length < maxBuffs && !buffs.some(b => b.Name === buffObject.Name)) {
+            buffs.push(buffObject);
+            this.triggerRecalculationAndUpdateUI();
+            return true;
+        }
+        
+        return false;
+    },
+    /**
+     * Remove a buff by name
+     * @param {string} buffName - Name of buff to remove
+     * @returns {boolean} Whether buff was removed
+     */
+    removeBuff(buffName) {
+        const initialLength = this.state.currentBuild.activeBuffs.length;
+        this.state.currentBuild.activeBuffs = this.state.currentBuild.activeBuffs.filter(b => b.Name !== buffName);
+        
+        if (this.state.currentBuild.activeBuffs.length < initialLength) {
+            this.triggerRecalculationAndUpdateUI();
+            return true;
+        }
+        
+        return false;
+    },
+    
+    /**
+     * Reset all active buffs
+     */
+    resetBuffs() {
+        this.state.currentBuild.activeBuffs = [];
+        this.triggerRecalculationAndUpdateUI();
+    },
+    
+    /**
+     * Update performance filters
+     * @param {Object} filters - New filter values
+     */
+    updatePerformanceFilters(filters) {
+        Object.assign(this.state.ui.performance, filters);
+        
+        // Ensure min <= max for level filters
+        if (this.state.ui.performance.minLevel > this.state.ui.performance.maxLevel) {
+            this.state.ui.performance.minLevel = this.state.ui.performance.maxLevel;
+        }
+        
+        // Clamp to valid range
+        this.state.ui.performance.minLevel = Math.max(1, Math.min(this.state.ui.performance.minLevel, this.state.data.mobsMaxLevel));
+        this.state.ui.performance.maxLevel = Math.max(this.state.ui.performance.minLevel, Math.min(this.state.ui.performance.maxLevel, this.state.data.mobsMaxLevel));
+        
+        this.triggerRecalculationAndUpdateUI();
+    },
+    
+    /**
+     * Update item dictionary filters
+     * @param {Object} filters - New filter values
+     */
+    updateItemDictionaryFilters(filters) {
+        Object.assign(this.state.ui.itemDictionary, filters);
+        EventSystem.publish('item-dictionary-updated', this.state.ui.itemDictionary);
+    },
+    
+    /**
+     * Set current item search slot
+     * @param {string|null} slotName - Slot name or null to clear
+     */
+    setCurrentItemSearchSlot(slotName) {
+        this.state.ui.currentItemSearchSlot = slotName;
+    },
+    
+    /**
+     * Trigger recalculation and UI update
+     */
+    triggerRecalculationAndUpdateUI() {
+        // 1. Recalculate core build stats
+        this.state.currentBuild.calculatedStats = StatsCalculator.performFullStatCalculation(
+            this.state.currentBuild,
+            FO2Config
+        );
+        
+        // 2. Calculate performance against mobs
+        const perfData = StatsCalculator.calculatePerformance(
+            this.state.currentBuild.calculatedStats?.finalDPS || 0,
+            this.state.data.mobs,
+            this.state.ui.performance
+        );
+        
+        // 3. Publish events for UI updates
+        EventSystem.publish('stats-updated', this.state.currentBuild.calculatedStats);
+        EventSystem.publish('performance-updated', {
+            data: perfData,
+            sortColumn: this.state.ui.performance.sortColumn,
+            sortAscending: this.state.ui.performance.sortAscending
+        });
+        
+        // 4. Save the current state
+        this.saveCurrentStateToLocalStorage();
+    },
+    
+    /**
+     * Save current state to localStorage
+     */
     saveCurrentStateToLocalStorage() {
         const saveData = {
-            // Only save the parts needed to reconstruct the state
-            level: this.currentBuild.level,
-            rebirth: this.currentBuild.rebirth,
-            stats: this.currentBuild.statPoints,
-            equipment: {}, // Store Item IDs
-            activeBuffNames: this.currentBuild.activeBuffs.map(buff => buff.Name), // Store Names
-            uiPerformance: this.ui.performance // Save UI filters
+            level: this.state.currentBuild.level,
+            rebirth: this.state.currentBuild.rebirth,
+            stats: this.state.currentBuild.statPoints,
+            equipment: {},
+            activeBuffNames: this.state.currentBuild.activeBuffs.map(buff => buff.Name),
+            uiPerformance: this.state.ui.performance
         };
-
-        // Populate equipment Item IDs
-        for (const slot in this.currentBuild.equipment) {
-            if (this.currentBuild.equipment[slot]) {
-                const itemId = this.currentBuild.equipment[slot]['Item ID'];
+        
+        // Store item IDs for equipment
+        for (const slot in this.state.currentBuild.equipment) {
+            if (this.state.currentBuild.equipment[slot]) {
+                const itemId = this.state.currentBuild.equipment[slot]['Item ID'];
                 if (itemId !== undefined) {
                     saveData.equipment[slot] = itemId;
                 }
             }
         }
-
+        
         try {
-            localStorage.setItem('fo2BuildTesterState', JSON.stringify(saveData));
-            // console.log("Current build state saved to localStorage.");
+            localStorage.setItem(FO2Config.STORAGE.CURRENT_STATE_KEY, JSON.stringify(saveData));
         } catch (e) {
             console.error("Failed to save state:", e);
-            showNotification("Could not save current build state.", "error");
+            DOMUtils.showNotification("Could not save current build state.", "error");
         }
     },
-
+    
+    /**
+     * Load current state from localStorage
+     * @returns {boolean} Whether state was loaded successfully
+     */
     loadCurrentStateFromLocalStorage() {
-        const savedDataString = localStorage.getItem('fo2BuildTesterState');
-        if (!savedDataString) {
-            console.log("No saved build state found in localStorage. Using defaults.");
-            // Ensure initial calculation happens even if nothing is loaded
-            this.triggerRecalculationAndUpdateUI();
-            return false;
-        }
-
-        try {
-            const savedData = JSON.parse(savedDataString);
-            console.log("Loading build state from localStorage:", savedData);
-
-            // Apply saved data to currentBuild
-            this.currentBuild.level = savedData.level || 1;
-            this.currentBuild.rebirth = savedData.rebirth || false;
-            this.currentBuild.statPoints = savedData.stats || { agi: 20, str: 20, int: 20, sta: 20 };
-
-            // Reset equipment & buffs before loading
-            this.currentBuild.equipment = {};
-            this.currentBuild.activeBuffs = [];
-
-            // Load equipment (requires itemsById map to be ready)
-            if (savedData.equipment && this.data.itemsById.size > 0) {
-                for (const slot in savedData.equipment) {
-                    const itemIdToLoad = savedData.equipment[slot];
-                    const itemToEquip = this.data.itemsById.get(itemIdToLoad);
-                    if (itemToEquip) {
-                        this.currentBuild.equipment[slot] = itemToEquip;
-                    } else {
-                         console.warn(`Could not find item ID ${itemIdToLoad} for slot ${slot} during load.`);
-                    }
-                }
-            }
-
-            // Load active buffs (requires buffs data to be ready)
-            if (savedData.activeBuffNames && (this.data.buffs.Buff.length > 0 || this.data.buffs.Morph.length > 0)) {
-                 savedData.activeBuffNames.forEach(buffNameToLoad => {
-                    let buffToActivate = null;
-                    for (const category in this.data.buffs) {
-                        if (Array.isArray(this.data.buffs[category])) {
-                            buffToActivate = this.data.buffs[category].find(b => b.Name === buffNameToLoad);
-                            if (buffToActivate) break;
-                        }
-                    }
-                    if (buffToActivate) {
-                        this.currentBuild.activeBuffs.push(buffToActivate);
-                    } else {
-                         console.warn(`Buff data missing for ${buffNameToLoad} during load.`);
-                    }
-                 });
-            }
-
-            // Load UI state (performance filters)
-            if (savedData.uiPerformance) {
-                 Object.assign(this.ui.performance, savedData.uiPerformance);
-                 // Clamp loaded levels just in case
-                 this.ui.performance.minLevel = parseInt(this.ui.performance.minLevel) || 1;
-                 this.ui.performance.maxLevel = parseInt(this.ui.performance.maxLevel) || this.data.mobsMaxLevel;
-                 this.ui.performance.minLevel = Math.max(1, Math.min(this.ui.performance.minLevel, this.data.mobsMaxLevel));
-                 this.ui.performance.maxLevel = Math.max(this.ui.performance.minLevel, Math.min(this.ui.performance.maxLevel, this.data.mobsMaxLevel));
-            }
-
-            console.log("Successfully loaded state from localStorage.");
-            this.recalculatePoints(); // Ensure pointsRemaining is correct after loading
-            this.triggerRecalculationAndUpdateUI(); // Recalculate stats & update UI
-            return true;
-
-        } catch (e) {
-            console.error("Failed to load or parse saved state:", e);
-            localStorage.removeItem('fo2BuildTesterState'); // Clear potentially corrupted data
-            return false;
-        }
-    },
-
-     // Methods for managing the LIST of saved builds
-     loadSavedBuildsList() {
-        const buildsString = localStorage.getItem(SAVED_BUILDS_KEY);
-        this.savedBuilds = buildsString ? JSON.parse(buildsString) : [];
-        console.log(`Loaded ${this.savedBuilds.length} saved builds from list.`);
-     },
-
-     saveSavedBuildsList() {
-        try {
-            localStorage.setItem(SAVED_BUILDS_KEY, JSON.stringify(this.savedBuilds));
-        } catch (e) {
-            console.error("Failed to save builds list:", e);
-            showNotification("Error saving builds list.", "error");
-        }
-     },
-
-     addSavedBuild(buildData) {
-         // Expects buildData to have id, name, creator, description,
-         // level, rebirth, stats, equipment (IDs), activeBuffNames, uiPerformance
-         this.savedBuilds.push(buildData);
-         this.saveSavedBuildsList();
-     },
-
-     updateSavedBuild(buildId, updatedData) {
-         const index = this.savedBuilds.findIndex(b => b.id === buildId);
-         if (index > -1) {
-             // Only update specific fields provided in updatedData (e.g., name, creator, description)
-             Object.assign(this.savedBuilds[index], updatedData);
-             this.saveSavedBuildsList();
-             return true;
-         }
-         return false;
-     },
-
-     deleteSavedBuild(buildId) {
-        const index = this.savedBuilds.findIndex(b => b.id === buildId);
-        if (index > -1) {
-            this.savedBuilds.splice(index, 1);
-            this.saveSavedBuildsList();
-            return true;
-        }
+    const savedDataString = localStorage.getItem(FO2Config.STORAGE.CURRENT_STATE_KEY);
+    if (!savedDataString) {
+        console.log("No saved build state found in localStorage. Using defaults.");
         return false;
-     },
+    }
 
-     duplicateSavedBuild(buildId) {
-         const originalBuild = this.savedBuilds.find(b => b.id === buildId);
-         if (originalBuild) {
-             const newBuild = JSON.parse(JSON.stringify(originalBuild)); // Deep copy
-             newBuild.id = generateBuildId(); // Assign a new unique ID
-             newBuild.name = `${originalBuild.name} (Copy)`; // Append "(Copy)"
-             const originalIndex = this.savedBuilds.findIndex(b => b.id === buildId);
-             this.savedBuilds.splice(originalIndex + 1, 0, newBuild); // Insert copy after original
-             this.saveSavedBuildsList();
-             return newBuild; // Return the duplicated build
-         }
-         return null;
-     },
-
-     findSavedBuildById(buildId) {
-         return this.savedBuilds.find(b => b.id === buildId);
-     },
-
-     // Loads a build from the saved list into the currentBuild state
-     loadBuildIntoEditor(buildId) {
-        const buildToLoad = this.findSavedBuildById(buildId);
-        if (!buildToLoad) {
-            showNotification("Error: Could not find build to load.", "error");
+    try {
+        const savedData = FO2Utils.safeJSONParse(savedDataString);
+        if (!savedData) {
+            console.error("Invalid saved state data.");
             return false;
         }
 
-        console.log("Loading build into editor:", buildToLoad.name);
+        console.log("Loading build state from localStorage:", savedData);
 
         // Apply saved data to currentBuild
-        this.currentBuild.level = buildToLoad.level || 1;
-        this.currentBuild.rebirth = buildToLoad.rebirth || false;
-        this.currentBuild.statPoints = { ...(buildToLoad.stats || { agi: 20, str: 20, int: 20, sta: 20 }) };
+        this.state.currentBuild.level = savedData.level || 1;
+        this.state.currentBuild.rebirth = savedData.rebirth || false;
+        this.state.currentBuild.statPoints = savedData.stats || {
+            agi: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+            str: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+            int: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+            sta: FO2Config.GAME.LEVEL.BASE_STAT_POINTS
+        };
 
         // Reset equipment & buffs before loading
-        this.currentBuild.equipment = {};
-        this.currentBuild.activeBuffs = [];
+        this.state.currentBuild.equipment = {};
+        this.state.currentBuild.activeBuffs = [];
 
         // Load equipment
-        if (buildToLoad.equipment && this.data.itemsById.size > 0) {
-            for (const slot in buildToLoad.equipment) {
-                const itemIdToLoad = buildToLoad.equipment[slot];
-                const itemToEquip = this.data.itemsById.get(itemIdToLoad);
+        if (savedData.equipment && this.state.data.itemsById.size > 0) {
+            for (const slot in savedData.equipment) {
+                const itemIdToLoad = savedData.equipment[slot];
+                const itemToEquip = this.state.data.itemsById.get(itemIdToLoad);
                 if (itemToEquip) {
-                    this.currentBuild.equipment[slot] = itemToEquip;
+                    this.state.currentBuild.equipment[slot] = itemToEquip;
+                } else {
+                    console.warn(`Could not find item ID ${itemIdToLoad} for slot ${slot} during load.`);
                 }
             }
         }
 
         // Load active buffs
-        if (buildToLoad.activeBuffNames && (this.data.buffs.Buff.length > 0 || this.data.buffs.Morph.length > 0)) {
-             buildToLoad.activeBuffNames.forEach(buffNameToLoad => {
+        if (savedData.activeBuffNames && 
+           (this.state.data.buffs.Buff.length > 0 || this.state.data.buffs.Morph.length > 0)) {
+            savedData.activeBuffNames.forEach(buffNameToLoad => {
                 let buffToActivate = null;
-                for (const category in this.data.buffs) {
-                    if (Array.isArray(this.data.buffs[category])) {
-                        buffToActivate = this.data.buffs[category].find(b => b.Name === buffNameToLoad);
+                for (const category in this.state.data.buffs) {
+                    if (Array.isArray(this.state.data.buffs[category])) {
+                        buffToActivate = this.state.data.buffs[category].find(b => b.Name === buffNameToLoad);
                         if (buffToActivate) break;
                     }
                 }
+                
                 if (buffToActivate) {
-                    this.currentBuild.activeBuffs.push(buffToActivate);
-                }
-             });
-        }
-
-        // Load UI state (performance filters) if saved with the build
-        if (buildToLoad.uiPerformance) {
-             Object.assign(this.ui.performance, buildToLoad.uiPerformance);
-             // Clamp loaded levels
-             this.ui.performance.minLevel = parseInt(this.ui.performance.minLevel) || 1;
-             this.ui.performance.maxLevel = parseInt(this.ui.performance.maxLevel) || this.data.mobsMaxLevel;
-             this.ui.performance.minLevel = Math.max(1, Math.min(this.ui.performance.minLevel, this.data.mobsMaxLevel));
-             this.ui.performance.maxLevel = Math.max(this.ui.performance.minLevel, Math.min(this.ui.performance.maxLevel, this.data.mobsMaxLevel));
-        }
-
-        this.recalculatePoints(); // Ensure pointsRemaining is correct
-        this.triggerRecalculationAndUpdateUI(); // Recalculate and update everything
-        updateUIFromState(); // Ensure all UI elements reflect the loaded state
-
-        showNotification(`Loaded build: ${buildToLoad.name}`, 'success');
-        return true;
-    }
-
-}; // --- End FO2BuildState Object ---
-
-
-// --- Stateless Calculation Function ---
-// Needed for calculating stats of saved builds without modifying the main state
-function performStatelessCalculation(level, rebirth, allocatedStatPoints, equippedItems, activeBuffs, gameConfig) {
-    // This function should mirror the logic of FO2BuildState.performFullStatCalculation
-    // but take all necessary inputs as arguments.
-    const base = gameConfig.baseStats;
-    const config = gameConfig;
-
-    // 1. Initialize Stats
-    const finalCharacterStats = {
-        agi: config.baseStatPoints + (allocatedStatPoints.agi - config.baseStatPoints),
-        str: config.baseStatPoints + (allocatedStatPoints.str - config.baseStatPoints),
-        int: config.baseStatPoints + (allocatedStatPoints.int - config.baseStatPoints),
-        sta: config.baseStatPoints + (allocatedStatPoints.sta - config.baseStatPoints)
-    };
-
-    // 2. Accumulators
-    let totalDirectArmorBonus = 0, totalDirectAPBonus = 0, totalHPRegenPerSecond = 0, totalEnergyRegenPerSecond = 0;
-
-    // 3. Weapon Defaults
-    let currentWeaponMinDamage = base.damage.min, currentWeaponMaxDamage = base.damage.max, currentBaseAttackSpeed = base.atkSpeed;
-
-    // 4. Process Items
-    for (const slot in equippedItems) {
-        const item = equippedItems[slot];
-        if (item) {
-            finalCharacterStats.agi += item.AGI || 0;
-            finalCharacterStats.str += item.STR || 0;
-            finalCharacterStats.int += item.INT || 0;
-            finalCharacterStats.sta += item.STA || 0;
-            totalDirectArmorBonus += item.Armor || 0;
-            if (slot === 'weapon' && item.minDamage !== undefined && item.maxDamage !== undefined) {
-                currentWeaponMinDamage = item.minDamage;
-                currentWeaponMaxDamage = item.maxDamage;
-                currentBaseAttackSpeed = item["Atk Spd"] || base.atkSpeed;
-            }
-        }
-    }
-
-    // 5. Process Buffs
-    let rawBuffCritPercentContribution = 0, atkSpeedBuffApplied = false;
-    activeBuffs.forEach(buff => {
-        finalCharacterStats.agi += buff.AGI || 0;
-        finalCharacterStats.str += buff.STR || 0;
-        finalCharacterStats.int += buff.INT || 0;
-        finalCharacterStats.sta += buff.STA || 0;
-        totalDirectArmorBonus += buff.Armor || 0;
-        totalDirectAPBonus += buff["ATK Power"] || 0;
-        rawBuffCritPercentContribution += buff["Crit %"] || 0;
-        totalHPRegenPerSecond += Number(buff["Health Per Second"]) || 0;
-        totalEnergyRegenPerSecond += Number(buff["Energy Per Second"]) || 0;
-        if (buff["ATK Speed"] && !atkSpeedBuffApplied) {
-            currentBaseAttackSpeed += parseInt(buff["ATK Speed"]) || 0;
-            atkSpeedBuffApplied = true;
-        }
-    });
-
-    // --- 6. Calculate Derived Stats (mirroring the state method) ---
-    const baseHpConst = 1080, baseEnergyConst = 1200;
-    let finalHP = Math.round(baseHpConst / 60 * level) + Math.max(0, finalCharacterStats.sta - config.baseStatPoints) * 20;
-    let finalEnergy = Math.round(baseEnergyConst / 60 * level) + Math.max(0, finalCharacterStats.int - config.baseStatPoints) * 15;
-    let finalArmor = Math.max(0, finalCharacterStats.str - config.baseStatPoints) * 5 + totalDirectArmorBonus;
-    finalArmor = Math.max(0, finalArmor);
-    let mitigationPercent = 0;
-    const kValue = 200 + 50 * level;
-    if ((kValue + finalArmor) > 0) mitigationPercent = (finalArmor / (kValue + finalArmor)) * 100;
-    let finalAttackSpeed = Math.max(100, currentBaseAttackSpeed);
-    let finalAP = base.atkPower;
-    let highestStatValue = config.baseStatPoints, isStrHighestDriver = false;
-    if (finalCharacterStats.str >= config.baseStatPoints) { highestStatValue = finalCharacterStats.str; isStrHighestDriver = true; }
-    if (finalCharacterStats.agi > highestStatValue) { highestStatValue = finalCharacterStats.agi; isStrHighestDriver = false; }
-    if (finalCharacterStats.int > highestStatValue) { highestStatValue = finalCharacterStats.int; isStrHighestDriver = false; }
-    if (finalCharacterStats.sta > highestStatValue) { highestStatValue = finalCharacterStats.sta; isStrHighestDriver = false; }
-    if (!isStrHighestDriver && finalCharacterStats.str === highestStatValue && finalCharacterStats.str >= config.baseStatPoints) isStrHighestDriver = true;
-    let apFromPrimaryStats = 0, apFromSecondaryStr = 0;
-    if (highestStatValue >= config.baseStatPoints) {
-        if (isStrHighestDriver) apFromPrimaryStats = (finalCharacterStats.str - config.baseStatPoints) * 3;
-        else {
-            apFromPrimaryStats = (highestStatValue - config.baseStatPoints) * 2;
-            if (finalCharacterStats.str > config.baseStatPoints) apFromSecondaryStr = (finalCharacterStats.str - config.baseStatPoints) * 1;
-        }
-    }
-    finalAP += Math.max(0, apFromPrimaryStats) + Math.max(0, apFromSecondaryStr) + totalDirectAPBonus;
-    finalAP = Math.max(0, finalAP);
-    let critFromStats = calculateCritical(finalCharacterStats, base.critical);
-    let finalCrit = critFromStats;
-    if (rawBuffCritPercentContribution !== 0) {
-        if (finalCrit + rawBuffCritPercentContribution <= 80) finalCrit += rawBuffCritPercentContribution;
-        else if (finalCrit < 80) finalCrit = 80 + (rawBuffCritPercentContribution - (80 - finalCrit)) * 0.5;
-        else finalCrit += rawBuffCritPercentContribution * 0.5;
-    }
-    finalCrit = Math.max(0, finalCrit);
-    let finalDodge = calculateNewDodge(finalCharacterStats.agi);
-    finalDodge = Math.max(0, finalDodge);
-    const attackSpeedInSeconds = finalAttackSpeed / 1000.0;
-    const damageBonusFromAP = Math.floor((finalAP * attackSpeedInSeconds) / 14);
-    let finalMinDamage = currentWeaponMinDamage + damageBonusFromAP;
-    let finalMaxDamage = currentWeaponMaxDamage + damageBonusFromAP;
-    let finalDPS = 0;
-    if (finalAttackSpeed > 0) {
-        const avgHit = (finalMinDamage + finalMaxDamage) / 2;
-        const attacksPerSec = 1000.0 / finalAttackSpeed;
-        const critMultiplier = 1.0 + (finalCrit / 100.0);
-        finalDPS = avgHit * attacksPerSec * critMultiplier;
-    }
-
-    return {
-        finalStats: finalCharacterStats, finalHP, finalEnergy, finalArmor, finalAttackSpeed,
-        finalAP, finalCrit, finalDodge, finalMinDamage, finalMaxDamage, finalDPS,
-        mitigationPercent, finalHPRegenPerSecond: totalHPRegenPerSecond,
-        finalEnergyRegenPerSecond: totalEnergyRegenPerSecond
-    };
-}
-
-
-// --- Utility Functions ---
-
-/**
- * Displays a notification message.
- * @param {string} message - The message to display.
- * @param {'info' | 'success' | 'error'} type - The type of notification.
- */
-function showNotification(message, type = 'info') {
-    if (!notification) return;
-    notification.textContent = message;
-    notification.className = 'notification ' + type;
-    notification.style.display = 'block';
-    setTimeout(() => { notification.style.display = 'none'; }, 3000);
-}
-
-/**
- * Parses a damage string (e.g., "10-20", "5", "1K-2K") into min/max numbers.
- * @param {string|null|undefined} damageString - The damage string to parse.
- * @returns {{minDamage: number, maxDamage: number}}
- */
-function processDamageString(damageString) {
-    let minDamage = 0, maxDamage = 0;
-    if (damageString && typeof damageString === 'string') {
-        const kMatch = damageString.match(/(\d+)K-(\d+)K/i);
-        const rangeMatch = damageString.match(/(\d+)-(\d+)/);
-        const singleMatch = damageString.match(/^(\d+)$/);
-
-        if (kMatch) {
-            minDamage = (parseInt(kMatch[1]) || 0) * 1000;
-            maxDamage = (parseInt(kMatch[2]) || 0) * 1000;
-        } else if (rangeMatch) {
-            minDamage = parseInt(rangeMatch[1]) || 0;
-            maxDamage = parseInt(rangeMatch[2]) || 0;
-        } else if (singleMatch) {
-            minDamage = maxDamage = parseInt(singleMatch[1]) || 0;
-        }
-    }
-    return { minDamage, maxDamage };
-}
-
-/**
- * Generates a simple unique ID (for saved builds).
- */
-function generateBuildId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
-
-/**
-* Formats a number with K, M, B suffixes for large values.
-* @param {number} num - The number to format.
-* @returns {string} The formatted number string.
-*/
-function formatNumber(num) {
-   if (num === null || num === undefined || !isFinite(num)) return "0";
-   if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
-   if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
-   if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
-   return Math.round(num).toString();
-}
-
-// --- Stat Calculation Helpers (Now Stateless) ---
-
-/**
- * Calculates Dodge % based on Agility using diminishing returns tiers.
- * @param {number} totalAgi - The final Agility value after all bonuses.
- * @returns {number} Calculated Dodge percentage.
- */
-function calculateNewDodge(totalAgi) {
-    let calculatedDodge = 0;
-    const agi = Math.max(0, totalAgi);
-
-    // Tier 1: 1-160 AGI (0.25% per point)
-    let pointsInTier1 = Math.min(agi, 160);
-    calculatedDodge += pointsInTier1 * 0.25;
-    if (agi <= 160) return calculatedDodge;
-
-    // Tier 2: 161-320 AGI (0.125% per point)
-    let pointsInTier2 = Math.min(agi - 160, 160);
-    calculatedDodge += pointsInTier2 * 0.125;
-    if (agi <= 320) return calculatedDodge;
-
-    // Tier 3: 321-640 AGI (0.0625% per point)
-    let pointsInTier3 = Math.min(agi - 320, 320);
-    calculatedDodge += pointsInTier3 * 0.0625;
-    if (agi <= 640) return calculatedDodge;
-
-    // Tier 4: 641+ AGI (0.03125% per point)
-    let pointsInTier4 = agi - 640;
-    calculatedDodge += pointsInTier4 * 0.03125;
-
-    return calculatedDodge;
-}
-
-/**
- * Calculates Critical Hit Chance % based on Agility and Intelligence with diminishing returns.
- * @param {object} finalCharacterStats - Object containing final agi and int values.
- * @param {number} baseCritical - The base critical chance from game config.
- * @returns {number} Calculated Critical Hit Chance percentage.
- */
-function calculateCritical(finalCharacterStats, baseCritical) {
-    let critical = baseCritical;
-    const baseStatValue = 20; // Assuming base stats are 20
-
-    let rawCritAddition = 0;
-    if (finalCharacterStats.agi > baseStatValue) {
-        rawCritAddition += (finalCharacterStats.agi - baseStatValue) * (1 / 14);
-    }
-    if (finalCharacterStats.int > baseStatValue) {
-        rawCritAddition += (finalCharacterStats.int - baseStatValue) * (1 / 14);
-    }
-
-    // Apply diminishing returns above 80%
-    if (critical + rawCritAddition <= 80) {
-        critical += rawCritAddition;
-    } else {
-        if (critical < 80) {
-            let fullValueAddition = 80 - critical;
-            critical = 80;
-            let reducedAddition = (rawCritAddition - fullValueAddition) * 0.5;
-            critical += reducedAddition;
-        } else {
-            critical += rawCritAddition * 0.5;
-        }
-    }
-    return critical;
-}
-
-
-// --- UI Update Functions ---
-
-/**
- * Updates all relevant display elements based on the calculated stats.
- * @param {object} results - The calculated stats object from FO2BuildState.performFullStatCalculation.
- */
-function updateDisplay(results) {
-    if (!results || !results.finalStats) {
-        console.warn("updateDisplay called with invalid results:", results);
-        // Optionally clear displays or show placeholder text
-        return;
-    }
-
-    // Base Stats (Final values after bonuses)
-    staDisplay.textContent = results.finalStats.sta;
-    strDisplay.textContent = results.finalStats.str;
-    agiDisplay.textContent = results.finalStats.agi;
-    intDisplay.textContent = results.finalStats.int;
-
-    // Derived Stats
-    healthValue.textContent = `${results.finalHP}/${results.finalHP}`;
-    energyValue.textContent = `${results.finalEnergy}/${results.finalEnergy}`;
-    armorDisplay.textContent = results.finalArmor;
-    atkspeedDisplay.textContent = (results.finalAttackSpeed / 1000.0).toFixed(1); // Show seconds
-    atkpowerDisplay.textContent = results.finalAP;
-    critDisplay.textContent = results.finalCrit.toFixed(2) + ' %';
-    dodgeDisplay.textContent = results.finalDodge.toFixed(2) + ' %';
-    damageDisplay.textContent = `(${results.finalMinDamage}-${results.finalMaxDamage})`;
-    if (dpsDisplayElement) dpsDisplayElement.textContent = Math.round(results.finalDPS);
-    if (mitigationDisplayElement) mitigationDisplayElement.textContent = results.mitigationPercent.toFixed(2) + ' %';
-    if (hpRegenDisplayElement) hpRegenDisplayElement.textContent = results.finalHPRegenPerSecond.toFixed(1);
-    if (energyRegenDisplayElement) energyRegenDisplayElement.textContent = results.finalEnergyRegenPerSecond.toFixed(1);
-
-    // Remaining points (Read directly from state as it's calculated separately)
-    remainingPointsDisplay.textContent = FO2BuildState.currentBuild.pointsRemaining;
-}
-
-/**
- * Updates the UI elements to reflect the current state in FO2BuildState.
- * Called after loading state or when needing a full UI refresh.
- */
-function updateUIFromState() {
-    const build = FO2BuildState.currentBuild;
-    const uiPerf = FO2BuildState.ui.performance;
-    const maxLvl = build.rebirth ? FO2BuildState.gameConfig.maxLevelRebirth : FO2BuildState.gameConfig.maxLevelNormal;
-
-    // Level and Rebirth
-    levelInput.value = build.level;
-    levelSlider.value = build.level;
-    levelInput.max = maxLvl;
-    levelSlider.max = maxLvl;
-    if (rebirthStatusIcon) {
-        rebirthStatusIcon.classList.toggle('active', build.rebirth);
-    }
-
-    // Stat Inputs
-    agiValue.value = build.statPoints.agi;
-    strValue.value = build.statPoints.str;
-    intValue.value = build.statPoints.int;
-    staValue.value = build.statPoints.sta;
-
-    // Equipment Slots
-    allEquipmentSlotsElements.forEach(slotElement => {
-        if (slotElement.classList.contains('placeholder')) return; // Skip placeholders
-        const slotName = slotElement.dataset.slot;
-        if (!slotName) return;
-        updateSingleSlotUI(slotName, build.equipment[slotName]); // Update based on state
-    });
-
-    // Buff Grid
-    document.querySelectorAll('.buff-icon').forEach(icon => {
-        const buffName = icon.dataset.buffName;
-        const isActive = build.activeBuffs.some(b => b.Name === buffName);
-        icon.classList.toggle('active', isActive);
-    });
-    activeBuffsCountDisplay.textContent = `(${build.activeBuffs.length}/5)`;
-
-    // Performance Filters
-    if (hideBossesCheckbox) hideBossesCheckbox.checked = uiPerf.hideBosses;
-    minLevelFilterSlider.value = uiPerf.minLevel;
-    maxLevelFilterSlider.value = uiPerf.maxLevel;
-    minLevelFilterDisplay.textContent = uiPerf.minLevel;
-    maxLevelFilterDisplay.textContent = uiPerf.maxLevel;
-
-    // Update calculated stats display (using the already calculated stats in state)
-    updateDisplay(build.calculatedStats);
-}
-
-
-/**
- * Updates the visual representation of a single equipment slot.
- * @param {string} slotName - The name of the slot (e.g., 'head', 'weapon').
- * @param {object | null} item - The item object equipped in the slot, or null if empty.
- */
-function updateSingleSlotUI(slotName, item) {
-    const slotElement = document.querySelector(`.slot[data-slot="${slotName}"]`);
-    if (!slotElement) return;
-
-    // Clear existing content and clear button
-    slotElement.innerHTML = '';
-    const existingClearButton = slotElement.querySelector('.clear-slot');
-    if (existingClearButton) existingClearButton.remove(); // Should be handled by innerHTML='', but belt-and-suspenders
-
-    if (item) { // Equipping an item
-        // Display item image or fallback text
-        if (item["Sprite-Link"]) {
-            slotElement.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slotName}" title="${item.Name || slotName}" style="image-rendering: pixelated;">`;
-        } else {
-            slotElement.innerHTML = `<div class="slot-text-fallback" title="${item.Name || ''}">${item.Name ? item.Name.substring(0, 3) : '?'}</div>`;
-        }
-
-        // Add clear button
-        const clearButton = document.createElement('div');
-        clearButton.className = 'clear-slot';
-        clearButton.textContent = 'x';
-        clearButton.title = 'Remove item';
-        clearButton.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent slot click event
-            FO2BuildState.equipItem(slotName, null); // Use state method to unequip
-            updateSingleSlotUI(slotName, null); // Update UI immediately
-            showNotification(`Removed item from ${slotName}`, 'info');
-        });
-        slotElement.appendChild(clearButton);
-
-    } else { // Unequipping (item is null)
-        // Restore default slot icon
-        let iconName = slotName;
-        if (slotName === 'ring1' || slotName === 'ring2') iconName = 'ring';
-        if (slotName === 'trinket1' || slotName === 'trinket2') iconName = 'trinket';
-        const defaultIconSrc = `assets/build-sandbox/icons/${iconName}-icon.png`;
-        const defaultAltText = slotName.charAt(0).toUpperCase() + slotName.slice(1);
-        slotElement.innerHTML = `<img src="${defaultIconSrc}" alt="${defaultAltText}">`;
-        // Add error handling for default icons
-        slotElement.querySelector('img').onerror = function() {
-             this.parentNode.innerHTML = `<div class="slot-text-fallback">${defaultAltText.substring(0, 3)}</div>`;
-        };
-    }
-}
-
-/**
- * Populates the performance table with calculated data.
- * @param {Array<object>} performanceData - Array of {name, level, ttk, gph, xph} objects.
- */
-function updatePerformanceTable(performanceData) {
-    if (!performanceTbody) return;
-    performanceTbody.innerHTML = ''; // Clear previous rows
-
-    const sortColumn = FO2BuildState.ui.performance.sortColumn;
-    const sortAsc = FO2BuildState.ui.performance.sortAscending;
-
-    if (!performanceData || performanceData.length === 0) {
-        performanceTbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No mobs match criteria or DPS is zero.</td></tr>';
-        return;
-    }
-
-    // Sort the data based on UI state
-    performanceData.sort((a, b) => {
-        let valA = a[sortColumn];
-        let valB = b[sortColumn];
-        if (sortColumn === 'name') {
-            valA = (valA || '').toLowerCase();
-            valB = (valB || '').toLowerCase();
-            return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-        } else {
-            return sortAsc ? (valA || 0) - (valB || 0) : (valB || 0) - (valA || 0);
-        }
-    });
-
-    // Update header sort indicators
-    document.querySelectorAll('.performance-table th').forEach(th => {
-        const indicator = th.querySelector('.sort-indicator');
-        if (indicator) {
-            indicator.className = 'sort-indicator'; // Clear previous
-            if (th.dataset.sort === sortColumn) {
-                indicator.classList.add(sortAsc ? 'asc' : 'desc');
-            }
-        }
-    });
-
-    // Populate table rows
-    performanceData.forEach(mobPerf => {
-        const row = performanceTbody.insertRow();
-        row.insertCell().textContent = mobPerf.name;
-        row.insertCell().textContent = mobPerf.level;
-
-        const ttkCell = row.insertCell();
-        if (!isFinite(mobPerf.ttk) || mobPerf.ttk <= 0) {
-            ttkCell.textContent = "N/A";
-            ttkCell.title = "Cannot calculate kill time";
-        } else if (mobPerf.ttk > 99) {
-            ttkCell.textContent = (mobPerf.ttk / 60).toFixed(1) + 'm';
-            ttkCell.title = `${mobPerf.ttk.toFixed(1)} seconds`;
-        } else {
-            ttkCell.textContent = Math.round(mobPerf.ttk) + 's';
-            ttkCell.title = `${mobPerf.ttk.toFixed(1)} seconds`;
-        }
-
-        row.insertCell().textContent = formatNumber(mobPerf.gph);
-        row.insertCell().textContent = formatNumber(mobPerf.xph);
-    });
-}
-
-// --- Event Handlers ---
-
-function handleLevelChange() {
-    const newLevel = FO2BuildState.updateLevel(levelInput.value);
-    // Update UI input/slider in case the level was clamped by the state method
-    levelInput.value = newLevel;
-    levelSlider.value = newLevel;
-}
-
-function handleRebirthChange() {
-    const isRebirth = FO2BuildState.toggleRebirth();
-    // Update UI based on the new state
-    const maxLevel = isRebirth ? FO2BuildState.gameConfig.maxLevelRebirth : FO2BuildState.gameConfig.maxLevelNormal;
-    levelInput.max = maxLevel;
-    levelSlider.max = maxLevel;
-    levelInput.value = FO2BuildState.currentBuild.level; // Ensure input reflects potentially clamped level
-    levelSlider.value = FO2BuildState.currentBuild.level;
-    if (rebirthStatusIcon) {
-        rebirthStatusIcon.classList.toggle('active', isRebirth);
-    }
-}
-
-function handleStatChange(stat, inputElement) {
-    const newValue = FO2BuildState.updateStat(stat, inputElement.value);
-    // Update UI input in case the value was clamped
-    inputElement.value = newValue;
-}
-
-function handleStatButtonClick(stat, action) {
-    let currentValue = FO2BuildState.currentBuild.statPoints[stat];
-    let newValue = currentValue;
-    const base = FO2BuildState.gameConfig.baseStatPoints;
-
-    if (action === 'max' && FO2BuildState.currentBuild.pointsRemaining > 0) {
-        newValue += FO2BuildState.currentBuild.pointsRemaining;
-    } else if (action === 'min') {
-        newValue = base;
-    } else if (action === 'reset') {
-        newValue = base;
-    }
-
-    // Call the main stat change handler with the calculated new value
-    const inputElement = document.getElementById(`${stat}-value`);
-    inputElement.value = newValue; // Set input value before triggering handleStatChange
-    handleStatChange(stat, inputElement);
-}
-
-function handleResetStatsClick() {
-    FO2BuildState.resetStats();
-    // Update UI inputs
-    agiValue.value = FO2BuildState.gameConfig.baseStatPoints;
-    strValue.value = FO2BuildState.gameConfig.baseStatPoints;
-    intValue.value = FO2BuildState.gameConfig.baseStatPoints;
-    staValue.value = FO2BuildState.gameConfig.baseStatPoints;
-}
-
-function handleToggleBuffClick(buffObject, buffElement) {
-    const isActive = buffElement.classList.contains('active');
-    let success = false;
-    if (isActive) {
-        success = FO2BuildState.removeBuff(buffObject.Name);
-    } else {
-        success = FO2BuildState.addBuff(buffObject);
-        if (!success) {
-             showNotification("Maximum of 5 buffs allowed or buff already active.", "error");
-        }
-    }
-    // Update UI (icon class and count) if state change was successful
-    if(success) {
-        buffElement.classList.toggle('active', !isActive);
-        activeBuffsCountDisplay.textContent = `(${FO2BuildState.currentBuild.activeBuffs.length}/5)`;
-    }
-}
-
-function handleResetBuffsClick() {
-    FO2BuildState.resetBuffs();
-    // Update UI
-    document.querySelectorAll('.buff-icon.active').forEach(icon => icon.classList.remove('active'));
-    activeBuffsCountDisplay.textContent = `(${FO2BuildState.currentBuild.activeBuffs.length}/5)`;
-}
-
-function handleResetEquipmentClick() {
-    FO2BuildState.resetEquipment();
-    // Update UI for all slots
-    allEquipmentSlotsElements.forEach(slotElement => {
-        if (!slotElement.classList.contains('placeholder')) {
-            const slotName = slotElement.dataset.slot;
-            if (slotName) {
-                updateSingleSlotUI(slotName, null);
-            }
-        }
-    });
-    showNotification('All equipment has been removed.', 'info');
-}
-
-function handleFilterSliderChange() {
-    let minVal = parseInt(minLevelFilterSlider.value);
-    let maxVal = parseInt(maxLevelFilterSlider.value);
-    const maxMobLevel = FO2BuildState.data.mobsMaxLevel;
-
-    // Clamp and prevent min > max
-    minVal = Math.max(1, Math.min(minVal, maxMobLevel));
-    if (minVal > maxVal) minVal = maxVal;
-    minLevelFilterSlider.value = minVal;
-
-    maxVal = Math.max(minVal, Math.min(maxVal, maxMobLevel)); // Ensure max >= min
-    maxLevelFilterSlider.value = maxVal;
-
-    // Update state
-    FO2BuildState.ui.performance.minLevel = minVal;
-    FO2BuildState.ui.performance.maxLevel = maxVal;
-
-    // Update displays
-    minLevelFilterDisplay.textContent = minVal;
-    maxLevelFilterDisplay.textContent = maxVal;
-
-    // Trigger performance recalculation and save state
-    const perfData = FO2BuildState.calculatePerformance();
-    updatePerformanceTable(perfData);
-    FO2BuildState.saveCurrentStateToLocalStorage(); // Save state on slider change
-}
-
-function handleHideBossesChange() {
-    FO2BuildState.ui.performance.hideBosses = hideBossesCheckbox.checked;
-    // Trigger performance recalculation and save state
-    const perfData = FO2BuildState.calculatePerformance();
-    updatePerformanceTable(perfData);
-    FO2BuildState.saveCurrentStateToLocalStorage();
-}
-
-function handlePerformanceSortClick(headerElement) {
-    const sortKey = headerElement.dataset.sort;
-    if (!sortKey) return;
-
-    const currentSort = FO2BuildState.ui.performance.sortColumn;
-    const currentAsc = FO2BuildState.ui.performance.sortAscending;
-
-    if (currentSort === sortKey) {
-        FO2BuildState.ui.performance.sortAscending = !currentAsc; // Toggle direction
-    } else {
-        FO2BuildState.ui.performance.sortColumn = sortKey; // Change column
-        FO2BuildState.ui.performance.sortAscending = true; // Default to ascending
-    }
-
-    // Trigger performance recalculation (which reads state) and update table
-    const perfData = FO2BuildState.calculatePerformance();
-    updatePerformanceTable(perfData); // updatePerformanceTable reads state for sorting
-}
-
-// --- Item Search Functions ---
-
-let currentSearchSlotElement = null; // Store the DOM element being searched for
-
-function openItemSearch(slotElement) {
-    const slotName = slotElement.dataset.slot;
-    if (!slotName) {
-        console.error("Invalid slot element: missing data-slot attribute", slotElement);
-        showNotification("Error: Invalid equipment slot", "error");
-        return;
-    }
-
-    FO2BuildState.ui.currentItemSearchSlot = slotName; // Update state
-    currentSearchSlotElement = slotElement; // Keep track of the element for positioning
-
-    // Update Title
-    const searchTitle = document.getElementById('search-title');
-    if (searchTitle) {
-        searchTitle.textContent = `Select for ${slotName.charAt(0).toUpperCase() + slotName.slice(1)}`;
-    }
-
-    // Dynamic Positioning
-    const slotRect = slotElement.getBoundingClientRect();
-    const panelWidth = 350; // Approx width
-    const panelHeight = 300; // Approx height
-    const margin = 5;
-
-    let potentialTop = slotRect.bottom + margin + window.scrollY;
-    let potentialLeft = slotRect.left + window.scrollX;
-
-    if (potentialTop + panelHeight > (window.innerHeight + window.scrollY)) potentialTop = slotRect.top - panelHeight - margin + window.scrollY;
-    if (potentialTop < window.scrollY) potentialTop = window.scrollY + margin;
-    if (potentialLeft + panelWidth > (window.innerWidth + window.scrollX)) potentialLeft = window.innerWidth + window.scrollX - panelWidth - margin;
-    if (potentialLeft < window.scrollX) potentialLeft = window.scrollX + margin;
-
-    itemSearchModal.style.top = `${potentialTop}px`;
-    itemSearchModal.style.left = `${potentialLeft}px`;
-
-    itemSearchModal.style.display = 'flex';
-    itemSearchInput.value = '';
-    itemSearchInput.focus();
-    populateSearchResults(); // Initial population
-}
-
-function closeItemSearch() {
-    itemSearchModal.style.display = 'none';
-    itemSearchInput.value = '';
-    FO2BuildState.ui.currentItemSearchSlot = null; // Clear state
-    currentSearchSlotElement = null;
-}
-
-function populateSearchResults(query = '') {
-    if (!searchResults) return;
-    searchResults.innerHTML = '';
-
-    const currentSlot = FO2BuildState.ui.currentItemSearchSlot;
-    if (!currentSlot) return; // Should not happen if modal is open
-
-    const itemsState = FO2BuildState.data.items;
-    if (!itemsState) {
-        searchResults.innerHTML = '<div class="search-item">Item data not loaded.</div>';
-        return;
-    }
-
-    // Map slot to item type/subtype
-    const slotToTypeMap = { /* ... (same as original) ... */
-        head: { type: 'equipment', subtype: 'head' }, face: { type: 'equipment', subtype: 'face' },
-        shoulder: { type: 'equipment', subtype: 'shoulder' }, chest: { type: 'equipment', subtype: 'chest' },
-        legs: { type: 'equipment', subtype: 'legs' }, back: { type: 'equipment', subtype: 'back' },
-        ring1: { type: 'equipment', subtype: 'ring' }, ring2: { type: 'equipment', subtype: 'ring' },
-        trinket1: { type: 'equipment', subtype: 'trinket' }, trinket2: { type: 'equipment', subtype: 'trinket' },
-        guild: { type: 'equipment', subtype: 'guild' }, faction: { type: 'equipment', subtype: 'faction' },
-        offhand: { type: 'equipment', subtype: 'offhand' },
-        weapon: { type: 'weapon', subtypes: ['sword', 'bow', 'wand', 'staff', 'hammer', 'axe', 'pickaxe', 'lockpick', '2h sword'] }
-    };
-
-    let matchingItems = [];
-    const slotMapping = slotToTypeMap[currentSlot];
-
-    if (slotMapping) {
-        if (slotMapping.type === 'weapon' && slotMapping.subtypes) {
-            slotMapping.subtypes.forEach(subtype => {
-                if (itemsState[slotMapping.type]?.[subtype]) {
-                    matchingItems = matchingItems.concat(itemsState[slotMapping.type][subtype]);
+                    this.state.currentBuild.activeBuffs.push(buffToActivate);
+                } else {
+                    console.warn(`Buff data missing for ${buffNameToLoad} during load.`);
                 }
             });
-        } else if (itemsState[slotMapping.type]?.[slotMapping.subtype]) {
-            matchingItems = itemsState[slotMapping.type][slotMapping.subtype];
+        }
+
+        // Load UI state (performance filters)
+        if (savedData.uiPerformance) {
+            Object.assign(this.state.ui.performance, savedData.uiPerformance);
+            
+            // Clamp loaded levels
+            this.state.ui.performance.minLevel = Math.max(1, Math.min(
+                parseInt(this.state.ui.performance.minLevel) || 1,
+                this.state.data.mobsMaxLevel
+            ));
+            
+            this.state.ui.performance.maxLevel = Math.max(
+                this.state.ui.performance.minLevel,
+                Math.min(
+                    parseInt(this.state.ui.performance.maxLevel) || this.state.data.mobsMaxLevel,
+                    this.state.data.mobsMaxLevel
+                )
+            );
+        }
+
+        console.log("Successfully loaded state from localStorage.");
+        this.recalculatePoints();
+        this.triggerRecalculationAndUpdateUI();
+        
+        return true;
+    } catch (e) {
+        console.error("Failed to load or parse saved state:", e);
+        localStorage.removeItem(FO2Config.STORAGE.CURRENT_STATE_KEY);
+        return false;
+    }
+},
+
+/**
+ * Delete a saved build
+ * @param {string} buildId - ID of build to delete
+ * @returns {boolean} Whether deletion was successful
+ */
+deleteSavedBuild(buildId) {
+    const index = this.state.savedBuilds.findIndex(b => b.id === buildId);
+    if (index > -1) {
+        this.state.savedBuilds.splice(index, 1);
+        this.saveSavedBuildsList();
+        EventSystem.publish('saved-builds-updated', this.state.savedBuilds);
+        return true;
+    }
+    return false;
+},
+
+/**
+ * Duplicate a saved build
+ * @param {string} buildId - ID of build to duplicate
+ * @returns {Object|null} The duplicated build, or null if failed
+ */
+duplicateSavedBuild(buildId) {
+    const originalBuild = this.state.savedBuilds.find(b => b.id === buildId);
+    if (originalBuild) {
+        const newBuild = FO2Utils.deepClone(originalBuild);
+        newBuild.id = FO2Utils.generateId();
+        newBuild.name = `${originalBuild.name} (Copy)`;
+        
+        const originalIndex = this.state.savedBuilds.findIndex(b => b.id === buildId);
+        this.state.savedBuilds.splice(originalIndex + 1, 0, newBuild);
+        this.saveSavedBuildsList();
+        EventSystem.publish('saved-builds-updated', this.state.savedBuilds);
+        return newBuild;
+    }
+    return null;
+},
+
+/**
+ * Find a saved build by ID
+ * @param {string} buildId - ID of build to find
+ * @returns {Object|undefined} The build object, or undefined if not found
+ */
+findSavedBuildById(buildId) {
+    return this.state.savedBuilds.find(b => b.id === buildId);
+},
+
+/**
+ * Load a build from the saved list into the currentBuild state
+ * @param {string} buildId - ID of build to load
+ * @returns {boolean} Whether loading was successful
+ */
+loadBuildIntoEditor(buildId) {
+    const buildToLoad = this.findSavedBuildById(buildId);
+    if (!buildToLoad) {
+        DOMUtils.showNotification("Error: Could not find build to load.", "error");
+        return false;
+    }
+
+    console.log("Loading build into editor:", buildToLoad.name);
+
+    // Apply saved data to currentBuild
+    this.state.currentBuild.level = buildToLoad.level || 1;
+    this.state.currentBuild.rebirth = buildToLoad.rebirth || false;
+    this.state.currentBuild.statPoints = { ...(buildToLoad.stats || {
+        agi: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+        str: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+        int: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+        sta: FO2Config.GAME.LEVEL.BASE_STAT_POINTS
+    })};
+
+    // Reset equipment & buffs before loading
+    this.state.currentBuild.equipment = {};
+    this.state.currentBuild.activeBuffs = [];
+
+    // Load equipment
+    if (buildToLoad.equipment && this.state.data.itemsById.size > 0) {
+        for (const slot in buildToLoad.equipment) {
+            const itemIdToLoad = buildToLoad.equipment[slot];
+            const itemToEquip = this.state.data.itemsById.get(itemIdToLoad);
+            if (itemToEquip) {
+                this.state.currentBuild.equipment[slot] = itemToEquip;
+            }
         }
     }
 
-    // Filter by query
-    if (query) {
-        const lowerQuery = query.toLowerCase();
-        matchingItems = matchingItems.filter(item =>
-            item.Name.toLowerCase().includes(lowerQuery) ||
-            (item.Level && item.Level.toString().includes(lowerQuery))
+    // Load active buffs
+    if (buildToLoad.activeBuffNames && 
+        (this.state.data.buffs.Buff.length > 0 || this.state.data.buffs.Morph.length > 0)) {
+        buildToLoad.activeBuffNames.forEach(buffNameToLoad => {
+            let buffToActivate = null;
+            for (const category in this.state.data.buffs) {
+                if (Array.isArray(this.state.data.buffs[category])) {
+                    buffToActivate = this.state.data.buffs[category].find(b => b.Name === buffNameToLoad);
+                    if (buffToActivate) break;
+                }
+            }
+            
+            if (buffToActivate) {
+                this.state.currentBuild.activeBuffs.push(buffToActivate);
+            }
+        });
+    }
+
+    // Load UI state (performance filters) if saved with the build
+    if (buildToLoad.uiPerformance) {
+        Object.assign(this.state.ui.performance, buildToLoad.uiPerformance);
+        
+        // Clamp loaded levels
+        this.state.ui.performance.minLevel = Math.max(1, Math.min(
+            parseInt(this.state.ui.performance.minLevel) || 1,
+            this.state.data.mobsMaxLevel
+        ));
+        
+        this.state.ui.performance.maxLevel = Math.max(
+            this.state.ui.performance.minLevel,
+            Math.min(
+                parseInt(this.state.ui.performance.maxLevel) || this.state.data.mobsMaxLevel,
+                this.state.data.mobsMaxLevel
+            )
         );
     }
 
-    matchingItems.sort((a, b) => (a.Level || 0) - (b.Level || 0));
-
-    // Limit results (optional)
-    const maxResults = 100;
-    if (matchingItems.length > maxResults) {
-        const infoElement = document.createElement('div');
-        infoElement.className = 'search-info';
-        infoElement.textContent = `Showing ${maxResults} of ${matchingItems.length}. Refine search.`;
-        searchResults.appendChild(infoElement);
-        matchingItems = matchingItems.slice(0, maxResults);
-    }
-
-    // Display results
-    if (matchingItems.length === 0) {
-        searchResults.innerHTML = '<div class="search-item">No matching items found.</div>';
-    } else {
-        matchingItems.forEach(item => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'search-item';
-            itemElement.textContent = `(Lvl ${item.Level || '?'}) ${item.Name}`;
-            // Add simple tooltip on hover for basic info (optional)
-            itemElement.title = `AGI:${item.AGI || 0} STR:${item.STR || 0} INT:${item.INT || 0} STA:${item.STA || 0} Armor:${item.Armor || 0}`;
-
-            itemElement.addEventListener('click', () => {
-                FO2BuildState.equipItem(currentSlot, item); // Update state
-                updateSingleSlotUI(currentSlot, item); // Update UI for this slot
-                closeItemSearch();
-                showNotification(`Equipped ${item.Name}`, 'success');
-            });
-            searchResults.appendChild(itemElement);
-        });
-    }
-}
-
-
-// --- Tooltip Functions ---
-
-// Reusable function to create and position tooltips
-function createAndPositionTooltip(element, contentHtml, tooltipId, tooltipClass = 'item-tooltip') {
-    hideTooltip(tooltipId); // Remove existing tooltip with the same ID
-
-    const tooltip = document.createElement('div');
-    tooltip.className = tooltipClass;
-    tooltip.id = tooltipId;
-    tooltip.innerHTML = contentHtml;
-    document.body.appendChild(tooltip);
-
-    // Position Tooltip
-    const elemRect = element.getBoundingClientRect();
-    const tooltipRect = tooltip.getBoundingClientRect();
-    const margin = 10;
-
-    // Default: Right and vertically centered
-    let left = elemRect.right + margin;
-    let top = elemRect.top + (elemRect.height / 2) - (tooltipRect.height / 2) + window.scrollY;
-
-    // Adjust horizontal position if off-screen
-    if (left + tooltipRect.width > (window.innerWidth + window.scrollX - margin)) { // Check right boundary
-        left = elemRect.left - tooltipRect.width - margin; // Move to left
-        if (left < (window.scrollX + margin)) { // Check left boundary after moving
-             left = window.scrollX + margin;
-        }
-    } else if (left < (window.scrollX + margin)) { // Check left boundary initially
-         left = window.scrollX + margin;
-    }
-
-
-    // Adjust vertical position if off-screen
-    if (top < (window.scrollY + margin)) { // Check top boundary
-        top = window.scrollY + margin;
-    } else if (top + tooltipRect.height > (window.innerHeight + window.scrollY - margin)) { // Check bottom boundary
-        top = (window.innerHeight + window.scrollY) - tooltipRect.height - margin;
-    }
-
-    tooltip.style.left = `${left}px`;
-    tooltip.style.top = `${top}px`;
-
-    requestAnimationFrame(() => { tooltip.style.opacity = 1; }); // Fade in
-    return tooltip;
-}
-
-// Hide a specific tooltip by ID
-function hideTooltip(tooltipId = 'item-tooltip') {
-    const existingTooltip = document.getElementById(tooltipId);
-    if (existingTooltip) {
-        existingTooltip.remove();
-    }
-}
-
-// Show Item Tooltip (for equipped items)
-function showItemTooltip(slotElement) {
-    const slotName = slotElement.dataset.slot;
-    const item = FO2BuildState.currentBuild.equipment[slotName];
-    if (!item) return;
-
-    // Build tooltip content (reusing logic from original, but now stateless)
-    let content = `<div class="tooltip-title">${item.Name}</div>`;
-    // ... (rest of the content building logic: Level, Stats, Requirements - same as original) ...
-     if (item.Level !== undefined) content += `<div class="tooltip-level">Level ${item.Level}${item.Subtype ? ` ${item.Subtype}` : ''}</div>`;
-     const statsHtml = [];
-     ['STA', 'STR', 'INT', 'AGI', 'Armor'].forEach(k => { if (item[k]) statsHtml.push(`<div class="${item[k] > 0 ? 'stat-positive' : 'stat-negative'}">${k}: ${item[k] > 0 ? '+' : ''}${item[k]}</div>`); });
-     if (item.Damage) statsHtml.push(`<div>Damage: ${item.Damage}</div>`);
-     if (item['Atk Spd']) statsHtml.push(`<div>Speed: ${item['Atk Spd']}</div>`);
-     if (statsHtml.length > 0) content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
-     const reqHtml = [];
-     ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(k => { if (item[k]) reqHtml.push(`<div>Requires ${k.replace('Req ', '')}: ${item[k]}</div>`); });
-     if (reqHtml.length > 0) {
-         if (statsHtml.length > 0) content += `<div class="tooltip-separator"></div>`;
-         content += `<div class="tooltip-req">${reqHtml.join('')}</div>`;
-     }
-
-    createAndPositionTooltip(slotElement, content, 'item-tooltip');
-}
-
-// Show Buff Tooltip
-function showBuffTooltip(buff, element) {
-     if (!buff) return;
-    // Build content
-    let content = `<div class="tooltip-title">${buff.Name} (${buff.Category})</div>`;
-    const effects = [];
-    const addEffect = (label, value, unit = "") => {
-        if (value !== undefined && value !== null && value !== 0 && value !== "") {
-            const sign = value > 0 ? '+' : '';
-            const cssClass = (label === "ATK Speed" ? (value < 0 ? 'effect-positive' : 'effect-negative') : (value > 0 ? 'effect-positive' : 'effect-negative'));
-            effects.push(`<div class="buff-effect ${cssClass}">${label}: ${sign}${value}${unit}</div>`);
-        }
-    };
-     const statMappings = [ /* ... same as original ... */
-         { key: "ATK Power", label: "ATK Power" }, { key: "Crit %", label: "Crit", unit: "%" },
-         { key: "ATK Speed", label: "ATK Speed" }, { key: "Energy Per Second", label: "Energy Per Sec" },
-         { key: "Health Per Second", label: "Health Per Sec" }, { key: "Armor", label: "Armor" },
-         { key: "STR", label: "STR" }, { key: "STA", label: "STA" }, { key: "AGI", label: "AGI" }, { key: "INT", label: "INT" }
-     ];
-    statMappings.forEach(m => addEffect(m.label, buff[m.key], m.unit));
-    content += effects.join('');
-
-    createAndPositionTooltip(element, content, 'buff-tooltip', 'buff-tooltip');
-}
-
-// Show Grid Item Tooltip (for item dictionary)
-function showGridItemTooltip(element, item) {
-    if (!item) return;
-    // Build tooltip content (same as showItemTooltip's content building)
-    let content = `<div class="tooltip-title">${item.Name}</div>`;
-     // ... (rest of the content building logic: Level, Stats, Requirements - same as showItemTooltip) ...
-      if (item.Level !== undefined) content += `<div class="tooltip-level">Level ${item.Level}${item.Subtype ? ` ${item.Subtype}` : ''}</div>`;
-      const statsHtml = [];
-      ['STA', 'STR', 'INT', 'AGI', 'Armor'].forEach(k => { if (item[k]) statsHtml.push(`<div class="${item[k] > 0 ? 'stat-positive' : 'stat-negative'}">${k}: ${item[k] > 0 ? '+' : ''}${item[k]}</div>`); });
-      if (item.Damage) statsHtml.push(`<div>Damage: ${item.Damage}</div>`);
-      if (item['Atk Spd']) statsHtml.push(`<div>Speed: ${item['Atk Spd']}</div>`);
-      if (statsHtml.length > 0) content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
-      const reqHtml = [];
-      ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(k => { if (item[k]) reqHtml.push(`<div>Requires ${k.replace('Req ', '')}: ${item[k]}</div>`); });
-      if (reqHtml.length > 0) {
-          if (statsHtml.length > 0) content += `<div class="tooltip-separator"></div>`;
-          content += `<div class="tooltip-req">${reqHtml.join('')}</div>`;
-      }
-
-    createAndPositionTooltip(element, content, 'item-tooltip'); // Reuses item-tooltip ID and class
-}
-
-
-// --- Initialization ---
+    this.recalculatePoints();
+    this.triggerRecalculationAndUpdateUI();
+    EventSystem.publish('build-loaded', buildToLoad);
+    
+    DOMUtils.showNotification(`Loaded build: ${buildToLoad.name}`, 'success');
+    return true;
+},
 
 /**
- * Main initialization logic, run after the DOM is fully loaded.
+ * Update performance filters
+ * @param {Object} filters - New filter values
  */
-async function initializeApplication() {
-    console.log("DOM Loaded. Starting initialization...");
-    showNotification("Loading game data...", "info");
+updatePerformanceFilters(filters) {
+    Object.assign(this.state.ui.performance, filters);
+    
+    // Ensure min <= max for level filters
+    if (this.state.ui.performance.minLevel > this.state.ui.performance.maxLevel) {
+        this.state.ui.performance.minLevel = this.state.ui.performance.maxLevel;
+    }
+    
+    // Clamp to valid range
+    this.state.ui.performance.minLevel = Math.max(1, Math.min(
+        this.state.ui.performance.minLevel, 
+        this.state.data.mobsMaxLevel
+    ));
+    
+    this.state.ui.performance.maxLevel = Math.max(
+        this.state.ui.performance.minLevel, 
+        Math.min(
+            this.state.ui.performance.maxLevel, 
+            this.state.data.mobsMaxLevel
+        )
+    );
+    
+    this.triggerRecalculationAndUpdateUI();
+    EventSystem.publish('performance-filters-updated', this.state.ui.performance);
+},
 
+loadSavedBuildsList() {
+    const buildsString = localStorage.getItem(FO2Config.STORAGE.SAVED_BUILDS_KEY);
+    this.state.savedBuilds = FO2Utils.safeJSONParse(buildsString, []);
+    console.log(`Loaded ${this.state.savedBuilds.length} saved builds from list.`);
+},
+
+/**
+ * Save the list of builds to localStorage
+ */
+saveSavedBuildsList() {
     try {
-        // --- 1. Fetch all external JSON data ---
-        console.log("Fetching data...");
-        const [itemsResponse, mobsResponse, buffsResponse] = await Promise.all([
-            fetch('assets/build-sandbox/data/items.json').catch(e => { console.error("Fetch items failed:", e); return { ok: false, json: () => null }; }),
-            fetch('assets/build-sandbox/data/mobs.json').catch(e => { console.error("Fetch mobs failed:", e); return { ok: false, json: () => null }; }),
-            fetch('assets/build-sandbox/data/buffs.json').catch(e => { console.error("Fetch buffs failed:", e); return { ok: false, json: () => null }; })
-        ]);
-
-        if (!itemsResponse.ok || !mobsResponse.ok || !buffsResponse.ok) {
-             throw new Error("One or more data files failed to load. Check fetch paths and network.");
-        }
-
-        const rawItemsArray = await itemsResponse.json();
-        const rawMobsData = await mobsResponse.json();
-        const rawBuffsArray = await buffsResponse.json();
-
-        if (rawItemsArray === null || rawMobsData === null || rawBuffsArray === null) {
-            throw new Error("One or more data files parsed to null.");
-        }
-        console.log("Data fetched successfully.");
-
-        // --- 2. Process data and populate state (Order Matters!) ---
-        console.log("Processing item data...");
-        if (!FO2BuildState.processItemData(rawItemsArray)) throw new Error("Failed to process item data.");
-
-        console.log("Processing buff data...");
-        if (!FO2BuildState.processBuffsData(rawBuffsArray)) throw new Error("Failed to process buff data.");
-
-        console.log("Processing mob data...");
-        if (!FO2BuildState.processMobsData(rawMobsData)) throw new Error("Failed to process mob data.");
-
-
-        // --- 3. Load Saved State / Initialize UI ---
-        console.log("Loading saved state...");
-        FO2BuildState.loadCurrentStateFromLocalStorage(); // Load current build state
-        FO2BuildState.loadSavedBuildsList(); // Load the list of saved builds
-
-        console.log("Initializing UI components...");
-        initializeBuffGrid(); // Needs buffsData
-        displaySavedBuilds(); // Needs savedBuilds list, itemsById, buffsData
-        setupLevelFilterSliders(); // Needs mobsMaxLevel and loaded filter state
-        populateItemCategoryFilter(); // Needs item data
-        setupItemDictionaryControls(); // Setup listeners for item dictionary filters
-
-        // --- 4. Final UI Update based on loaded state ---
-        console.log("Updating UI from loaded state...");
-        updateUIFromState(); // Reflects loaded state in all UI elements
-
-        // --- 5. Setup Event Listeners ---
-        console.log("Setting up event listeners...");
-        setupNavigation();
-        setupEventListeners();
-        addPerformanceTableSortListeners();
-
-        showNotification("Application loaded successfully!", "success");
-        console.log("Application initialized successfully.");
-
-    } catch (error) {
-        console.error("CRITICAL INITIALIZATION ERROR:", error);
-        showNotification(`Failed to initialize application: ${error.message}. Check console.`, "error");
-        const appContainer = document.getElementById('app-container'); // Assuming you have a main container
-        if (appContainer) {
-            appContainer.innerHTML = `<div class="init-error">
-                <h2>Application Failed to Load</h2>
-                <p>Error: ${error.message}</p>
-                <p>Please check the browser console (F12) for details.</p>
-            </div>`;
-        }
-    } finally {
-        console.log("Initialization process finished.");
-        // Hide loading spinner if you have one
+        localStorage.setItem(
+            FO2Config.STORAGE.SAVED_BUILDS_KEY,
+            JSON.stringify(this.state.savedBuilds)
+        );
+    } catch (e) {
+        console.error("Failed to save builds list:", e);
+        DOMUtils.showNotification("Error saving builds list.", "error");
     }
-}
+},
 
-document.addEventListener('DOMContentLoaded', initializeApplication);
+/**
+ * Add a new build to the saved list
+ * @param {Object} buildData - Build data to save
+ */
+addSavedBuild(buildData) {
+    this.state.savedBuilds.push(buildData);
+    this.saveSavedBuildsList();
+    EventSystem.publish('saved-builds-updated', this.state.savedBuilds);
+},
 
-
-// --- UI Setup Functions ---
-
-function initializeBuffGrid() {
-    if (!buffGrid) return;
-    buffGrid.innerHTML = '';
-    const buffsState = FO2BuildState.data.buffs;
-
-    Object.keys(buffsState).forEach(category => {
-        buffsState[category].forEach(buff => {
-            createBuffIcon(buff); // Pass buff object
-        });
-    });
-}
-
-function createBuffIcon(buff) {
-    const buffDiv = document.createElement('div');
-    buffDiv.className = 'buff-icon';
-    buffDiv.dataset.buffName = buff.Name;
-    buffDiv.dataset.category = buff.Category;
-
-    const tierMatch = buff.Name.match(/\s(\d+)$/);
-    const tier = tierMatch ? tierMatch[1] : null;
-    let baseName = buff.Name.toLowerCase().replace(/\s+\d+$/, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
-    const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
-
-    const imgElement = document.createElement('img');
-    imgElement.src = iconFileName;
-    imgElement.alt = buff.Name;
-    imgElement.onerror = function() { /* Handle image load error if needed */ console.warn(`Buff icon not found: ${iconFileName}`); };
-    buffDiv.appendChild(imgElement);
-
-    if (tier) {
-        const tierSpan = document.createElement('span');
-        tierSpan.className = 'buff-tier';
-        tierSpan.textContent = tier;
-        buffDiv.appendChild(tierSpan);
+/**
+ * Update an existing saved build
+ * @param {string} buildId - ID of build to update
+ * @param {Object} updatedData - New data to apply
+ * @returns {boolean} Whether update was successful
+ */
+updateSavedBuild(buildId, updatedData) {
+    const index = this.state.savedBuilds.findIndex(b => b.id === buildId);
+    
+    if (index > -1) {
+        // Only update specific fields provided in updatedData
+        Object.assign(this.state.savedBuilds[index], updatedData);
+        this.saveSavedBuildsList();
+        EventSystem.publish('saved-builds-updated', this.state.savedBuilds);
+        return true;
     }
-
-    // Use event delegation if possible, otherwise add listeners here
-    buffDiv.addEventListener('click', () => handleToggleBuffClick(buff, buffDiv));
-    buffDiv.addEventListener('mouseenter', (e) => showBuffTooltip(buff, e.target));
-    buffDiv.addEventListener('mouseleave', () => hideTooltip('buff-tooltip'));
-
-    if (buffGrid) buffGrid.appendChild(buffDiv);
+    
+    return false;
 }
 
-function setupLevelFilterSliders() {
-    if (!minLevelFilterSlider || !maxLevelFilterSlider || !minLevelFilterDisplay || !maxLevelFilterDisplay) return;
+};
 
-    const maxLevel = FO2BuildState.data.mobsMaxLevel;
-    minLevelFilterSlider.max = maxLevel;
-    maxLevelFilterSlider.max = maxLevel;
 
-    // Set initial values from state (already loaded and clamped)
-    minLevelFilterSlider.value = FO2BuildState.ui.performance.minLevel;
-    maxLevelFilterSlider.value = FO2BuildState.ui.performance.maxLevel;
-    minLevelFilterDisplay.textContent = FO2BuildState.ui.performance.minLevel;
-    maxLevelFilterDisplay.textContent = FO2BuildState.ui.performance.maxLevel;
+// ------------------------------------------------------------------
+// ui-controller.js - UI update and event handling
+// ------------------------------------------------------------------
 
-    // Listeners already set up in setupEventListeners
-}
-
-function addPerformanceTableSortListeners() {
-    document.querySelectorAll('.performance-table th[data-sort]').forEach(header => {
-        header.addEventListener('click', () => handlePerformanceSortClick(header));
-    });
-}
-
-function setupNavigation() {
-    const navButtons = document.querySelectorAll('.top-nav .nav-button');
-    const pages = document.querySelectorAll('.page-content .page');
-
-    if (!navButtons.length || !pages.length) {
-        console.error("[Nav] Navigation buttons or page elements not found.");
-        return;
-    }
-
-    let dictionaryLoaded = false; // Track if dictionary content needs loading
-
-    navButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const targetPageKey = button.dataset.page;
-            const targetPageId = `${targetPageKey}-page`;
-            console.log(`[Nav] Navigating to: ${targetPageId}`);
-
-            // Update button active state
-            navButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-
-            // Update page visibility
-            let foundPage = false;
-            pages.forEach(page => {
-                const isActive = page.id === targetPageId;
-                page.classList.toggle('active', isActive);
-                if (isActive) foundPage = true;
+const UIController = {
+    /**
+     * Initialize the UI
+     */
+    initialize() {
+        this.setupEventListeners();
+        this.setupTabbedNavigation();
+        this.populateBuffGrid();
+        this.updateDisplayFromState();
+    },
+    
+    /**
+     * Set up event listeners for UI elements
+     */
+    setupEventListeners() {
+        // Level input/slider
+        const levelInput = DOMUtils.getElement('level');
+        const levelSlider = DOMUtils.getElement('level-slider');
+        if (levelInput) {
+            levelInput.addEventListener('change', () => {
+                const newLevel = StateManager.updateLevel(levelInput.value);
+                levelInput.value = newLevel;
+                if (levelSlider) levelSlider.value = newLevel;
             });
-
-            if (!foundPage) {
-                console.error(`[Nav] Target page '${targetPageId}' not found!`);
-                return;
+        }
+        if (levelSlider) {
+            levelSlider.addEventListener('input', () => {
+                if (levelInput) levelInput.value = levelSlider.value;
+                StateManager.updateLevel(levelSlider.value);
+            });
+        }
+        
+        // Rebirth toggle
+        const rebirthIcon = DOMUtils.getElement('rebirth-icon-clickable');
+        if (rebirthIcon) {
+            rebirthIcon.addEventListener('click', () => {
+                const isRebirth = StateManager.toggleRebirth();
+                const rebirthStatus = DOMUtils.getElement('rebirth-status-icon');
+                if (rebirthStatus) {
+                    rebirthStatus.classList.toggle('active', isRebirth);
+                }
+                
+                // Update max levels on input/slider
+                const maxLevel = isRebirth ? 
+                    FO2Config.GAME.LEVEL.REBIRTH_CAP : 
+                    FO2Config.GAME.LEVEL.NORMAL_CAP;
+                
+                if (levelInput) levelInput.max = maxLevel;
+                if (levelSlider) levelSlider.max = maxLevel;
+            });
+        }
+        
+        // Stat inputs and buttons
+        ['agi', 'str', 'int', 'sta'].forEach(stat => {
+            const inputElement = DOMUtils.getElement(`${stat}-value`);
+            if (inputElement) {
+                inputElement.addEventListener('change', () => {
+                    const newValue = StateManager.updateStat(stat, inputElement.value);
+                    inputElement.value = newValue;
+                });
             }
-
-            // Page-specific actions
-            if (targetPageKey === 'build-management') {
-                displaySavedBuilds(); // Refresh saved builds list
+            
+            // Decrease button
+            const decreaseButton = document.querySelector(`.stat-button.decrease[data-stat="${stat}"]`);
+            if (decreaseButton) {
+                decreaseButton.addEventListener('click', () => {
+                    if (inputElement) {
+                        const currentValue = parseInt(inputElement.value);
+                        const baseValue = FO2Config.GAME.LEVEL.BASE_STAT_POINTS;
+                        if (currentValue > baseValue) {
+                            inputElement.value = baseValue;
+                            StateManager.updateStat(stat, baseValue);
+                        }
+                    }
+                });
             }
-            if (targetPageKey === 'item-dictionary') {
-                if (!dictionaryLoaded) {
-                    populateItemDictionaryGrid(); // Populate grid on first view
-                    dictionaryLoaded = true;
+            
+            // Increase button
+            const increaseButton = document.querySelector(`.stat-button.increase[data-stat="${stat}"]`);
+            if (increaseButton) {
+                increaseButton.addEventListener('click', () => {
+                    if (inputElement) {
+                        const currentValue = parseInt(inputElement.value);
+                        const newValue = currentValue + StateManager.state.currentBuild.pointsRemaining;
+                        inputElement.value = newValue;
+                        StateManager.updateStat(stat, newValue);
+                    }
+                });
+            }
+            
+            // Reset button
+            const resetButton = document.querySelector(`.stat-button.reset[data-stat="${stat}"]`);
+            if (resetButton) {
+                resetButton.addEventListener('click', () => {
+                    if (inputElement) {
+                        const baseValue = FO2Config.GAME.LEVEL.BASE_STAT_POINTS;
+                        inputElement.value = baseValue;
+                        StateManager.updateStat(stat, baseValue);
+                    }
+                });
+            }
+        });
+        
+        // Reset stats button
+        const resetStatsButton = DOMUtils.getElement('reset-button');
+        if (resetStatsButton) {
+            resetStatsButton.addEventListener('click', () => {
+                StateManager.resetStats();
+                this.updateStatInputs();
+            });
+        }
+        
+        // Reset buffs button
+        const resetBuffsButton = DOMUtils.getElement('reset-buffs-button');
+        if (resetBuffsButton) {
+            resetBuffsButton.addEventListener('click', () => {
+                StateManager.resetBuffs();
+                this.updateBuffGrid();
+            });
+        }
+        
+        // Reset equipment button
+        const resetEquipmentButton = DOMUtils.getElement('reset-equipment-button');
+        if (resetEquipmentButton) {
+            resetEquipmentButton.addEventListener('click', () => {
+                StateManager.resetEquipment();
+                this.updateEquipmentSlots();
+            });
+        }
+        
+        // Equipment slots
+        document.querySelectorAll('.slot').forEach(slotElement => {
+            if (slotElement.classList.contains('placeholder')) return;
+            
+            const slotName = slotElement.dataset.slot;
+            if (!slotName) return;
+            
+            slotElement.addEventListener('click', (event) => {
+                // Prevent search if clear button was clicked
+                if (event.target.classList.contains('clear-slot')) return;
+                this.openItemSearch(slotElement);
+            });
+            
+            slotElement.addEventListener('mouseenter', () => {
+                this.showItemTooltip(slotElement);
+            });
+            
+            slotElement.addEventListener('mouseleave', () => {
+                UIFactory.hideTooltip('item-tooltip');
+            });
+        });
+        
+        // Item search modal
+        const itemSearchInput = DOMUtils.getElement('item-search-input');
+        const cancelSearchButton = DOMUtils.getElement('cancel-search');
+        
+        if (itemSearchInput) {
+            itemSearchInput.addEventListener('input', () => {
+                this.populateSearchResults(itemSearchInput.value);
+            });
+        }
+        
+        if (cancelSearchButton) {
+            cancelSearchButton.addEventListener('click', () => {
+                this.closeItemSearch();
+            });
+        }
+        
+        // Performance table sorting
+        document.querySelectorAll('.performance-table th[data-sort]').forEach(header => {
+            header.addEventListener('click', () => {
+                const sortColumn = header.dataset.sort;
+                const currentSort = StateManager.state.ui.performance.sortColumn;
+                const currentAsc = StateManager.state.ui.performance.sortAscending;
+                
+                if (currentSort === sortColumn) {
+                    StateManager.state.ui.performance.sortAscending = !currentAsc;
+                } else {
+                    StateManager.state.ui.performance.sortColumn = sortColumn;
+                    StateManager.state.ui.performance.sortAscending = true;
+                }
+                
+                const perfData = StateManager.calculatePerformance();
+                this.updatePerformanceTable(perfData);
+                StateManager.saveCurrentStateToLocalStorage();
+            });
+        });
+        
+        // Performance filters
+        const hideBossesCheckbox = DOMUtils.getElement('hide-bosses-checkbox');
+        const minLevelSlider = DOMUtils.getElement('mob-level-min-slider');
+        const maxLevelSlider = DOMUtils.getElement('mob-level-max-slider');
+        
+        if (hideBossesCheckbox) {
+            hideBossesCheckbox.addEventListener('change', () => {
+                StateManager.updatePerformanceFilters({
+                    hideBosses: hideBossesCheckbox.checked
+                });
+            });
+        }
+        
+        if (minLevelSlider) {
+            minLevelSlider.addEventListener('input', () => {
+                this.handleFilterSliderChange();
+            });
+        }
+        
+        if (maxLevelSlider) {
+            maxLevelSlider.addEventListener('input', () => {
+                this.handleFilterSliderChange();
+            });
+        }
+        
+        // Save build button
+        const saveBuildButton = DOMUtils.getElement('save-build-button');
+        if (saveBuildButton) {
+            saveBuildButton.addEventListener('click', () => {
+                this.openBuildModal();
+            });
+        }
+        
+        // Build modal
+        const modalSaveButton = DOMUtils.getElement('modal-save-button');
+        const modalCloseButton = document.querySelector('#build-details-modal .close-button');
+        
+        if (modalSaveButton) {
+            modalSaveButton.addEventListener('click', () => {
+                this.handleSaveBuildDetails();
+            });
+        }
+        
+        if (modalCloseButton) {
+            modalCloseButton.addEventListener('click', () => {
+                this.closeBuildModal();
+            });
+        }
+        
+        // Item dictionary filters
+        const dictionarySearch = DOMUtils.getElement('item-dictionary-search');
+        const dictionaryCategory = DOMUtils.getElement('item-dictionary-category-filter');
+        const dictionarySortCriteria = DOMUtils.getElement('item-dictionary-sort-criteria');
+        const dictionarySortOrder = DOMUtils.getElement('item-dictionary-sort-order');
+        
+        const handleDictionaryFilterChange = () => {
+            if (dictionarySearch && dictionaryCategory && dictionarySortCriteria && dictionarySortOrder) {
+                StateManager.updateItemDictionaryFilters({
+                    search: dictionarySearch.value.toLowerCase(),
+                    category: dictionaryCategory.value,
+                    sortCriteria: dictionarySortCriteria.value,
+                    sortOrder: dictionarySortOrder.value
+                });
+            }
+        };
+        
+        if (dictionarySearch) dictionarySearch.addEventListener('input', handleDictionaryFilterChange);
+        if (dictionaryCategory) dictionaryCategory.addEventListener('change', handleDictionaryFilterChange);
+        if (dictionarySortCriteria) dictionarySortCriteria.addEventListener('change', handleDictionaryFilterChange);
+        if (dictionarySortOrder) dictionarySortOrder.addEventListener('change', handleDictionaryFilterChange);
+        
+        // Subscribe to events
+        EventSystem.subscribe('stats-updated', (calculatedStats) => {
+            this.updateDisplay(calculatedStats);
+        });
+        
+        EventSystem.subscribe('performance-updated', (data) => {
+            this.updatePerformanceTable(data.data);
+        });
+        
+        EventSystem.subscribe('saved-builds-updated', () => {
+            this.displaySavedBuilds();
+        });
+        
+        EventSystem.subscribe('item-dictionary-updated', () => {
+            this.populateItemDictionaryGrid();
+        });
+        
+        EventSystem.subscribe('build-loaded', () => {
+            this.updateDisplayFromState();
+        });
+        
+        EventSystem.subscribe('page-changed', (data) => {
+            if (data.page === 'build-management') {
+                this.displaySavedBuilds();
+            } else if (data.page === 'item-dictionary') {
+                this.populateItemDictionaryGrid();
+            }
+        });
+
+        EventSystem.subscribe('load-build', (data) => {
+            // This handles when a build is clicked to be loaded
+            if (data && data.buildId) {
+                // Switch to editor page first
+                const editorButton = document.querySelector('.nav-button[data-page="build-editor"]');
+                if (editorButton) {
+                    editorButton.click();
+                }
+                
+                // Load the build
+                StateManager.loadBuildIntoEditor(data.buildId);
+            }
+        });
+        
+        EventSystem.subscribe('edit-build', (data) => {
+            if (data && data.buildId) {
+                this.openBuildModal(data.buildId);
+            }
+        });
+
+        EventSystem.subscribe('delete-build', (data) => {
+            if (data && data.buildId) {
+                const build = StateManager.findSavedBuildById(data.buildId);
+                if (build) {
+                    if (confirm(`Delete build "${build.name}"?`)) {
+                        StateManager.deleteSavedBuild(data.buildId);
+                    }
                 }
             }
         });
-    });
-
-    // Set initial active state based on HTML
-    const initialActivePage = document.querySelector('.page-content .page.active');
-    if (initialActivePage) {
-        const initialPageKey = initialActivePage.id.replace('-page', '');
-        const initialActiveButton = document.querySelector(`.top-nav .nav-button[data-page="${initialPageKey}"]`);
-        if (initialActiveButton && !initialActiveButton.classList.contains('active')) {
-            navButtons.forEach(btn => btn.classList.remove('active'));
-            initialActiveButton.classList.add('active');
-        }
-        // Initial population if dictionary is the starting page
-        if (initialPageKey === 'item-dictionary' && !dictionaryLoaded) {
-            populateItemDictionaryGrid();
-            dictionaryLoaded = true;
-        }
-    } else if (navButtons.length > 0) {
-        // Default to first page if none are active in HTML
-        navButtons[0].click();
-    }
-}
-
-// Setup all event listeners (called once during initialization)
-function setupEventListeners() {
-    // Level Input/Slider
-    levelInput.addEventListener('change', handleLevelChange);
-    levelSlider.addEventListener('input', () => {
-        levelInput.value = levelSlider.value; // Sync input first
-        handleLevelChange(); // Then handle change
-    });
-
-    // Rebirth Icon
-    if (rebirthIconClickable) rebirthIconClickable.addEventListener('click', handleRebirthChange);
-
-    // Stat Inputs
-    agiValue.addEventListener('change', () => handleStatChange('agi', agiValue));
-    strValue.addEventListener('change', () => handleStatChange('str', strValue));
-    intValue.addEventListener('change', () => handleStatChange('int', intValue));
-    staValue.addEventListener('change', () => handleStatChange('sta', staValue));
-
-    // Stat Buttons
-    document.querySelectorAll('.stat-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const stat = this.dataset.stat;
-            const action = this.classList.contains('increase') ? 'max' : 'min'; // Only max/min actions?
-            handleStatButtonClick(stat, action);
-        });
-    });
-
-    // Reset Stats Button
-    if (resetButton) resetButton.addEventListener('click', handleResetStatsClick);
-
-    // Reset Buffs Button
-    if (resetBuffsBtn) resetBuffsBtn.addEventListener('click', handleResetBuffsClick);
-
-    // Reset Equipment Button
-    if (resetEquipmentButton) resetEquipmentButton.addEventListener('click', handleResetEquipmentClick);
-
-    // Equipment Slots (Click to open search, hover for tooltip)
-    allEquipmentSlotsElements.forEach(slot => {
-        if (slot.classList.contains('placeholder')) return;
-        const slotName = slot.dataset.slot;
-        if (!slotName) return;
-        slot.addEventListener('click', (event) => {
-            // Prevent opening search if clear button was clicked
-            if (event.target.classList && event.target.classList.contains('clear-slot')) return;
-            openItemSearch(slot); // Pass the element itself
-        });
-        slot.addEventListener('mouseenter', () => showItemTooltip(slot));
-        slot.addEventListener('mouseleave', () => hideTooltip('item-tooltip'));
-    });
-
-    // Item Search Modal
-    itemSearchInput.addEventListener('input', () => populateSearchResults(itemSearchInput.value));
-    if (cancelSearchButton) cancelSearchButton.addEventListener('click', closeItemSearch);
-
-    // Performance Filters
-    if (hideBossesCheckbox) hideBossesCheckbox.addEventListener('change', handleHideBossesChange);
-    minLevelFilterSlider.addEventListener('input', handleFilterSliderChange);
-    maxLevelFilterSlider.addEventListener('input', handleFilterSliderChange);
-
-    // Save Current Build Button (opens modal)
-    if (saveBuildBtn) saveBuildBtn.addEventListener('click', handleSaveCurrentBuildClick);
-
-    // Build Details Modal
-    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeBuildModal);
-    if (buildDetailsModal) {
-         buildDetailsModal.addEventListener('click', function(event) { // Close on outside click
-             if (event.target === buildDetailsModal) closeBuildModal();
-         });
-        // Save button listener is attached dynamically in openBuildModal
-    }
-}
-
-function setupItemDictionaryControls() {
-    if (itemDictionarySearchInput) itemDictionarySearchInput.addEventListener('input', handleItemDictionaryFilterChange);
-    if (itemDictionaryCategoryFilter) itemDictionaryCategoryFilter.addEventListener('change', handleItemDictionaryFilterChange);
-    if (itemDictionarySortCriteria) itemDictionarySortCriteria.addEventListener('change', handleItemDictionaryFilterChange);
-    if (itemDictionarySortOrder) itemDictionarySortOrder.addEventListener('change', handleItemDictionaryFilterChange);
-}
-
-function handleItemDictionaryFilterChange() {
-     // Update state from UI controls
-     FO2BuildState.ui.itemDictionary.search = itemDictionarySearchInput.value.toLowerCase();
-     FO2BuildState.ui.itemDictionary.category = itemDictionaryCategoryFilter.value;
-     FO2BuildState.ui.itemDictionary.sortCriteria = itemDictionarySortCriteria.value;
-     FO2BuildState.ui.itemDictionary.sortOrder = itemDictionarySortOrder.value;
-     // Repopulate grid based on new state
-     populateItemDictionaryGrid();
-}
-
-// --- Item Dictionary UI ---
-
-function populateItemDictionaryGrid() {
-    if (!itemDictionaryGrid) return;
-    itemDictionaryGrid.innerHTML = ''; // Clear
-
-    if (!FO2BuildState.data.itemsById || FO2BuildState.data.itemsById.size === 0) {
-        itemDictionaryGrid.innerHTML = '<p class="empty-message">No item data loaded.</p>';
-        return;
-    }
-
-    const filters = FO2BuildState.ui.itemDictionary;
-    let filteredItems = Array.from(FO2BuildState.data.itemsById.values());
-
-    // Filter by Search Term
-    if (filters.search) {
-        filteredItems = filteredItems.filter(item => item.Name?.toLowerCase().includes(filters.search));
-    }
-
-    // Filter by Category
-    if (filters.category !== 'all') {
-        const [typeFilter, subtypeFilter] = filters.category.split('-');
-        filteredItems = filteredItems.filter(item => {
-            const itemType = item.Type?.toLowerCase();
-            const itemSubtype = item.Subtype?.toLowerCase().replace(/\s+/g, '_'); // Normalize subtype
-            if (itemType !== typeFilter) return false;
-            if (subtypeFilter !== 'all' && itemSubtype !== subtypeFilter) return false;
-            return true;
-        });
-    }
-
-    // Sort Items
-    filteredItems.sort((a, b) => {
-        let valA, valB;
-        switch (filters.sortCriteria) {
-            case 'name':
-                valA = a.Name?.toLowerCase() || ''; valB = b.Name?.toLowerCase() || '';
-                return filters.sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            case 'level': default:
-                valA = a.Level || 0; valB = b.Level || 0;
-                return filters.sortOrder === 'asc' ? valA - valB : valB - valA;
-        }
-    });
-
-    // Render Grid Items - MODIFIED TO ENSURE SINGLE CONTINUOUS GRID
-    if (filteredItems.length === 0) {
-        itemDictionaryGrid.innerHTML = '<p class="empty-message">No items match criteria.</p>';
-    } else {
-        // Create a single container for all items - no separate rows or groups
-        const gridContainer = document.createElement('div');
-        gridContainer.className = 'grid-items-container'; // Optional: for additional styling
         
-        filteredItems.forEach(item => {
-            const iconDiv = document.createElement('div');
-            iconDiv.className = 'grid-item-icon';
-            iconDiv.dataset.itemId = item['Item ID'];
-            if (item['Sprite-Link']) {
-                iconDiv.innerHTML = `<img src="${item['Sprite-Link']}" alt="${item.Name}" style="image-rendering: pixelated;">`;
-                iconDiv.querySelector('img').onerror = () => { iconDiv.innerHTML = '?'; iconDiv.title = `${item.Name} (Image Error)`; };
-            } else {
-                iconDiv.innerHTML = '?'; iconDiv.title = item.Name;
+        EventSystem.subscribe('duplicate-build', (data) => {
+            if (data && data.buildId) {
+                StateManager.duplicateSavedBuild(data.buildId);
             }
-            iconDiv.addEventListener('mouseenter', (e) => showGridItemTooltip(e.currentTarget, item));
-            iconDiv.addEventListener('mouseleave', () => hideTooltip('item-tooltip'));
-            iconDiv.addEventListener('click', () => displayItemInViewer(item));
+        });
+
+    },
+    
+    /**
+     * Set up tabbed navigation
+     */
+    setupTabbedNavigation() {
+        DOMUtils.setupTabbedNavigation('.nav-button', '.page');
+    },
+    
+    /**
+     * Update all UI elements from current state
+     */
+    updateDisplayFromState() {
+        const state = StateManager.getState();
+        const build = state.currentBuild;
+        const uiPerf = state.ui.performance;
+        
+        // Level and Rebirth
+        const levelInput = DOMUtils.getElement('level');
+        const levelSlider = DOMUtils.getElement('level-slider');
+        const rebirthStatusIcon = DOMUtils.getElement('rebirth-status-icon');
+        
+        if (levelInput) levelInput.value = build.level;
+        if (levelSlider) levelSlider.value = build.level;
+        
+        const maxLevel = build.rebirth ? 
+            FO2Config.GAME.LEVEL.REBIRTH_CAP : 
+            FO2Config.GAME.LEVEL.NORMAL_CAP;
             
-            // Add directly to the grid instead of any sub-grouping
-            itemDictionaryGrid.appendChild(iconDiv);
-        });
-    }
-}
-
-function displayItemInViewer(item) {
-    if (!itemDictionaryViewer) return;
-    itemDictionaryViewer.innerHTML = ''; // Clear
-
-    if (!item) {
-        itemDictionaryViewer.innerHTML = '<p class="empty-message">Select an item.</p>';
-        return;
-    }
-
-    // Build HTML (similar to original, ensures all fields are checked)
-    let content = '';
-    if (item['Sprite-Link']) content += `<div class="viewer-image"><img src="${item['Sprite-Link']}" alt="${item.Name}" style="image-rendering: pixelated;"></div>`;
-    content += `<h4 class="viewer-title">${item.Name}</h4>`;
-    content += `<div class="viewer-level-type">Level ${item.Level || 0} - ${item.Type || ''}${item.Subtype ? ` / ${item.Subtype}` : ''}</div>`;
-
-    const statsHtml = [];
-     const statMappings = [ /* ... same mappings as before ... */
-         { key: 'STA', label: 'STA', classPositive: 'stat-positive', classNegative: 'stat-negative' },
-         { key: 'STR', label: 'STR', classPositive: 'stat-positive', classNegative: 'stat-negative' },
-         { key: 'INT', label: 'INT', classPositive: 'stat-positive', classNegative: 'stat-negative' },
-         { key: 'AGI', label: 'AGI', classPositive: 'stat-positive', classNegative: 'stat-negative' },
-         { key: 'Armor', label: 'Armor', classPositive: 'stat-positive', classNegative: 'stat-negative' },
-         { key: 'Damage', label: 'Damage', classPositive: '', classNegative: '' },
-         { key: 'Atk Spd', label: 'Speed (ms)', classPositive: '', classNegative: '' }
-     ];
-     statMappings.forEach(m => {
-         if (item.hasOwnProperty(m.key) && item[m.key] !== undefined && item[m.key] !== '' && item[m.key] !== 0) {
-             const v = item[m.key]; let dv = v; let c = '';
-             if (typeof v === 'number') { c = v > 0 ? m.classPositive : m.classNegative; dv = `${v > 0 ? '+' : ''}${v}`; }
-             statsHtml.push(`<div class="viewer-stat-line"><span class="viewer-stat-label">${m.label}:</span> <span class="${c}">${dv}</span></div>`);
-         }
-     });
-    if (statsHtml.length > 0) content += `<h5>Stats</h5><div class="viewer-stats">${statsHtml.join('')}</div>`;
-
-    const reqHtml = [];
-    ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(k => {
-        if (item.hasOwnProperty(k) && item[k] !== undefined && item[k] !== 0 && item[k] !== '') {
-             reqHtml.push(`<div class="viewer-req-line">Requires ${k.replace('Req ', '')}: ${item[k]}</div>`);
+        if (levelInput) levelInput.max = maxLevel;
+        if (levelSlider) levelSlider.max = maxLevel;
+        
+        if (rebirthStatusIcon) {
+            rebirthStatusIcon.classList.toggle('active', build.rebirth);
         }
-    });
-    if (reqHtml.length > 0) content += `<h5>Requirements</h5><div class="viewer-reqs">${reqHtml.join('')}</div>`;
-
-    itemDictionaryViewer.innerHTML = content;
-}
-
-function populateItemCategoryFilter() {
-    if (!itemDictionaryCategoryFilter || !FO2BuildState.data.itemsById || FO2BuildState.data.itemsById.size === 0) return;
-
-    const categoriesMap = new Map(); // Map<Type, Set<Subtype>>
-    FO2BuildState.data.itemsById.forEach(item => {
-        const type = item.Type?.trim();
-        const subtype = item.Subtype?.trim();
-        if (type) {
-            if (!categoriesMap.has(type)) categoriesMap.set(type, new Set());
-            if (subtype) categoriesMap.get(type).add(subtype);
+        
+        // Stat Inputs
+        this.updateStatInputs();
+        
+        // Equipment Slots
+        this.updateEquipmentSlots();
+        
+        // Buff Grid
+        this.updateBuffGrid();
+        
+        // Performance Filters
+        const hideBossesCheckbox = DOMUtils.getElement('hide-bosses-checkbox');
+        const minLevelSlider = DOMUtils.getElement('mob-level-min-slider');
+        const maxLevelSlider = DOMUtils.getElement('mob-level-max-slider');
+        const minLevelDisplay = DOMUtils.getElement('min-level-display');
+        const maxLevelDisplay = DOMUtils.getElement('max-level-display');
+        
+        if (hideBossesCheckbox) hideBossesCheckbox.checked = uiPerf.hideBosses;
+        if (minLevelSlider) minLevelSlider.value = uiPerf.minLevel;
+        if (maxLevelSlider) maxLevelSlider.value = uiPerf.maxLevel;
+        if (minLevelDisplay) minLevelDisplay.textContent = uiPerf.minLevel;
+        if (maxLevelDisplay) maxLevelDisplay.textContent = uiPerf.maxLevel;
+        
+        // Update calculated stats display
+        this.updateDisplay(build.calculatedStats);
+    },
+    
+    /**
+     * Update the display with calculated stats
+     * @param {Object} results - Calculated stats
+     */
+    updateDisplay(results) {
+        if (!results || !results.finalStats) {
+            console.warn("updateDisplay called with invalid results:", results);
+            return;
         }
-    });
-
-    // Clear existing options (keep "All Categories")
-    while (itemDictionaryCategoryFilter.options.length > 1) itemDictionaryCategoryFilter.remove(1);
-
-    const sortedTypes = Array.from(categoriesMap.keys()).sort();
-    sortedTypes.forEach(typeName => {
-        const optgroup = document.createElement('optgroup');
-        optgroup.label = typeName.charAt(0).toUpperCase() + typeName.slice(1);
-        itemDictionaryCategoryFilter.appendChild(optgroup);
-
-        // "All [Type]" option
-        const allOfTypeOption = document.createElement('option');
-        allOfTypeOption.value = `${typeName.toLowerCase()}-all`;
-        allOfTypeOption.textContent = `All ${optgroup.label}`; // Use capitalized label
-        optgroup.appendChild(allOfTypeOption);
-
-        // Subtype options
-        const subtypes = Array.from(categoriesMap.get(typeName) || []).sort();
-        subtypes.forEach(subtypeName => {
-            const option = document.createElement('option');
-            const normalizedSubtypeName = subtypeName.toLowerCase().replace(/\s+/g, '_');
-            option.value = `${typeName.toLowerCase()}-${normalizedSubtypeName}`;
-            option.textContent = `  ${subtypeName.charAt(0).toUpperCase() + subtypeName.slice(1)}`;
-            optgroup.appendChild(option);
-        });
-    });
-}
-
-
-// --- Saved Builds Management UI ---
-
-function displaySavedBuilds() {
-    if (!savedBuildsListContainer) return;
-    savedBuildsListContainer.innerHTML = ''; // Clear
-
-    const builds = FO2BuildState.savedBuilds;
-
-    if (!builds || builds.length === 0) {
-        savedBuildsListContainer.innerHTML = '<div class="empty-message">No saved builds.</div>';
-        return;
-    }
-
-    const allEquipmentSlotsLayout = [ /* ... same layout as original ... */
-         'face',    'head',     'shoulder', 'back',   'legs',    'chest',    'weapon',   'offhand',
-         'ring1',   'ring2',    'trinket1', 'trinket2', 'guild',   'faction',  '',         ''
-     ];
-
-    builds.forEach(build => {
-        // Calculate stats for this saved build (using the stateless calculator)
-        const calculatedStats = FO2BuildState.calculateStatsForSavedBuildObject(build);
-
-        const buildItem = document.createElement('div');
-        buildItem.className = 'saved-build-item expanded'; // Start expanded
-        buildItem.dataset.buildId = build.id;
-
-        const contentWrapper = document.createElement('div');
-        contentWrapper.className = 'build-item-content-wrapper';
-
-        // Column 1: Info
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'build-item-info build-column';
-        infoDiv.innerHTML = `
-            <strong>${build.name || 'Unnamed Build'}</strong>
-            <div class="build-item-details">
-                By: ${build.creator || 'Unknown'} | Lvl: ${build.level}${ build.rebirth ?
-                    ' <img src="assets/build-sandbox/icons/rebirth-icon.png" class="rebirth-inline-icon" alt="R" title="Rebirth">' : ''}
-            </div>
-            <div class="build-item-description">${build.description || 'No description.'}</div>`;
-        infoDiv.addEventListener('click', () => handleLoadBuildClick(build.id));
-        contentWrapper.appendChild(infoDiv);
-
-        // Column 2: Calculated Stats
-        const statsDiv = document.createElement('div');
-        statsDiv.className = 'build-item-calculated-stats build-column';
-        if (calculatedStats) {
-             statsDiv.innerHTML = `
-                 <div class="build-item-resource-bars">
-                     <div class="build-item-bar health-bar-small">HP: ${calculatedStats.finalHP}</div>
-                     <div class="build-item-bar energy-bar-small">Energy: ${calculatedStats.finalEnergy}</div>
-                 </div>
-                 <div>
-                     <span class="AGI">${calculatedStats.finalStats.agi}</span>/<span class="STR">${calculatedStats.finalStats.str}</span>/<span class="INT">${calculatedStats.finalStats.int}</span>/<span class="STA">${calculatedStats.finalStats.sta}</span>
-                 </div>
-                 <div><b>DPS:</b> ${Math.round(calculatedStats.finalDPS)} <b>Armor:</b> ${calculatedStats.finalArmor}</div>
-                 <div><b>Crit:</b> ${calculatedStats.finalCrit.toFixed(2)}% <b>Dodge:</b>${calculatedStats.finalDodge.toFixed(2)}%</div>
-                 <div><b>Dmg:</b> (${calculatedStats.finalMinDamage}-${calculatedStats.finalMaxDamage}) <b>Spd:</b>${(calculatedStats.finalAttackSpeed / 1000.0).toFixed(1)}s</div>
-                 <div><b>Mgtn:</b> ${calculatedStats.mitigationPercent.toFixed(2)}%</div>
-                 <div><b>HP/s:</b> ${calculatedStats.finalHPRegenPerSecond.toFixed(1)} <b>ENG/s:</b> ${calculatedStats.finalEnergyRegenPerSecond.toFixed(1)}</div>`;
-        } else {
-            statsDiv.innerHTML = '<div class="error-message">Stats N/A</div>';
+        
+        // Base Stats
+        const staDisplay = DOMUtils.getElement('sta-display');
+        const strDisplay = DOMUtils.getElement('str-display');
+        const agiDisplay = DOMUtils.getElement('agi-display');
+        const intDisplay = DOMUtils.getElement('int-display');
+        
+        if (staDisplay) staDisplay.textContent = results.finalStats.sta;
+        if (strDisplay) strDisplay.textContent = results.finalStats.str;
+        if (agiDisplay) agiDisplay.textContent = results.finalStats.agi;
+        if (intDisplay) intDisplay.textContent = results.finalStats.int;
+        
+        // Derived Stats
+        const healthValue = DOMUtils.getElement('health-value');
+        const energyValue = DOMUtils.getElement('energy-value');
+        const armorDisplay = DOMUtils.getElement('armor-display');
+        const atkspeedDisplay = DOMUtils.getElement('atkspeed-display');
+        const atkpowerDisplay = DOMUtils.getElement('atkpower-display');
+        const critDisplay = DOMUtils.getElement('crit-display');
+        const dodgeDisplay = DOMUtils.getElement('dodge-display');
+        const damageDisplay = DOMUtils.getElement('damage-display');
+        
+        if (healthValue) healthValue.textContent = `${results.finalHP}/${results.finalHP}`;
+        if (energyValue) energyValue.textContent = `${results.finalEnergy}/${results.finalEnergy}`;
+        if (armorDisplay) armorDisplay.textContent = results.finalArmor;
+        if (atkspeedDisplay) atkspeedDisplay.textContent = (results.finalAttackSpeed / 1000.0).toFixed(1);
+        if (atkpowerDisplay) atkpowerDisplay.textContent = results.finalAP;
+        if (critDisplay) critDisplay.textContent = results.finalCrit.toFixed(2) + ' %';
+        if (dodgeDisplay) dodgeDisplay.textContent = results.finalDodge.toFixed(2) + ' %';
+        if (damageDisplay) damageDisplay.textContent = `(${results.finalMinDamage}-${results.finalMaxDamage})`;
+        
+        // Extra stats
+        const dpsDisplay = DOMUtils.getElement('dps-display');
+        const mitigationDisplay = DOMUtils.getElement('mitigation-display');
+        const hpRegenDisplay = DOMUtils.getElement('hp-regen-display');
+        const energyRegenDisplay = DOMUtils.getElement('energy-regen-display');
+        
+        if (dpsDisplay) dpsDisplay.textContent = Math.round(results.finalDPS);
+        if (mitigationDisplay) mitigationDisplay.textContent = results.mitigationPercent.toFixed(2) + ' %';
+        if (hpRegenDisplay) hpRegenDisplay.textContent = results.finalHPRegenPerSecond.toFixed(1);
+        if (energyRegenDisplay) energyRegenDisplay.textContent = results.finalEnergyRegenPerSecond.toFixed(1);
+        
+        // Remaining points
+        const remainingPointsDisplay = DOMUtils.getElement('remaining-points');
+        if (remainingPointsDisplay) {
+            remainingPointsDisplay.textContent = StateManager.state.currentBuild.pointsRemaining;
         }
-        contentWrapper.appendChild(statsDiv);
-
-        // Column 3: Equipment Grid
-        const equipDiv = document.createElement('div');
-        equipDiv.className = 'build-item-equip-section build-column';
-        const equipGrid = document.createElement('div');
-        equipGrid.className = 'build-item-equip-grid-single'; // 8x2 grid
-        allEquipmentSlotsLayout.forEach(slotName => {
-            const slotDiv = document.createElement('div');
-            slotDiv.className = 'build-item-equip-slot';
-            let item = null;
-            if (slotName && build.equipment?.[slotName]) {
-                item = FO2BuildState.data.itemsById.get(build.equipment[slotName]);
-            }
-            if (item && item["Sprite-Link"]) {
-                 slotDiv.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slotName}" title="${item.Name || slotName}" style="image-rendering: pixelated;">`;
-            } else if (item) {
-                 slotDiv.innerHTML = `<div class="build-item-equip-slot-text" title="${item.Name}">${item.Name.substring(0, 3)}</div>`;
-            } else {
-                 slotDiv.classList.add('empty');
-            }
-            if (item) { // Add tooltip only if item exists
-                 slotDiv.addEventListener('mouseenter', function() { showGridItemTooltip(slotDiv, item); }); // Use grid tooltip function
-                 slotDiv.addEventListener('mouseleave', () => hideTooltip('item-tooltip'));
-            }
-            equipGrid.appendChild(slotDiv);
+    },
+    
+    /**
+     * Update stat input elements
+     */
+    updateStatInputs() {
+        const stats = StateManager.state.currentBuild.statPoints;
+        const agiValue = DOMUtils.getElement('agi-value');
+        const strValue = DOMUtils.getElement('str-value');
+        const intValue = DOMUtils.getElement('int-value');
+        const staValue = DOMUtils.getElement('sta-value');
+        
+        if (agiValue) agiValue.value = stats.agi;
+        if (strValue) strValue.value = stats.str;
+        if (intValue) intValue.value = stats.int;
+        if (staValue) staValue.value = stats.sta;
+    },
+    
+    /**
+     * Update equipment slot elements
+     */
+    updateEquipmentSlots() {
+        const equipment = StateManager.state.currentBuild.equipment;
+        
+        document.querySelectorAll('.slot').forEach(slotElement => {
+            if (slotElement.classList.contains('placeholder')) return;
+            
+            const slotName = slotElement.dataset.slot;
+            if (!slotName) return;
+            
+            UIFactory.updateSlotContent(slotElement, slotName, equipment[slotName]);
         });
-        equipDiv.appendChild(equipGrid);
-        contentWrapper.appendChild(equipDiv);
-
-        // Column 4: Buffs
-        const buffsDiv = document.createElement('div');
-        buffsDiv.className = 'build-item-buffs-section build-column';
-        if (build.activeBuffNames?.length > 0) {
-            build.activeBuffNames.forEach(buffName => {
-                 let buff = null;
-                 for (const cat in FO2BuildState.data.buffs) {
-                     buff = FO2BuildState.data.buffs[cat]?.find(b => b.Name === buffName);
-                     if (buff) break;
-                 }
-                 if (buff) {
-                     const buffIconDiv = document.createElement('div');
-                     buffIconDiv.className = 'build-item-buff-icon'; // Larger icon style
-                     const baseName = buff.Name.toLowerCase().replace(/\s+\d+$/, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
-                     const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
-                     buffIconDiv.innerHTML = `<img src="${iconFileName}" alt="${buff.Name}" title="${buff.Name}">`;
-                     buffIconDiv.querySelector('img').onerror = () => { buffIconDiv.innerHTML = '?'; };
-                     buffIconDiv.addEventListener('mouseenter', (e) => showBuffTooltip(buff, e.currentTarget));
-                     buffIconDiv.addEventListener('mouseleave', () => hideTooltip('buff-tooltip'));
-                     buffsDiv.appendChild(buffIconDiv);
-                 }
+    },
+    
+    /**
+     * Populate the buff grid
+     */
+    populateBuffGrid() {
+        const buffGrid = DOMUtils.getElement('buff-grid');
+        if (!buffGrid) return;
+        
+        DOMUtils.clearElement(buffGrid);
+        
+        const buffsState = StateManager.state.data.buffs;
+        
+        Object.keys(buffsState).forEach(category => {
+            buffsState[category].forEach(buff => {
+                const isActive = StateManager.state.currentBuild.activeBuffs.some(b => b.Name === buff.Name);
+                const buffElement = UIFactory.createBuffIcon(buff, isActive, (buff) => {
+                    this.handleToggleBuffClick(buff);
+                });
+                
+                buffGrid.appendChild(buffElement);
             });
+        });
+        
+        this.updateBuffCount();
+    },
+    
+    /**
+     * Update the buff grid based on current state
+     */
+    updateBuffGrid() {
+        const activeBuffs = StateManager.state.currentBuild.activeBuffs;
+        
+        document.querySelectorAll('.buff-icon').forEach(icon => {
+            const buffName = icon.dataset.buffName;
+            const isActive = activeBuffs.some(b => b.Name === buffName);
+            
+            icon.classList.toggle('active', isActive);
+        });
+        
+        this.updateBuffCount();
+    },
+    
+    /**
+     * Update the active buffs count display
+     */
+    updateBuffCount() {
+        const activeBuffsCount = StateManager.state.currentBuild.activeBuffs.length;
+        const activeBuffsCountDisplay = DOMUtils.getElement('active-buffs-count');
+        if (activeBuffsCountDisplay) {
+            activeBuffsCountDisplay.textContent = `(${activeBuffsCount}/5)`;
+        }
+    },
+    
+    /**
+     * Handle toggling a buff on/off
+     * @param {Object} buffObject - The buff object
+     */
+    handleToggleBuffClick(buffObject) {
+        const buffElements = document.querySelectorAll(`.buff-icon[data-buff-name="${buffObject.Name}"]`);
+        const isActive = buffElements.length > 0 && buffElements[0].classList.contains('active');
+        
+        let success = false;
+        if (isActive) {
+            success = StateManager.removeBuff(buffObject.Name);
         } else {
-             buffsDiv.innerHTML = '<div class="build-item-no-buffs">No buffs</div>';
+            success = StateManager.addBuff(buffObject);
+            if (!success) {
+                DOMUtils.showNotification("Maximum of 5 buffs allowed.", "error");
+            }
         }
-        contentWrapper.appendChild(buffsDiv);
-
-        // Actions Column (Separate)
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'build-item-actions';
-        actionsDiv.innerHTML = `
-            <button class="build-action-button duplicate" title="Duplicate Build">➕</button>
-            <button class="build-action-button edit" title="Edit Details">✏️</button>
-            <button class="build-action-button delete" title="Delete Build">❌</button>`;
-        actionsDiv.querySelector('.duplicate').addEventListener('click', (e) => { e.stopPropagation(); handleDuplicateBuildClick(build.id); });
-        actionsDiv.querySelector('.edit').addEventListener('click', (e) => { e.stopPropagation(); openBuildModal(build.id); });
-        actionsDiv.querySelector('.delete').addEventListener('click', (e) => { e.stopPropagation(); handleDeleteBuildClick(build.id); });
-
-        buildItem.appendChild(contentWrapper);
-        buildItem.appendChild(actionsDiv);
-        savedBuildsListContainer.appendChild(buildItem);
-    });
-}
-
-function openBuildModal(buildId = null) {
-    const isEditing = buildId !== null;
-    const build = isEditing ? FO2BuildState.findSavedBuildById(buildId) : null;
-
-    modalBuildIdInput.value = buildId || '';
-    modalBuildNameInput.value = isEditing ? (build?.name || '') : '';
-    modalBuildCreatorInput.value = isEditing ? (build?.creator || '') : '';
-    modalBuildDescriptionInput.value = isEditing ? (build?.description || '') : '';
-    document.getElementById('modal-title').textContent = isEditing ? 'Edit Build Details' : 'Save New Build';
-
-    // Attach save handler
-    modalSaveButton.onclick = () => handleSaveBuildDetails(buildId);
-
-    buildDetailsModal.style.display = 'flex';
-    modalBuildNameInput.focus();
-}
-
-function closeBuildModal() {
-    buildDetailsModal.style.display = 'none';
-}
-
-function handleSaveBuildDetails(buildId = null) {
-   const name = modalBuildNameInput.value.trim() || 'Unnamed Build';
-   const creator = modalBuildCreatorInput.value.trim();
-   const description = modalBuildDescriptionInput.value.trim().substring(0, MAX_BUILD_DESCRIPTION_LENGTH);
-
-   if (buildId) { // Editing existing
-       const success = FO2BuildState.updateSavedBuild(buildId, { name, creator, description });
-       if (success) {
-           showNotification(`Build "${name}" details updated.`, 'success');
-       } else {
-            showNotification(`Error updating build ID ${buildId}.`, 'error');
-       }
-   } else { // Saving new build from current editor state
-        const newBuildData = {
-            id: generateBuildId(),
-            name: name, creator: creator, description: description,
-            level: FO2BuildState.currentBuild.level,
-            rebirth: FO2BuildState.currentBuild.rebirth,
-            stats: { ...FO2BuildState.currentBuild.statPoints },
-            equipment: {}, // Store IDs
-            activeBuffNames: FO2BuildState.currentBuild.activeBuffs.map(b => b.Name),
-            uiPerformance: { ...FO2BuildState.ui.performance } // Save filters with build
+        
+        // Update UI if state change was successful
+        if (success) {
+            buffElements.forEach(el => el.classList.toggle('active', !isActive));
+            this.updateBuffCount();
+        }
+    },
+    
+    /**
+     * Open the item search modal
+     * @param {HTMLElement} slotElement - The slot element being edited
+     */
+    openItemSearch(slotElement) {
+        const slotName = slotElement.dataset.slot;
+        if (!slotName) {
+            console.error("Invalid slot element: missing data-slot attribute", slotElement);
+            DOMUtils.showNotification("Error: Invalid equipment slot", "error");
+            return;
+        }
+        
+        StateManager.setCurrentItemSearchSlot(slotName);
+        
+        const searchModal = DOMUtils.getElement('item-search-modal');
+        const searchTitle = document.getElementById('search-title');
+        const searchInput = DOMUtils.getElement('item-search-input');
+        
+        if (!searchModal) return;
+        
+        // Update Title
+        if (searchTitle) {
+            searchTitle.textContent = `Select for ${slotName.charAt(0).toUpperCase() + slotName.slice(1)}`;
+        }
+        
+        // Position the modal
+        const slotRect = slotElement.getBoundingClientRect();
+        const panelWidth = 350;
+        const panelHeight = 300;
+        const margin = 5;
+        
+        let top = slotRect.bottom + margin + window.scrollY;
+        let left = slotRect.left + window.scrollX;
+        
+        if (top + panelHeight > (window.innerHeight + window.scrollY)) {
+            top = slotRect.top - panelHeight - margin + window.scrollY;
+        }
+        
+        if (top < window.scrollY) {
+            top = window.scrollY + margin;
+        }
+        
+        if (left + panelWidth > (window.innerWidth + window.scrollX)) {
+            left = window.innerWidth + window.scrollX - panelWidth - margin;
+        }
+        
+        if (left < window.scrollX) {
+            left = window.scrollX + margin;
+        }
+        
+        searchModal.style.top = `${top}px`;
+        searchModal.style.left = `${left}px`;
+        searchModal.style.display = 'flex';
+        
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.focus();
+        }
+        
+        this.populateSearchResults();
+    },
+    
+    /**
+     * Close the item search modal
+     */
+    closeItemSearch() {
+        const searchModal = DOMUtils.getElement('item-search-modal');
+        if (searchModal) {
+            searchModal.style.display = 'none';
+        }
+        
+        const searchInput = DOMUtils.getElement('item-search-input');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        StateManager.setCurrentItemSearchSlot(null);
+    },
+    
+    /**
+     * Populate the search results in the item search modal
+     * @param {string} [query=''] - Search query
+     */
+    populateSearchResults(query = '') {
+        const searchResults = DOMUtils.getElement('search-results');
+        if (!searchResults) return;
+        
+        DOMUtils.clearElement(searchResults);
+        
+        const currentSlot = StateManager.state.ui.currentItemSearchSlot;
+        if (!currentSlot) return;
+        
+        const itemsState = StateManager.state.data.items;
+        if (!itemsState) {
+            searchResults.innerHTML = '<div class="search-item">Item data not loaded.</div>';
+            return;
+        }
+        
+        // Map slot to item type/subtype
+        const slotToTypeMap = {
+            head: { type: 'equipment', subtype: 'head' },
+            face: { type: 'equipment', subtype: 'face' },
+            shoulder: { type: 'equipment', subtype: 'shoulder' },
+            chest: { type: 'equipment', subtype: 'chest' },
+            legs: { type: 'equipment', subtype: 'legs' },
+            back: { type: 'equipment', subtype: 'back' },
+            ring1: { type: 'equipment', subtype: 'ring' },
+            ring2: { type: 'equipment', subtype: 'ring' },
+            trinket1: { type: 'equipment', subtype: 'trinket' },
+            trinket2: { type: 'equipment', subtype: 'trinket' },
+            guild: { type: 'equipment', subtype: 'guild' },
+            faction: { type: 'equipment', subtype: 'faction' },
+            offhand: { type: 'equipment', subtype: 'offhand' },
+            weapon: { type: 'weapon', subtypes: ['sword', 'bow', 'wand', 'staff', 'hammer', 'axe', 'pickaxe', 'lockpick', '2h sword'] }
         };
-        // Populate equipment IDs
-        for (const slot in FO2BuildState.currentBuild.equipment) {
-            if (FO2BuildState.currentBuild.equipment[slot]) {
-                newBuildData.equipment[slot] = FO2BuildState.currentBuild.equipment[slot]['Item ID'];
+        
+        let matchingItems = [];
+        const slotMapping = slotToTypeMap[currentSlot];
+        
+        if (slotMapping) {
+            if (slotMapping.type === 'weapon' && slotMapping.subtypes) {
+                slotMapping.subtypes.forEach(subtype => {
+                    if (itemsState[slotMapping.type]?.[subtype]) {
+                        matchingItems = matchingItems.concat(itemsState[slotMapping.type][subtype]);
+                    }
+                });
+            } else if (itemsState[slotMapping.type]?.[slotMapping.subtype]) {
+                matchingItems = itemsState[slotMapping.type][slotMapping.subtype];
             }
         }
-        FO2BuildState.addSavedBuild(newBuildData);
-        showNotification(`Build "${name}" saved.`, 'success');
-   }
-
-   displaySavedBuilds(); // Refresh the list
-   closeBuildModal();
-}
-
-// Handle clicking the main "Save Current Build" button in the editor
-function handleSaveCurrentBuildClick() {
-   openBuildModal(); // Open modal for a new build
-}
-
-// Handle clicking a build in the saved list to load it into the editor
-function handleLoadBuildClick(buildId) {
-    // Switch to editor page first
-    const editorButton = document.querySelector('.nav-button[data-page="build-editor"]');
-    if (editorButton) editorButton.click();
-
-    // Load the build data into the state manager
-    FO2BuildState.loadBuildIntoEditor(buildId);
-    // updateUIFromState() is called internally by loadBuildIntoEditor
-}
-
-function handleDeleteBuildClick(buildId) {
-    const build = FO2BuildState.findSavedBuildById(buildId);
-    if (build) {
-        if (confirm(`Delete build "${build.name}"?`)) {
-            const success = FO2BuildState.deleteSavedBuild(buildId);
-            if (success) {
-                displaySavedBuilds(); // Refresh list
-                showNotification(`Build "${build.name}" deleted.`, 'info');
+        
+        // Filter by query
+        if (query) {
+            const lowerQuery = query.toLowerCase();
+            matchingItems = matchingItems.filter(item => 
+                item.Name.toLowerCase().includes(lowerQuery) ||
+                (item.Level && item.Level.toString().includes(lowerQuery))
+            );
+        }
+        
+        // Sort by level
+        matchingItems.sort((a, b) => (a.Level || 0) - (b.Level || 0));
+        
+        // Limit results (optional)
+        const maxResults = 100;
+        if (matchingItems.length > maxResults) {
+            const infoElement = document.createElement('div');
+            infoElement.className = 'search-info';
+            infoElement.textContent = `Showing ${maxResults} of ${matchingItems.length}. Refine search.`;
+            searchResults.appendChild(infoElement);
+            matchingItems = matchingItems.slice(0, maxResults);
+        }
+        
+        // Display results
+        if (matchingItems.length === 0) {
+            searchResults.innerHTML = '<div class="search-item">No matching items found.</div>';
+        } else {
+            matchingItems.forEach(item => {
+                const itemElement = UIFactory.createSearchResultItem(item, (selectedItem) => {
+                    StateManager.equipItem(currentSlot, selectedItem);
+                    this.updateEquipmentSlots();
+                    this.closeItemSearch();
+                    DOMUtils.showNotification(`Equipped ${selectedItem.Name}`, 'success');
+                });
+                
+                searchResults.appendChild(itemElement);
+            });
+        }
+    },
+    
+    /**
+     * Update the performance table
+     * @param {Array} performanceData - Performance data
+     */
+    updatePerformanceTable(performanceData) {
+        const performanceTbody = DOMUtils.getElement('performance-tbody');
+        if (!performanceTbody) return;
+        
+        DOMUtils.clearElement(performanceTbody);
+        
+        const sortColumn = StateManager.state.ui.performance.sortColumn;
+        const sortAsc = StateManager.state.ui.performance.sortAscending;
+        
+        if (!performanceData || performanceData.length === 0) {
+            const emptyRow = document.createElement('tr');
+            emptyRow.innerHTML = '<td colspan="5" style="text-align: center;">No mobs match criteria or DPS is zero.</td>';
+            performanceTbody.appendChild(emptyRow);
+            return;
+        }
+        
+        // Sort the data based on UI state
+        performanceData.sort((a, b) => {
+            let valA = a[sortColumn];
+            let valB = b[sortColumn];
+            
+            if (sortColumn === 'name') {
+                valA = (valA || '').toLowerCase();
+                valB = (valB || '').toLowerCase();
+                return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             } else {
-                 showNotification("Error deleting build.", 'error');
+                return sortAsc ? (valA || 0) - (valB || 0) : (valB || 0) - (valA || 0);
             }
+        });
+        
+        // Update header sort indicators
+        document.querySelectorAll('.performance-table th').forEach(th => {
+            const indicator = th.querySelector('.sort-indicator');
+            if (indicator) {
+                indicator.className = 'sort-indicator';
+                if (th.dataset.sort === sortColumn) {
+                    indicator.classList.add(sortAsc ? 'asc' : 'desc');
+                }
+            }
+        });
+        
+        // Populate table rows
+        performanceData.forEach(mobPerf => {
+            const row = document.createElement('tr');
+            
+            // Name column
+            const nameCell = document.createElement('td');
+            nameCell.textContent = mobPerf.name;
+            row.appendChild(nameCell);
+            
+            // Level column
+            const levelCell = document.createElement('td');
+            levelCell.textContent = mobPerf.level;
+            row.appendChild(levelCell);
+            
+            // Time to kill column
+            const ttkCell = document.createElement('td');
+            if (!isFinite(mobPerf.ttk) || mobPerf.ttk <= 0) {
+                ttkCell.textContent = "N/A";
+                ttkCell.title = "Cannot calculate kill time";
+            } else if (mobPerf.ttk > 99) {
+                ttkCell.textContent = (mobPerf.ttk / 60).toFixed(1) + 'm';
+                ttkCell.title = `${mobPerf.ttk.toFixed(1)} seconds`;
+            } else {
+                ttkCell.textContent = Math.round(mobPerf.ttk) + 's';
+                ttkCell.title = `${mobPerf.ttk.toFixed(1)} seconds`;
+            }
+            row.appendChild(ttkCell);
+            
+            // Gold per hour column
+            const gphCell = document.createElement('td');
+            gphCell.textContent = FO2Utils.formatNumber(mobPerf.gph);
+            row.appendChild(gphCell);
+            
+            // XP per hour column
+            const xphCell = document.createElement('td');
+            xphCell.textContent = FO2Utils.formatNumber(mobPerf.xph);
+            row.appendChild(xphCell);
+            
+            performanceTbody.appendChild(row);
+        });
+    },
+    
+    /**
+     * Handle filter slider change
+     */
+    handleFilterSliderChange() {
+        const minLevelSlider = DOMUtils.getElement('mob-level-min-slider');
+        const maxLevelSlider = DOMUtils.getElement('mob-level-max-slider');
+        const minLevelDisplay = DOMUtils.getElement('min-level-display');
+        const maxLevelDisplay = DOMUtils.getElement('max-level-display');
+        
+        if (!minLevelSlider || !maxLevelSlider) return;
+        
+        let minVal = parseInt(minLevelSlider.value);
+        let maxVal = parseInt(maxLevelSlider.value);
+        const maxMobLevel = StateManager.state.data.mobsMaxLevel;
+        
+        // Clamp and prevent min > max
+        minVal = Math.max(1, Math.min(minVal, maxMobLevel));
+        if (minVal > maxVal) minVal = maxVal;
+        minLevelSlider.value = minVal;
+        
+        maxVal = Math.max(minVal, Math.min(maxVal, maxMobLevel));
+        maxLevelSlider.value = maxVal;
+        
+        if (minLevelDisplay) minLevelDisplay.textContent = minVal;
+        if (maxLevelDisplay) maxLevelDisplay.textContent = maxVal;
+        
+        // Update state
+        StateManager.updatePerformanceFilters({
+            minLevel: minVal,
+            maxLevel: maxVal
+        });
+    },
+    
+    /**
+     * Show an item tooltip
+     * @param {HTMLElement} slotElement - Slot element
+     */
+    showItemTooltip(slotElement) {
+        const slotName = slotElement.dataset.slot;
+        const item = StateManager.state.currentBuild.equipment[slotName];
+        if (!item) return;
+        
+        UIFactory.showItemTooltip(slotElement, item);
+    },
+    
+    /**
+     * Open the build details modal
+     * @param {string} [buildId=null] - Build ID if editing, null if creating new
+     */
+    openBuildModal(buildId = null) {
+        const buildDetailsModal = DOMUtils.getElement('build-details-modal');
+        const modalTitleElement = document.getElementById('modal-title');
+        const modalBuildIdInput = DOMUtils.getElement('modal-build-id');
+        const modalBuildNameInput = DOMUtils.getElement('modal-build-name');
+        const modalBuildCreatorInput = DOMUtils.getElement('modal-build-creator');
+        const modalBuildDescriptionInput = DOMUtils.getElement('modal-build-description');
+        
+        if (!buildDetailsModal) return;
+        
+        const isEditing = buildId !== null;
+        const build = isEditing ? StateManager.findSavedBuildById(buildId) : null;
+        
+        if (modalBuildIdInput) modalBuildIdInput.value = buildId || '';
+        if (modalBuildNameInput) modalBuildNameInput.value = isEditing ? (build?.name || '') : '';
+        if (modalBuildCreatorInput) modalBuildCreatorInput.value = isEditing ? (build?.creator || '') : '';
+        if (modalBuildDescriptionInput) modalBuildDescriptionInput.value = isEditing ? (build?.description || '') : '';
+        if (modalTitleElement) modalTitleElement.textContent = isEditing ? 'Edit Build Details' : 'Save New Build';
+        
+        buildDetailsModal.style.display = 'flex';
+        if (modalBuildNameInput) modalBuildNameInput.focus();
+    },
+    
+    /**
+     * Close the build details modal
+     */
+    closeBuildModal() {
+        const buildDetailsModal = DOMUtils.getElement('build-details-modal');
+        if (buildDetailsModal) {
+            buildDetailsModal.style.display = 'none';
+        }
+    },
+    
+    /**
+     * Handle saving build details
+     */
+    handleSaveBuildDetails() {
+        const modalBuildIdInput = DOMUtils.getElement('modal-build-id');
+        const modalBuildNameInput = DOMUtils.getElement('modal-build-name');
+        const modalBuildCreatorInput = DOMUtils.getElement('modal-build-creator');
+        const modalBuildDescriptionInput = DOMUtils.getElement('modal-build-description');
+        
+        if (!modalBuildNameInput) return;
+        
+        const buildId = modalBuildIdInput ? modalBuildIdInput.value : null;
+        const name = modalBuildNameInput.value.trim() || 'Unnamed Build';
+        const creator = modalBuildCreatorInput ? modalBuildCreatorInput.value.trim() : '';
+        const description = modalBuildDescriptionInput ? 
+            modalBuildDescriptionInput.value.trim().substring(0, FO2Config.UI.MAX_BUILD_DESCRIPTION_LENGTH) : '';
+        
+        if (buildId) {
+            // Editing existing
+            const success = StateManager.updateSavedBuild(buildId, { name, creator, description });
+            if (success) {
+                DOMUtils.showNotification(`Build "${name}" details updated.`, 'success');
+            } else {
+                DOMUtils.showNotification(`Error updating build ID ${buildId}.`, 'error');
+            }
+        } else {
+            // Saving new build from current editor state
+            const newBuildData = {
+                id: FO2Utils.generateId(),
+                name: name,
+                creator: creator,
+                description: description,
+                level: StateManager.state.currentBuild.level,
+                rebirth: StateManager.state.currentBuild.rebirth,
+                stats: { ...StateManager.state.currentBuild.statPoints },
+                equipment: {},
+                activeBuffNames: StateManager.state.currentBuild.activeBuffs.map(b => b.Name),
+                uiPerformance: { ...StateManager.state.ui.performance }
+            };
+            
+            // Populate equipment IDs
+            for (const slot in StateManager.state.currentBuild.equipment) {
+                if (StateManager.state.currentBuild.equipment[slot]) {
+                    newBuildData.equipment[slot] = StateManager.state.currentBuild.equipment[slot]['Item ID'];
+                }
+            }
+            
+            StateManager.addSavedBuild(newBuildData);
+            DOMUtils.showNotification(`Build "${name}" saved.`, 'success');
+        }
+        
+        this.displaySavedBuilds();
+        this.closeBuildModal();
+    },
+    
+    /**
+     * Display saved builds in the build management page
+     */
+    displaySavedBuilds() {
+        const savedBuildsListContainer = DOMUtils.getElement('saved-builds-list');
+        if (!savedBuildsListContainer) return;
+        
+        DOMUtils.clearElement(savedBuildsListContainer);
+        
+        const builds = StateManager.state.savedBuilds;
+        
+        if (!builds || builds.length === 0) {
+            savedBuildsListContainer.innerHTML = '<div class="empty-message">No saved builds.</div>';
+            return;
+        }
+        
+        builds.forEach(build => {
+            // Calculate stats for this saved build
+            const calculatedStats = StatsCalculator.calculateStatsForSavedBuildObject(
+                build, 
+                { itemsById: StateManager.state.data.itemsById, buffs: StateManager.state.data.buffs },
+                FO2Config
+            );
+            
+            const buildElement = UIFactory.createSavedBuildItem(
+                build, 
+                calculatedStats,
+                { 
+                    itemsById: StateManager.state.data.itemsById,
+                    buffs: StateManager.state.data.buffs
+                }
+            );
+            
+            savedBuildsListContainer.appendChild(buildElement);
+        });
+    },
+    
+    /**
+     * Populate the item dictionary grid
+     */
+    populateItemDictionaryGrid() {
+        const itemDictionaryGrid = DOMUtils.getElement('item-dictionary-grid');
+        if (!itemDictionaryGrid) return;
+        
+        DOMUtils.clearElement(itemDictionaryGrid);
+        
+        if (!StateManager.state.data.itemsById || StateManager.state.data.itemsById.size === 0) {
+            itemDictionaryGrid.innerHTML = '<p class="empty-message">No item data loaded.</p>';
+            return;
+        }
+        
+        const filters = StateManager.state.ui.itemDictionary;
+        let filteredItems = Array.from(StateManager.state.data.itemsById.values());
+        
+        // Filter by Search Term
+        if (filters.search) {
+            filteredItems = filteredItems.filter(item => 
+                item.Name?.toLowerCase().includes(filters.search)
+            );
+        }
+        
+        // Filter by Category
+        if (filters.category !== 'all') {
+            const [typeFilter, subtypeFilter] = filters.category.split('-');
+            filteredItems = filteredItems.filter(item => {
+                const itemType = item.Type?.toLowerCase();
+                const itemSubtype = item.Subtype?.toLowerCase().replace(/\s+/g, '_');
+                if (itemType !== typeFilter) return false;
+                if (subtypeFilter !== 'all' && itemSubtype !== subtypeFilter) return false;
+                return true;
+            });
+        }
+        
+        // Sort Items
+        filteredItems.sort((a, b) => {
+            let valA, valB;
+            switch (filters.sortCriteria) {
+                case 'name':
+                    valA = a.Name?.toLowerCase() || '';
+                    valB = b.Name?.toLowerCase() || '';
+                    return filters.sortOrder === 'asc' ? 
+                        valA.localeCompare(valB) : 
+                        valB.localeCompare(valA);
+                case 'level':
+                default:
+                    valA = a.Level || 0;
+                    valB = b.Level || 0;
+                    return filters.sortOrder === 'asc' ? 
+                        valA - valB : 
+                        valB - valA;
+            }
+        });
+        
+        // Render Grid Items
+        if (filteredItems.length === 0) {
+            itemDictionaryGrid.innerHTML = '<p class="empty-message">No items match criteria.</p>';
+        } else {
+            filteredItems.forEach(item => {
+                const iconElement = UIFactory.createItemGridIcon(item, (selectedItem) => {
+                    this.displayItemInViewer(selectedItem);
+                });
+                
+                itemDictionaryGrid.appendChild(iconElement);
+            });
+        }
+    },
+    
+    /**
+     * Display an item in the item viewer
+     * @param {Object} item - Item to display
+     */
+    displayItemInViewer(item) {
+        const itemDictionaryViewer = DOMUtils.getElement('item-dictionary-viewer');
+        if (!itemDictionaryViewer) return;
+        
+        const detailView = UIFactory.createItemDetailView(item);
+        
+        DOMUtils.clearElement(itemDictionaryViewer);
+        itemDictionaryViewer.appendChild(detailView);
+    },
+    
+    /**
+     * Populate item category filter dropdown
+     */
+    populateItemCategoryFilter() {
+        const itemDictionaryCategoryFilter = DOMUtils.getElement('item-dictionary-category-filter');
+        if (!itemDictionaryCategoryFilter || !StateManager.state.data.itemsById || StateManager.state.data.itemsById.size === 0) return;
+        
+        const categoriesMap = new Map();
+        
+        StateManager.state.data.itemsById.forEach(item => {
+            const type = item.Type?.trim();
+            const subtype = item.Subtype?.trim();
+            
+            if (type) {
+                if (!categoriesMap.has(type)) categoriesMap.set(type, new Set());
+                if (subtype) categoriesMap.get(type).add(subtype);
+            }
+        });
+        
+        // Clear existing options (keep "All Categories")
+        while (itemDictionaryCategoryFilter.options.length > 1) {
+            itemDictionaryCategoryFilter.remove(1);
+        }
+        
+        const sortedTypes = Array.from(categoriesMap.keys()).sort();
+        
+        sortedTypes.forEach(typeName => {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = typeName.charAt(0).toUpperCase() + typeName.slice(1);
+            itemDictionaryCategoryFilter.appendChild(optgroup);
+            
+            // "All [Type]" option
+            const allOfTypeOption = document.createElement('option');
+            allOfTypeOption.value = `${typeName.toLowerCase()}-all`;
+            allOfTypeOption.textContent = `All ${optgroup.label}`;
+            optgroup.appendChild(allOfTypeOption);
+            
+            // Subtype options
+            const subtypes = Array.from(categoriesMap.get(typeName) || []).sort();
+            subtypes.forEach(subtypeName => {
+                const option = document.createElement('option');
+                const normalizedSubtypeName = subtypeName.toLowerCase().replace(/\s+/g, '_');
+                option.value = `${typeName.toLowerCase()}-${normalizedSubtypeName}`;
+                option.textContent = `  ${subtypeName.charAt(0).toUpperCase() + subtypeName.slice(1)}`;
+                optgroup.appendChild(option);
+            });
+        });
+    }
+};
+
+// ------------------------------------------------------------------
+// app.js - Main application initialization
+// ------------------------------------------------------------------
+
+/**
+ * Main application entry point - the simplest module, responsible only for initializing
+ * the application when the DOM is fully loaded.
+ */
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOM Loaded. Starting initialization...");
+    try {
+        // Show loading notification
+        DOMUtils.showNotification("Loading game data...", "info");
+        
+        // Initialize State Manager first (loads data and saved state)
+        await StateManager.initialize();
+        
+        // Initialize UI Controller (sets up event listeners and initial UI state)
+        UIController.initialize();
+        
+        // Final UI setup after loading
+        UIController.populateItemCategoryFilter();
+        
+        console.log("Application initialized successfully.");
+        DOMUtils.showNotification("Application loaded successfully!", "success");
+    } catch (error) {
+        console.error("CRITICAL INITIALIZATION ERROR:", error);
+        DOMUtils.showNotification(
+            `Failed to initialize application: ${error.message}. Check console.`, 
+            "error"
+        );
+        
+        // Display error in the UI
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) {
+            appContainer.innerHTML = `
+                <div class="init-error">
+                    <h2>Application Failed to Load</h2>
+                    <p>Error: ${error.message}</p>
+                    <p>Please check the browser console (F12) for details.</p>
+                </div>
+            `;
         }
     }
-}
-
-function handleDuplicateBuildClick(buildId) {
-    const duplicatedBuild = FO2BuildState.duplicateSavedBuild(buildId);
-    if (duplicatedBuild) {
-        displaySavedBuilds(); // Refresh list
-        showNotification(`Build duplicated as "${duplicatedBuild.name}".`, 'success');
-    } else {
-        showNotification("Error duplicating build.", 'error');
-    }
-}
-
-// Function to handle responsive layout adjustments
-function handleResponsiveLayout() {
-    const windowWidth = window.innerWidth;
-    const container = document.querySelector('.container');
-    
-    // Handle Equipment Layout
-    const equipmentSlots = document.querySelectorAll('.equipment-slots');
-    if (windowWidth < 768) {
-        equipmentSlots.forEach(el => {
-            // More compact grid on small screens
-            el.style.gridTemplateColumns = 'repeat(auto-fill, minmax(60px, 1fr))';
-        });
-    } else {
-        equipmentSlots.forEach(el => {
-            // Reset to default on larger screens
-            el.style.gridTemplateColumns = '';
-        });
-    }
-    
-    // Additional responsive adjustments as needed
-}
-
-// Run on load and when resizing
-window.addEventListener('load', handleResponsiveLayout);
-window.addEventListener('resize', handleResponsiveLayout);
+});
