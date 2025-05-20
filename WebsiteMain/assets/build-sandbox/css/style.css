@@ -1354,8 +1354,8 @@
 
         /* Style for individual item icons in the grid */
         .grid-item-icon {
-            width: 48px;
-            height: 48px;
+            width: 64px;  /* Increased from 48px */
+            height: 64px; /* Increased from 48px */
             background-color: var(--slot-bg);
             border: 1px solid var(--border);
             border-radius: 4px;
@@ -1363,8 +1363,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: background-color 0.2s;
+            transition: transform 0.2s, background-color 0.2s, border-color 0.2s;
             position: relative;
+            overflow: visible; /* Allow indicators to be visible outside */
         }
 
         .grid-item-icon img {
@@ -1375,8 +1376,11 @@
         }
 
         .grid-item-icon:hover {
+            transform: scale(1.15);
             background-color: var(--accent-hover);
             border-color: var(--accent);
+            z-index: 5; /* Ensure hovered items appear above others */
+            box-shadow: 0 0 5px rgba(var(--accent-rgb, 61, 129, 219), 0.5);
         }
 
         /* Style for the right panel (item viewer) */
@@ -1466,3 +1470,102 @@
                 min-height: 200px;
             }
         }
+
+        /* Mode Toggle Switch Styles */
+.mode-toggle-container {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    padding: 10px;
+    background-color: var(--slot-bg);
+    border-radius: 5px;
+    gap: 10px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--negative-button);
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--positive-button);
+}
+
+input:focus + .toggle-slider {
+    box-shadow: 0 0 1px var(--positive-button);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.toggle-label {
+    font-size: 0.85em;
+    color: var(--text);
+    flex-grow: 1;
+}
+
+#mode-display {
+    font-weight: bold;
+    color: var(--accent);
+}
+
+/* Requirements styling for item search */
+.search-item.requirements-not-met {
+    color: #999;
+    position: relative;
+}
+
+.search-item.requirements-not-met::after {
+    content: "❌ ";
+    color: var(--negative-button);
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.search-item .item-requirements {
+    font-size: 0.85em;
+    opacity: 0.7;
+    margin-left: 3px;
+}
+
+/* Requirements indicator in tooltips */
+.tooltip-req-not-met {
+    color: var(--negative-button);
+}
+
+.tooltip-req-met {
+    color: var(--positive-button);
+}

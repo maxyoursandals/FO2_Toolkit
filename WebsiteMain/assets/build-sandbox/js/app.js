@@ -1,19 +1,3 @@
-/**
- * FO2 Build Sandbox - Modular Architecture
- * 
- * Module structure:
- * 1. config.js - Game constants and configuration
- * 2. utils.js - General utility functions
- * 3. dom-utils.js - DOM helper functions
- * 4. event-system.js - Custom event system
- * 5. ui-factory.js - UI component creation
- * 6. data-service.js - Data processing
- * 7. stats-calculator.js - Game mechanics calculations
- * 8. state-manager.js - Application state management
- * 9. ui-controller.js - UI update and event handling
- * 10. app.js - Main application initialization
- */
-
 // ------------------------------------------------------------------
 // config.js - Game constants and configuration
 // ------------------------------------------------------------------
@@ -29,7 +13,13 @@ const FO2Config = {
     UI: {
         MAX_BUILD_DESCRIPTION_LENGTH: 100,
         NOTIFICATION_DURATION: 3000,
-        MAX_ACTIVE_BUFFS: 5
+        MAX_ACTIVE_BUFFS: 5,
+        
+        // Move MODE inside the UI object
+        MODE: {
+            SANDBOX: 'sandbox',
+            RESTRICTED: 'restricted'
+        }
     },
     
     // Game Mechanics
@@ -409,20 +399,21 @@ const UIFactory = {
      * @returns {HTMLElement} The created slot element
      */
     createSlot(slotName, item, clickHandler) {
-        const slotElement = DOMUtils.createElement('div', {
-            className: 'slot',
-            dataset: { slot: slotName },
-            onclick: (e) => {
-                // Only handle clicks on the slot itself, not on clear button
-                if (!e.target.classList.contains('clear-slot')) {
-                    clickHandler(e);
-                }
+    const slotElement = DOMUtils.createElement('div', {
+        className: 'slot',
+        dataset: { slot: slotName },
+        onclick: (e) => {
+            // Only handle clicks on the slot itself, not on clear button
+            if (!e.target.classList.contains('clear-slot')) {
+                clickHandler(e);
             }
-        });
-        
-        this.updateSlotContent(slotElement, slotName, item);
-        return slotElement;
-    },
+        }
+    });
+    
+    // Use the fixed updateSlotContent method to populate the slot
+    this.updateSlotContent(slotElement, slotName, item);
+    return slotElement;
+},
     
     /**
      * Updates the content of an equipment slot
@@ -431,45 +422,50 @@ const UIFactory = {
      * @param {Object|null} item - The equipped item or null
      */
     updateSlotContent(slotElement, slotName, item) {
-        DOMUtils.clearElement(slotElement);
-        
-        if (item) {
-            // Item equipped - show item image or fallback
-            if (item["Sprite-Link"]) {
-                slotElement.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slotName}" title="${item.Name || slotName}" style="image-rendering: pixelated;">`;
-            } else {
-                slotElement.innerHTML = `<div class="slot-text-fallback" title="${item.Name || ''}">${item.Name ? item.Name.substring(0, 3) : '?'}</div>`;
-            }
-            
-            // Add clear button
-            const clearButton = DOMUtils.createElement('div', {
-                className: 'clear-slot',
-                textContent: 'x',
-                title: 'Remove item',
-                onclick: (e) => {
-                    e.stopPropagation();
-                    EventSystem.publish('slot-item-removed', { slot: slotName });
-                }
-            });
-            
-            slotElement.appendChild(clearButton);
+    DOMUtils.clearElement(slotElement);
+    
+    if (item) {
+        // Item equipped - show item image or fallback
+        if (item["Sprite-Link"]) {
+            slotElement.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slotName}" title="${item.Name || slotName}" style="image-rendering: pixelated;">`;
         } else {
-            // No item - show default icon
-            let iconName = slotName;
-            if (slotName === 'ring1' || slotName === 'ring2') iconName = 'ring';
-            if (slotName === 'trinket1' || slotName === 'trinket2') iconName = 'trinket';
-            
-            const defaultIcon = DOMUtils.createElement('img', {
-                src: `assets/build-sandbox/icons/${iconName}-icon.png`,
-                alt: slotName.charAt(0).toUpperCase() + slotName.slice(1),
-                onerror: function() {
-                    this.parentNode.innerHTML = `<div class="slot-text-fallback">${this.alt.substring(0, 3)}</div>`;
-                }
-            });
-            
-            slotElement.appendChild(defaultIcon);
+            slotElement.innerHTML = `<div class="slot-text-fallback" title="${item.Name || ''}">${item.Name ? item.Name.substring(0, 3) : '?'}</div>`;
         }
-    },
+        
+        // Add clear button with fixed event handling
+        const clearButton = DOMUtils.createElement('div', {
+            className: 'clear-slot',
+            textContent: 'x',
+            title: 'Remove item'
+        });
+        
+        // Add the event listener directly to the button
+        clearButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent slot click event
+            // Directly call StateManager to remove the item
+            StateManager.equipItem(slotName, null);
+            // Update the UI to reflect the change
+            UIController.updateEquipmentSlots();
+        });
+        
+        slotElement.appendChild(clearButton);
+    } else {
+        // No item - show default icon
+        let iconName = slotName;
+        if (slotName === 'ring1' || slotName === 'ring2') iconName = 'ring';
+        if (slotName === 'trinket1' || slotName === 'trinket2') iconName = 'trinket';
+        
+        const defaultIcon = DOMUtils.createElement('img', {
+            src: `assets/build-sandbox/icons/${iconName}-icon.png`,
+            alt: slotName.charAt(0).toUpperCase() + slotName.slice(1),
+            onerror: function() {
+                this.parentNode.innerHTML = `<div class="slot-text-fallback">${this.alt.substring(0, 3)}</div>`;
+            }
+        });
+        
+        slotElement.appendChild(defaultIcon);
+    }
+},
     
     /**
      * Creates a buff icon element
@@ -614,44 +610,44 @@ const UIFactory = {
      * @returns {string} HTML content for tooltip
      */
     generateItemTooltipContent(item) {
-        let content = `<div class="tooltip-title">${item.Name}</div>`;
-        
-        if (item.Level !== undefined) {
-            content += `<div class="tooltip-level">Level ${item.Level}${item.Subtype ? ` ${item.Subtype}` : ''}</div>`;
+    let content = `<div class="tooltip-title">${item.Name}</div>`;
+    
+    if (item.Level !== undefined) {
+        content += `<div class="tooltip-level">Level ${item.Level}${item.Subtype ? ` ${item.Subtype}` : ''}</div>`;
+    }
+    
+    // Stats section
+    const statsHtml = [];
+    ['STA', 'STR', 'INT', 'AGI', 'Armor'].forEach(stat => {
+        if (item[stat]) {
+            const value = item[stat];
+            const cssClass = value > 0 ? 'stat-positive' : 'stat-negative';
+            statsHtml.push(`<div class="${cssClass}">${stat}: ${value > 0 ? '+' : ''}${value}</div>`);
         }
-        
-        // Stats section
-        const statsHtml = [];
-        ['STA', 'STR', 'INT', 'AGI', 'Armor'].forEach(stat => {
-            if (item[stat]) {
-                const value = item[stat];
-                const cssClass = value > 0 ? 'stat-positive' : 'stat-negative';
-                statsHtml.push(`<div class="${cssClass}">${stat}: ${value > 0 ? '+' : ''}${value}</div>`);
-            }
-        });
-        
-        if (item.Damage) statsHtml.push(`<div>Damage: ${item.Damage}</div>`);
-        if (item['Atk Spd']) statsHtml.push(`<div>Speed: ${item['Atk Spd']}</div>`);
-        
-        if (statsHtml.length > 0) {
-            content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
+    });
+    
+    if (item.Damage) statsHtml.push(`<div>Damage: ${item.Damage}</div>`);
+    if (item['Atk Spd']) statsHtml.push(`<div>Speed: ${item['Atk Spd']}</div>`);
+    
+    if (statsHtml.length > 0) {
+        content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
+    }
+    
+    // Requirements section - don't show current stat values or special styling
+    const reqHtml = [];
+    ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(req => {
+        if (item[req]) {
+            reqHtml.push(`<div>Requires ${req.replace('Req ', '')}: ${item[req]}</div>`);
         }
-        
-        // Requirements section
-        const reqHtml = [];
-        ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(req => {
-            if (item[req]) {
-                reqHtml.push(`<div>Requires ${req.replace('Req ', '')}: ${item[req]}</div>`);
-            }
-        });
-        
-        if (reqHtml.length > 0) {
-            if (statsHtml.length > 0) content += `<div class="tooltip-separator"></div>`;
-            content += `<div class="tooltip-req">${reqHtml.join('')}</div>`;
-        }
-        
-        return content;
-    },
+    });
+    
+    if (reqHtml.length > 0) {
+        if (statsHtml.length > 0) content += `<div class="tooltip-separator"></div>`;
+        content += `<div class="tooltip-req">${reqHtml.join('')}</div>`;
+    }
+    
+    return content;
+},
     
     /**
      * Generates buff tooltip HTML content
@@ -808,44 +804,61 @@ const UIFactory = {
         });
         
         if (build.activeBuffNames?.length > 0) {
-            build.activeBuffNames.forEach(buffName => {
-                let buff = null;
-                for (const cat in buffs) {
-                    buff = buffs[cat]?.find(b => b.Name === buffName);
-                    if (buff) break;
-                }
-                
-                if (buff) {
-                    const buffIconDiv = DOMUtils.createElement('div', {
-                        className: 'build-item-buff-icon'
-                    });
-                    
-                    const baseName = buff.Name.toLowerCase()
-                        .replace(/\s+\d+$/, '')
-                        .replace(/[^a-z0-9\s-]/g, '')
-                        .trim()
-                        .replace(/\s+/g, '-');
-                    
-                    const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
-                    
-                    const img = DOMUtils.createElement('img', {
-                        src: iconFileName,
-                        alt: buff.Name,
-                        title: buff.Name,
-                        onerror: function() { buffIconDiv.innerHTML = '?'; }
-                    });
-                    
-                    buffIconDiv.appendChild(img);
-                    
-                    buffIconDiv.addEventListener('mouseenter', (e) => UIFactory.showBuffTooltip(buff, e.currentTarget));
-                    buffIconDiv.addEventListener('mouseleave', () => UIFactory.hideTooltip('buff-tooltip'));
-                    
-                    buffsDiv.appendChild(buffIconDiv);
-                }
-            });
-        } else {
-            buffsDiv.innerHTML = '<div class="build-item-no-buffs">No buffs</div>';
+    build.activeBuffNames.forEach(buffName => {
+        let buff = null;
+        for (const cat in buffs) {
+            buff = buffs[cat]?.find(b => b.Name === buffName);
+            if (buff) break;
         }
+        
+        if (buff) {
+            const buffIconDiv = DOMUtils.createElement('div', {
+                className: 'build-item-buff-icon'
+            });
+            
+            // Extract tier number if present (same logic as in createBuffIcon)
+            const tierMatch = buff.Name.match(/\s(\d+)$/);
+            const tier = tierMatch ? tierMatch[1] : null;
+            
+            // Create base name for icon (same as in createBuffIcon)
+            const baseName = buff.Name.toLowerCase()
+                .replace(/\s+\d+$/, '')
+                .replace(/[^a-z0-9\s-]/g, '')
+                .trim()
+                .replace(/\s+/g, '-');
+            
+            const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
+            
+            // Create the image element
+            const img = DOMUtils.createElement('img', {
+                src: iconFileName,
+                alt: buff.Name,
+                title: buff.Name,
+                onerror: function() { buffIconDiv.innerHTML = '?'; }
+            });
+            
+            buffIconDiv.appendChild(img);
+            
+            // Add tier number indicator if present
+            if (tier) {
+                const tierSpan = DOMUtils.createElement('span', {
+                    className: 'buff-tier',
+                    textContent: tier
+                });
+                
+                buffIconDiv.appendChild(tierSpan);
+            }
+            
+            // Add event listeners for tooltip
+            buffIconDiv.addEventListener('mouseenter', (e) => UIFactory.showBuffTooltip(buff, e.currentTarget));
+            buffIconDiv.addEventListener('mouseleave', () => UIFactory.hideTooltip('buff-tooltip'));
+            
+            buffsDiv.appendChild(buffIconDiv);
+        }
+    });
+} else {
+    buffsDiv.innerHTML = '<div class="build-item-no-buffs">No buffs</div>';
+}
         
         // Add the four columns to content wrapper
         contentWrapper.appendChild(infoDiv);
@@ -899,12 +912,31 @@ const UIFactory = {
      * @returns {HTMLElement} The created search result item
      */
     createSearchResultItem(item, selectHandler) {
-        return DOMUtils.createElement('div', {
+        const itemElement = DOMUtils.createElement('div', {
             className: 'search-item',
             textContent: `(Lvl ${item.Level || '?'}) ${item.Name}`,
             title: `AGI:${item.AGI || 0} STR:${item.STR || 0} INT:${item.INT || 0} STA:${item.STA || 0} Armor:${item.Armor || 0}`,
             onclick: () => selectHandler(item)
         });
+        
+        // Add requirements info if any
+        const hasRequirements = (
+            (item['Req STR'] && item['Req STR'] > 0) ||
+            (item['Req INT'] && item['Req INT'] > 0) ||
+            (item['Req AGI'] && item['Req AGI'] > 0) ||
+            (item['Req STA'] && item['Req STA'] > 0)
+        );
+        
+        if (hasRequirements) {
+            const requirementsSpan = DOMUtils.createElement('span', {
+                className: 'item-requirements',
+                textContent: ` (Req: ${item['Req STR'] ? 'STR:'+item['Req STR']+' ' : ''}${item['Req INT'] ? 'INT:'+item['Req INT']+' ' : ''}${item['Req AGI'] ? 'AGI:'+item['Req AGI']+' ' : ''}${item['Req STA'] ? 'STA:'+item['Req STA'] : ''})`.trim()
+            });
+            
+            itemElement.appendChild(requirementsSpan);
+        }
+        
+        return itemElement;
     },
     
     /**
@@ -1551,60 +1583,77 @@ const StatsCalculator = {
     },
     
     /**
-     * Calculate performance against mobs using current build's DPS
-     * @param {number} currentDPS - Current build's DPS
-     * @param {Array} mobList - List of mobs to calculate against
-     * @param {Object} filters - Performance filters (min/max levels, hide bosses)
-     * @returns {Array} Performance data array
-     */
-    calculatePerformance(currentDPS, mobList, filters) {
-        const performanceData = [];
-        
-        if (!mobList || mobList.length === 0) {
-            console.warn("Performance calculation: No mob data available");
-            return performanceData;
-        }
-        
-        if (currentDPS <= 0) {
-            return performanceData;
-        }
-        
-        const filteredMobs = mobList.filter(mob => {
-            if (!mob || mob.level === undefined || mob.level === null) return false;
-            const levelMatch = mob.level >= filters.minLevel && mob.level <= filters.maxLevel;
-            const bossMatch = !filters.hideBosses || !mob.isBoss;
-            return levelMatch && bossMatch;
-        });
-        
-        filteredMobs.forEach(mob => {
-            if (!mob.health || mob.health <= 0) {
-                return; // Skip mob with invalid health
-            }
-            
-            const timeToKill = mob.health / currentDPS;
-            let goldPerHour = 0;
-            let xpPerHour = 0;
-            
-            if (timeToKill > 0 && isFinite(timeToKill)) {
-                const killsPerHour = 3600 / timeToKill;
-                goldPerHour = killsPerHour * (mob.avgGoldPerKill || 0);
-                xpPerHour = killsPerHour * (mob.xp || 0);
-                
-                if (!isFinite(goldPerHour)) goldPerHour = 0;
-                if (!isFinite(xpPerHour)) xpPerHour = 0;
-            }
-            
-            performanceData.push({
-                name: mob.name || "Unknown Mob",
-                level: mob.level || 0,
-                ttk: timeToKill,
-                gph: goldPerHour,
-                xph: xpPerHour
-            });
-        });
-        
+ * Calculate performance against mobs using current build's DPS
+ * @param {number} currentDPS - Current build's DPS
+ * @param {Array} mobList - List of mobs to calculate against
+ * @param {Object} filters - Performance filters (min/max levels, hide bosses)
+ * @returns {Array} Performance data array
+ */
+calculatePerformance(currentDPS, mobList, filters) {
+    const performanceData = [];
+    
+    if (!mobList || mobList.length === 0) {
+        console.warn("Performance calculation: No mob data available");
         return performanceData;
-    },
+    }
+    
+    if (currentDPS <= 0) {
+        return performanceData;
+    }
+    
+    const filteredMobs = mobList.filter(mob => {
+        if (!mob || mob.level === undefined || mob.level === null) return false;
+        const levelMatch = mob.level >= filters.minLevel && mob.level <= filters.maxLevel;
+        const bossMatch = !filters.hideBosses || !mob.isBoss;
+        return levelMatch && bossMatch;
+    });
+    
+    filteredMobs.forEach(mob => {
+        if (!mob.health || mob.health <= 0) {
+            return; // Skip mob with invalid health
+        }
+        
+        const timeToKill = mob.health / currentDPS;
+        let goldPerHour = 0;
+        let xpPerHour = 0;
+        
+        if (timeToKill > 0 && isFinite(timeToKill)) {
+            const killsPerHour = 3600 / timeToKill;
+            goldPerHour = killsPerHour * (mob.avgGoldPerKill || 0);
+            xpPerHour = killsPerHour * (mob.xp || 0);
+            
+            if (!isFinite(goldPerHour)) goldPerHour = 0;
+            if (!isFinite(xpPerHour)) xpPerHour = 0;
+        }
+        
+        performanceData.push({
+            name: mob.name || "Unknown Mob",
+            level: mob.level || 0,
+            ttk: timeToKill,
+            gph: goldPerHour,
+            xph: xpPerHour
+        });
+    });
+    
+   // Sort the data based on the provided filters, not using this.state
+    const sortColumn = filters.sortColumn || 'name';
+    const sortAsc = filters.sortAscending !== undefined ? filters.sortAscending : true;
+    
+    performanceData.sort((a, b) => {
+        let valA = a[sortColumn];
+        let valB = b[sortColumn];
+        
+        if (sortColumn === 'name') {
+            valA = (valA || '').toLowerCase();
+            valB = (valB || '').toLowerCase();
+            return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+            return sortAsc ? (valA || 0) - (valB || 0) : (valB || 0) - (valA || 0);
+        }
+    });
+
+    return performanceData;
+},
     
     /**
      * Calculate stats for a saved build object
@@ -1724,7 +1773,9 @@ const StateManager = {
                 sortCriteria: 'level',
                 sortOrder: 'asc'
             },
-            currentItemSearchSlot: null
+            currentItemSearchSlot: null,
+
+            mode: FO2Config.UI.MODE.SANDBOX,
         },
         
         // Saved Builds
@@ -1906,11 +1957,53 @@ const StateManager = {
      * Equip an item in a slot
      * @param {string} slot - Equipment slot name
      * @param {Object|null} itemObject - Item to equip or null to unequip
+     * @returns {boolean} Whether item was equipped successfully
      */
     equipItem(slot, itemObject) {
-        this.state.currentBuild.equipment[slot] = itemObject;
+    // Always allow unequipping
+    if (!itemObject) {
+        this.state.currentBuild.equipment[slot] = null;
         this.triggerRecalculationAndUpdateUI();
-    },
+        return true;
+    }
+    
+    // In restricted mode, check if requirements are met AT THE TIME OF EQUIPPING
+    if (this.state.ui.mode === FO2Config.UI.MODE.RESTRICTED) {
+        // Create a temporary state to see what the stats would be if the item was already equipped
+        // This allows item swapping as long as the combined effect would meet requirements
+        const tempState = FO2Utils.deepClone(this.state.currentBuild);
+        
+        // If replacing an item in the same slot, remove its stats first
+        if (tempState.equipment[slot]) {
+            // Remove the old item's contribution to stats
+            tempState.equipment[slot] = null;
+        }
+        
+        // Temporarily equip the new item
+        tempState.equipment[slot] = itemObject;
+        
+        // Calculate stats with the new item in place
+        const tempStats = StatsCalculator.performFullStatCalculation(tempState, FO2Config);
+        
+        // Check if requirements would be met AFTER equipping
+        const finalStats = tempStats.finalStats;
+        
+        if (
+            (itemObject['Req STR'] && finalStats.str < itemObject['Req STR']) ||
+            (itemObject['Req INT'] && finalStats.int < itemObject['Req INT']) ||
+            (itemObject['Req AGI'] && finalStats.agi < itemObject['Req AGI']) ||
+            (itemObject['Req STA'] && finalStats.sta < itemObject['Req STA'])
+        ) {
+            // Requirements not met even after equipping
+            return false;
+        }
+    }
+    
+    // Requirements met or sandbox mode, equip the item
+    this.state.currentBuild.equipment[slot] = itemObject;
+    this.triggerRecalculationAndUpdateUI();
+    return true;
+},
     
     /**
      * Reset all equipment
@@ -1967,19 +2060,34 @@ const StateManager = {
      * @param {Object} filters - New filter values
      */
     updatePerformanceFilters(filters) {
-        Object.assign(this.state.ui.performance, filters);
-        
-        // Ensure min <= max for level filters
-        if (this.state.ui.performance.minLevel > this.state.ui.performance.maxLevel) {
-            this.state.ui.performance.minLevel = this.state.ui.performance.maxLevel;
-        }
-        
-        // Clamp to valid range
-        this.state.ui.performance.minLevel = Math.max(1, Math.min(this.state.ui.performance.minLevel, this.state.data.mobsMaxLevel));
-        this.state.ui.performance.maxLevel = Math.max(this.state.ui.performance.minLevel, Math.min(this.state.ui.performance.maxLevel, this.state.data.mobsMaxLevel));
-        
-        this.triggerRecalculationAndUpdateUI();
-    },
+    // Merge the new filters with the existing performance state
+    Object.assign(this.state.ui.performance, filters);
+    
+    // Ensure min <= max for level filters
+    if (this.state.ui.performance.minLevel > this.state.ui.performance.maxLevel) {
+        this.state.ui.performance.minLevel = this.state.ui.performance.maxLevel;
+    }
+    
+    // Clamp to valid range
+    this.state.ui.performance.minLevel = Math.max(1, Math.min(
+        this.state.ui.performance.minLevel, 
+        this.state.data.mobsMaxLevel
+    ));
+    
+    this.state.ui.performance.maxLevel = Math.max(
+        this.state.ui.performance.minLevel, 
+        Math.min(
+            this.state.ui.performance.maxLevel, 
+            this.state.data.mobsMaxLevel
+        )
+    );
+    
+    // Force recalculation to update the performance table
+    this.triggerRecalculationAndUpdateUI();
+    
+    // Notify subscribers that performance filters have changed
+    EventSystem.publish('performance-filters-updated', this.state.ui.performance);
+},
     
     /**
      * Update item dictionary filters
@@ -2037,7 +2145,8 @@ const StateManager = {
             stats: this.state.currentBuild.statPoints,
             equipment: {},
             activeBuffNames: this.state.currentBuild.activeBuffs.map(buff => buff.Name),
-            uiPerformance: this.state.ui.performance
+            uiPerformance: this.state.ui.performance,
+            uiMode: this.state.ui.mode
         };
         
         // Store item IDs for equipment
@@ -2087,6 +2196,11 @@ const StateManager = {
             int: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
             sta: FO2Config.GAME.LEVEL.BASE_STAT_POINTS
         };
+
+        // Load UI mode if present
+        if (savedData.uiMode) {
+            this.state.ui.mode = savedData.uiMode;
+        }
 
         // Reset equipment & buffs before loading
         this.state.currentBuild.equipment = {};
@@ -2365,7 +2479,41 @@ updateSavedBuild(buildId, updatedData) {
     }
     
     return false;
-}
+},
+
+/**
+ * Toggle between sandbox and restricted mode
+ * @returns {string} New mode
+ */
+toggleMode() {
+    const newMode = this.state.ui.mode === FO2Config.UI.MODE.SANDBOX
+        ? FO2Config.UI.MODE.RESTRICTED
+        : FO2Config.UI.MODE.SANDBOX;
+    
+    this.state.ui.mode = newMode;
+    
+    // Validate equipment when switching to restricted mode
+    if (newMode === FO2Config.UI.MODE.RESTRICTED) {
+        this.validateEquipmentRequirements();
+    }
+    
+    // Save the current state and notify UI
+    this.saveCurrentStateToLocalStorage();
+    EventSystem.publish('mode-changed', { mode: newMode });
+    
+    return newMode;
+},
+
+/**
+ * Fix to validateEquipmentRequirements - remove this functionality
+ * Items should NOT be unequipped when switching to restricted mode
+ * @returns {Array} Empty array since no items are unequipped
+ */
+validateEquipmentRequirements() {
+    // In the actual game, equipment is not unequipped when requirements are no longer met
+    // So this function now does nothing and returns an empty array
+    return [];
+},
 
 };
 
@@ -2379,16 +2527,28 @@ const UIController = {
      * Initialize the UI
      */
     initialize() {
-        this.setupEventListeners();
         this.setupTabbedNavigation();
         this.populateBuffGrid();
         this.updateDisplayFromState();
+        this.setupEventListeners();
+        this.addPerformanceTableSortListeners(); // Make sure this is called
+        this.registerSlotItemRemovedListener();
     },
     
     /**
      * Set up event listeners for UI elements
      */
     setupEventListeners() {
+
+        // Mode toggle switch - sandbox/restricted
+        const modeToggleSwitch = DOMUtils.getElement('mode-toggle');
+        if (modeToggleSwitch) {
+            modeToggleSwitch.addEventListener('change', () => {
+                const newMode = StateManager.toggleMode();
+                this.updateModeDisplay(newMode);
+            });
+        }
+
         // Level input/slider
         const levelInput = DOMUtils.getElement('level');
         const levelSlider = DOMUtils.getElement('level-slider');
@@ -2699,7 +2859,114 @@ const UIController = {
             }
         });
 
+// 14. Subscribe to mode changes
+EventSystem.subscribe('mode-changed', (data) => {
+    UIController.updateModeDisplay(data.mode);
+    
+    if (data.mode === FO2Config.UI.MODE.RESTRICTED) {
+        DOMUtils.showNotification('Switched to Restricted Mode - stat requirements enforced when equipping new items', 'info');
+    } else {
+        DOMUtils.showNotification('Switched to Sandbox Mode - no stat requirements', 'info');
+    }
+});
+
     },
+
+    setupEquipmentSlotEvents() {
+    // Add event delegation for clear buttons at the document level
+    document.addEventListener('click', (e) => {
+        const clearButton = e.target.closest('.clear-slot');
+        if (clearButton) {
+            e.stopPropagation(); // Stop event from bubbling up to parent slots
+            
+            // Find the parent slot and get its name
+            const slotElement = clearButton.closest('.slot');
+            if (slotElement && slotElement.dataset.slot) {
+                const slotName = slotElement.dataset.slot;
+                
+                // Remove the item via state manager
+                StateManager.equipItem(slotName, null);
+                
+                // Update UI
+                UIController.updateEquipmentSlots();
+            }
+        }
+    });
+    
+    // Set up regular slot clicks for opening item search
+    document.querySelectorAll('.slot').forEach(slotElement => {
+        if (slotElement.classList.contains('placeholder')) return;
+        
+        const slotName = slotElement.dataset.slot;
+        if (!slotName) return;
+        
+        // Remove any existing click listeners
+        const newSlot = slotElement.cloneNode(true);
+        slotElement.parentNode.replaceChild(newSlot, slotElement);
+        
+        // Add new click listener that won't trigger if clear button is clicked
+        newSlot.addEventListener('click', (event) => {
+            // Prevent search if clear button was clicked
+            if (event.target.closest('.clear-slot')) return;
+            
+            UIController.openItemSearch(newSlot);
+        });
+        
+        // Add hover events for tooltips
+        newSlot.addEventListener('mouseenter', () => {
+            UIController.showItemTooltip(newSlot);
+        });
+        
+        newSlot.addEventListener('mouseleave', () => {
+            UIFactory.hideTooltip('item-tooltip');
+        });
+    });
+},
+
+registerSlotItemRemovedListener() {
+    // Subscribe to the slot-item-removed event
+    EventSystem.subscribe('slot-item-removed', (data) => {
+        if (data && data.slot) {
+            StateManager.equipItem(data.slot, null);
+            this.updateEquipmentSlots();
+            DOMUtils.showNotification(`Removed item from ${data.slot}`, 'info');
+        }
+    });
+},
+
+    addPerformanceTableSortListeners() {
+    // First, remove any existing click event listeners to prevent duplicates
+    document.querySelectorAll('.performance-table th[data-sort]').forEach(header => {
+        // Clone the node to remove all event listeners
+        const newHeader = header.cloneNode(true);
+        header.parentNode.replaceChild(newHeader, header);
+        
+        // Add the event listener to the new node
+        newHeader.addEventListener('click', () => {
+            const sortColumn = newHeader.dataset.sort;
+            
+            // Get current state directly from StateManager
+            const currentState = StateManager.getState();
+            const currentSort = currentState.ui.performance.sortColumn;
+            const currentAsc = currentState.ui.performance.sortAscending;
+            
+            // Determine new sort direction
+            let newSortAsc = true;
+            if (currentSort === sortColumn) {
+                // Toggle direction if already sorting by this column
+                newSortAsc = !currentAsc;
+            }
+            
+            console.log(`Sorting by ${sortColumn}, direction: ${newSortAsc ? 'asc' : 'desc'}`);
+            
+            // Update the UI state with new sort parameters
+            StateManager.updatePerformanceFilters({
+                sortColumn: sortColumn,
+                sortAscending: newSortAsc
+            });
+        });
+    });
+},
     
     /**
      * Set up tabbed navigation
@@ -2759,6 +3026,9 @@ const UIController = {
         
         // Update calculated stats display
         this.updateDisplay(build.calculatedStats);
+
+        // Update mode display
+        this.updateModeDisplay(StateManager.state.ui.mode);
     },
     
     /**
@@ -3012,178 +3282,180 @@ const UIController = {
      * @param {string} [query=''] - Search query
      */
     populateSearchResults(query = '') {
-        const searchResults = DOMUtils.getElement('search-results');
-        if (!searchResults) return;
-        
-        DOMUtils.clearElement(searchResults);
-        
-        const currentSlot = StateManager.state.ui.currentItemSearchSlot;
-        if (!currentSlot) return;
-        
-        const itemsState = StateManager.state.data.items;
-        if (!itemsState) {
-            searchResults.innerHTML = '<div class="search-item">Item data not loaded.</div>';
-            return;
+    const searchResults = DOMUtils.getElement('search-results');
+    if (!searchResults) return;
+    
+    DOMUtils.clearElement(searchResults);
+    
+    const currentSlot = StateManager.state.ui.currentItemSearchSlot;
+    if (!currentSlot) return;
+    
+    const itemsState = StateManager.state.data.items;
+    if (!itemsState) {
+        searchResults.innerHTML = '<div class="search-item">Item data not loaded.</div>';
+        return;
+    }
+    
+    // Map slot to item type/subtype
+    const slotToTypeMap = {
+        head: { type: 'equipment', subtype: 'head' },
+        face: { type: 'equipment', subtype: 'face' },
+        shoulder: { type: 'equipment', subtype: 'shoulder' },
+        chest: { type: 'equipment', subtype: 'chest' },
+        legs: { type: 'equipment', subtype: 'legs' },
+        back: { type: 'equipment', subtype: 'back' },
+        ring1: { type: 'equipment', subtype: 'ring' },
+        ring2: { type: 'equipment', subtype: 'ring' },
+        trinket1: { type: 'equipment', subtype: 'trinket' },
+        trinket2: { type: 'equipment', subtype: 'trinket' },
+        guild: { type: 'equipment', subtype: 'guild' },
+        faction: { type: 'equipment', subtype: 'faction' },
+        offhand: { type: 'equipment', subtype: 'offhand' },
+        weapon: { type: 'weapon', subtypes: ['sword', 'bow', 'wand', 'staff', 'hammer', 'axe', 'pickaxe', 'lockpick', '2h sword'] }
+    };
+    
+    let matchingItems = [];
+    const slotMapping = slotToTypeMap[currentSlot];
+    
+    if (slotMapping) {
+        if (slotMapping.type === 'weapon' && slotMapping.subtypes) {
+            slotMapping.subtypes.forEach(subtype => {
+                if (itemsState[slotMapping.type]?.[subtype]) {
+                    matchingItems = matchingItems.concat(itemsState[slotMapping.type][subtype]);
+                }
+            });
+        } else if (itemsState[slotMapping.type]?.[slotMapping.subtype]) {
+            matchingItems = itemsState[slotMapping.type][slotMapping.subtype];
         }
-        
-        // Map slot to item type/subtype
-        const slotToTypeMap = {
-            head: { type: 'equipment', subtype: 'head' },
-            face: { type: 'equipment', subtype: 'face' },
-            shoulder: { type: 'equipment', subtype: 'shoulder' },
-            chest: { type: 'equipment', subtype: 'chest' },
-            legs: { type: 'equipment', subtype: 'legs' },
-            back: { type: 'equipment', subtype: 'back' },
-            ring1: { type: 'equipment', subtype: 'ring' },
-            ring2: { type: 'equipment', subtype: 'ring' },
-            trinket1: { type: 'equipment', subtype: 'trinket' },
-            trinket2: { type: 'equipment', subtype: 'trinket' },
-            guild: { type: 'equipment', subtype: 'guild' },
-            faction: { type: 'equipment', subtype: 'faction' },
-            offhand: { type: 'equipment', subtype: 'offhand' },
-            weapon: { type: 'weapon', subtypes: ['sword', 'bow', 'wand', 'staff', 'hammer', 'axe', 'pickaxe', 'lockpick', '2h sword'] }
-        };
-        
-        let matchingItems = [];
-        const slotMapping = slotToTypeMap[currentSlot];
-        
-        if (slotMapping) {
-            if (slotMapping.type === 'weapon' && slotMapping.subtypes) {
-                slotMapping.subtypes.forEach(subtype => {
-                    if (itemsState[slotMapping.type]?.[subtype]) {
-                        matchingItems = matchingItems.concat(itemsState[slotMapping.type][subtype]);
-                    }
-                });
-            } else if (itemsState[slotMapping.type]?.[slotMapping.subtype]) {
-                matchingItems = itemsState[slotMapping.type][slotMapping.subtype];
-            }
-        }
-        
-        // Filter by query
-        if (query) {
-            const lowerQuery = query.toLowerCase();
-            matchingItems = matchingItems.filter(item => 
-                item.Name.toLowerCase().includes(lowerQuery) ||
-                (item.Level && item.Level.toString().includes(lowerQuery))
-            );
-        }
-        
-        // Sort by level
-        matchingItems.sort((a, b) => (a.Level || 0) - (b.Level || 0));
-        
-        // Limit results (optional)
-        const maxResults = 100;
-        if (matchingItems.length > maxResults) {
-            const infoElement = document.createElement('div');
-            infoElement.className = 'search-info';
-            infoElement.textContent = `Showing ${maxResults} of ${matchingItems.length}. Refine search.`;
-            searchResults.appendChild(infoElement);
-            matchingItems = matchingItems.slice(0, maxResults);
-        }
-        
-        // Display results
-        if (matchingItems.length === 0) {
-            searchResults.innerHTML = '<div class="search-item">No matching items found.</div>';
-        } else {
-            matchingItems.forEach(item => {
-                const itemElement = UIFactory.createSearchResultItem(item, (selectedItem) => {
-                    StateManager.equipItem(currentSlot, selectedItem);
+    }
+    
+    // Filter by query
+    if (query) {
+        const lowerQuery = query.toLowerCase();
+        matchingItems = matchingItems.filter(item => 
+            item.Name.toLowerCase().includes(lowerQuery) ||
+            (item.Level && item.Level.toString().includes(lowerQuery))
+        );
+    }
+    
+    // Sort by level
+    matchingItems.sort((a, b) => (a.Level || 0) - (b.Level || 0));
+    
+    // Limit results (optional)
+    const maxResults = 100;
+    if (matchingItems.length > maxResults) {
+        const infoElement = document.createElement('div');
+        infoElement.className = 'search-info';
+        infoElement.textContent = `Showing ${maxResults} of ${matchingItems.length}. Refine search.`;
+        searchResults.appendChild(infoElement);
+        matchingItems = matchingItems.slice(0, maxResults);
+    }
+    
+    // Display results
+    if (matchingItems.length === 0) {
+        searchResults.innerHTML = '<div class="search-item">No matching items found.</div>';
+    } else {
+        // Create item elements with requirement checking
+        matchingItems.forEach(item => {
+            const itemElement = UIFactory.createSearchResultItem(item, (selectedItem) => {
+                const success = StateManager.equipItem(currentSlot, selectedItem);
+                if (success) {
                     this.updateEquipmentSlots();
                     this.closeItemSearch();
                     DOMUtils.showNotification(`Equipped ${selectedItem.Name}`, 'success');
-                });
-                
-                searchResults.appendChild(itemElement);
+                } else {
+                    DOMUtils.showNotification(`Requirements not met for ${selectedItem.Name}`, 'error');
+                }
             });
-        }
-    },
+            
+            // Add item ID to the element for requirement checking
+            if (item['Item ID']) {
+                itemElement.dataset.itemId = item['Item ID'];
+            }
+            
+            searchResults.appendChild(itemElement);
+        });
+        
+        // Update display to show requirements status
+        this.updateItemSearchRequirementDisplay();
+    }
+},
     
     /**
      * Update the performance table
      * @param {Array} performanceData - Performance data
      */
     updatePerformanceTable(performanceData) {
-        const performanceTbody = DOMUtils.getElement('performance-tbody');
-        if (!performanceTbody) return;
-        
-        DOMUtils.clearElement(performanceTbody);
-        
-        const sortColumn = StateManager.state.ui.performance.sortColumn;
-        const sortAsc = StateManager.state.ui.performance.sortAscending;
-        
-        if (!performanceData || performanceData.length === 0) {
-            const emptyRow = document.createElement('tr');
-            emptyRow.innerHTML = '<td colspan="5" style="text-align: center;">No mobs match criteria or DPS is zero.</td>';
-            performanceTbody.appendChild(emptyRow);
-            return;
+    const performanceTbody = DOMUtils.getElement('performance-tbody');
+    if (!performanceTbody) return;
+    
+    DOMUtils.clearElement(performanceTbody);
+    
+    // Get current sort settings from state
+    const state = StateManager.getState();
+    const sortColumn = state.ui.performance.sortColumn;
+    const sortAsc = state.ui.performance.sortAscending;
+    
+    // Update header sort indicators
+    document.querySelectorAll('.performance-table th[data-sort]').forEach(th => {
+        const indicator = th.querySelector('.sort-indicator');
+        if (indicator) {
+            indicator.className = 'sort-indicator';
+            
+            if (th.dataset.sort === sortColumn) {
+                indicator.classList.add(sortAsc ? 'asc' : 'desc');
+            }
         }
+    });
+    
+    if (!performanceData || performanceData.length === 0) {
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = '<td colspan="5" style="text-align: center;">No mobs match criteria or DPS is zero.</td>';
+        performanceTbody.appendChild(emptyRow);
+        return;
+    }
+    
+    // Populate table rows
+    performanceData.forEach(mobPerf => {
+        const row = document.createElement('tr');
         
-        // Sort the data based on UI state
-        performanceData.sort((a, b) => {
-            let valA = a[sortColumn];
-            let valB = b[sortColumn];
-            
-            if (sortColumn === 'name') {
-                valA = (valA || '').toLowerCase();
-                valB = (valB || '').toLowerCase();
-                return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            } else {
-                return sortAsc ? (valA || 0) - (valB || 0) : (valB || 0) - (valA || 0);
-            }
-        });
+        // Name column
+        const nameCell = document.createElement('td');
+        nameCell.textContent = mobPerf.name;
+        row.appendChild(nameCell);
         
-        // Update header sort indicators
-        document.querySelectorAll('.performance-table th').forEach(th => {
-            const indicator = th.querySelector('.sort-indicator');
-            if (indicator) {
-                indicator.className = 'sort-indicator';
-                if (th.dataset.sort === sortColumn) {
-                    indicator.classList.add(sortAsc ? 'asc' : 'desc');
-                }
-            }
-        });
+        // Level column
+        const levelCell = document.createElement('td');
+        levelCell.textContent = mobPerf.level;
+        row.appendChild(levelCell);
         
-        // Populate table rows
-        performanceData.forEach(mobPerf => {
-            const row = document.createElement('tr');
-            
-            // Name column
-            const nameCell = document.createElement('td');
-            nameCell.textContent = mobPerf.name;
-            row.appendChild(nameCell);
-            
-            // Level column
-            const levelCell = document.createElement('td');
-            levelCell.textContent = mobPerf.level;
-            row.appendChild(levelCell);
-            
-            // Time to kill column
-            const ttkCell = document.createElement('td');
-            if (!isFinite(mobPerf.ttk) || mobPerf.ttk <= 0) {
-                ttkCell.textContent = "N/A";
-                ttkCell.title = "Cannot calculate kill time";
-            } else if (mobPerf.ttk > 99) {
-                ttkCell.textContent = (mobPerf.ttk / 60).toFixed(1) + 'm';
-                ttkCell.title = `${mobPerf.ttk.toFixed(1)} seconds`;
-            } else {
-                ttkCell.textContent = Math.round(mobPerf.ttk) + 's';
-                ttkCell.title = `${mobPerf.ttk.toFixed(1)} seconds`;
-            }
-            row.appendChild(ttkCell);
-            
-            // Gold per hour column
-            const gphCell = document.createElement('td');
-            gphCell.textContent = FO2Utils.formatNumber(mobPerf.gph);
-            row.appendChild(gphCell);
-            
-            // XP per hour column
-            const xphCell = document.createElement('td');
-            xphCell.textContent = FO2Utils.formatNumber(mobPerf.xph);
-            row.appendChild(xphCell);
-            
-            performanceTbody.appendChild(row);
-        });
-    },
+        // Time to kill column
+        const ttkCell = document.createElement('td');
+        if (!isFinite(mobPerf.ttk) || mobPerf.ttk <= 0) {
+            ttkCell.textContent = "N/A";
+            ttkCell.title = "Cannot calculate kill time";
+        } else if (mobPerf.ttk > 99) {
+            ttkCell.textContent = (mobPerf.ttk / 60).toFixed(1) + 'm';
+            ttkCell.title = `${mobPerf.ttk.toFixed(1)} seconds`;
+        } else {
+            ttkCell.textContent = Math.round(mobPerf.ttk) + 's';
+            ttkCell.title = `${mobPerf.ttk.toFixed(1)} seconds`;
+        }
+        row.appendChild(ttkCell);
+        
+        // Gold per hour column
+        const gphCell = document.createElement('td');
+        gphCell.textContent = FO2Utils.formatNumber(mobPerf.gph);
+        row.appendChild(gphCell);
+        
+        // XP per hour column
+        const xphCell = document.createElement('td');
+        xphCell.textContent = FO2Utils.formatNumber(mobPerf.xph);
+        row.appendChild(xphCell);
+        
+        performanceTbody.appendChild(row);
+    });
+},
     
     /**
      * Handle filter slider change
@@ -3490,7 +3762,72 @@ const UIController = {
                 optgroup.appendChild(option);
             });
         });
+    },
+
+    /**
+     * Update mode-related UI elements
+     * @param {string} mode - Current mode
+     */
+    updateModeDisplay(mode) {
+        const modeToggleSwitch = DOMUtils.getElement('mode-toggle');
+        const modeLabel = DOMUtils.getElement('mode-display');
+        
+        if (modeToggleSwitch) {
+            modeToggleSwitch.checked = (mode === FO2Config.UI.MODE.RESTRICTED);
+        }
+        
+        if (modeLabel) {
+            modeLabel.textContent = mode === FO2Config.UI.MODE.RESTRICTED
+                ? 'Restricted Mode'
+                : 'Sandbox Mode';
+        }
+        
+        // Update item search UI to show requirements status
+        this.updateItemSearchRequirementDisplay();
+    },
+
+    /**
+     * Update search results to show requirement status
+     */
+    updateItemSearchRequirementDisplay() {
+    if (StateManager.state.ui.mode !== FO2Config.UI.MODE.RESTRICTED) return;
+    
+    const searchResults = document.querySelectorAll('.search-item');
+    const currentSlot = StateManager.state.ui.currentItemSearchSlot;
+    if (!currentSlot) return;
+    
+    // Create a temporary state that includes the stats with current equipment
+    // This simulates what stats will be after equipping the item
+    const tempState = FO2Utils.deepClone(StateManager.state.currentBuild);
+    
+    // If we have an item in the target slot, remove it first to simulate replacing it
+    if (tempState.equipment[currentSlot]) {
+        // Remove the current item's stats before calculating
+        tempState.equipment[currentSlot] = null;
     }
+    
+    // Calculate stats without anything in the target slot
+    const tempStats = StatsCalculator.performFullStatCalculation(tempState, FO2Config).finalStats;
+    
+    searchResults.forEach(resultElement => {
+        const itemId = resultElement.dataset.itemId;
+        if (!itemId) return;
+        
+        const item = StateManager.state.data.itemsById.get(itemId);
+        if (!item) return;
+        
+        // Check requirements against calculated stats (without the current item in slot)
+        const failsRequirements = (
+            (item['Req STR'] && tempStats.str < item['Req STR']) ||
+            (item['Req INT'] && tempStats.int < item['Req INT']) ||
+            (item['Req AGI'] && tempStats.agi < item['Req AGI']) ||
+            (item['Req STA'] && tempStats.sta < item['Req STA'])
+        );
+        
+        resultElement.classList.toggle('requirements-not-met', failsRequirements);
+    });
+}
+
 };
 
 // ------------------------------------------------------------------
