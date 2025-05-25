@@ -82,6 +82,13 @@ const FO2Config = {
         DAMAGE: {
             AP_SCALE_DIVISOR: 14,   // Divisor for AP to damage conversion
             MIN_ATTACK_SPEED: 100   // Minimum attack speed in ms
+        },
+        // Spells config
+        SPELLS: {
+            DAMAGE_CALCULATION: {
+                // Used for calculating spell DPS from damage range and cast time
+                CAST_TIME_BUFFER: 0 // No additional buffer for now
+            }
         }
     },
     
@@ -1043,6 +1050,114 @@ const UIFactory = {
     }
 };
 
+// Add spell-related methods to UIFactory as properties after the object definition
+UIFactory.createSpellSlot = function(spell, clickHandler) {
+    const spellSlot = DOMUtils.createElement('div', {
+        className: 'spell-slot',
+        onclick: (e) => {
+            // Only handle clicks on the slot itself, not on clear button
+            if (!e.target.classList.contains('spell-clear')) {
+                clickHandler(e);
+            }
+        }
+    });
+    
+    UIFactory.updateSpellSlotContent(spellSlot, spell);
+    return spellSlot;
+};
+
+UIFactory.updateSpellSlotContent = function(spellSlot, spell) {
+    DOMUtils.clearElement(spellSlot);
+    
+    if (spell) {
+        // Spell equipped - show spell icon or fallback
+        const spellIconName = spell.Name.toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '');
+        
+        const iconFileName = `assets/build-sandbox/icons/${spellIconName}-icon.png`;
+        
+        const img = DOMUtils.createElement('img', {
+            src: iconFileName,
+            alt: spell.Name,
+            onerror: function() {
+                this.style.display = 'none';
+                const fallback = DOMUtils.createElement('div', {
+                    className: 'spell-slot-fallback',
+                    textContent: '⚡'
+                });
+                this.parentNode.appendChild(fallback);
+            }
+        });
+        
+        spellSlot.appendChild(img);
+        
+        // Add clear button
+        const clearButton = DOMUtils.createElement('div', {
+            className: 'spell-clear',
+            textContent: '×',
+            title: 'Remove spell'
+        });
+        
+        clearButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            StateManager.setSelectedSpell(null);
+            UIController.updateSpellDisplay();
+        });
+        
+        spellSlot.appendChild(clearButton);
+    } else {
+        // No spell - show default icon
+        const defaultIcon = DOMUtils.createElement('div', {
+            className: 'spell-slot-fallback',
+            textContent: '⚡'
+        });
+        
+        spellSlot.appendChild(defaultIcon);
+    }
+};
+
+UIFactory.createSpellSearchResult = function(spell, selectHandler) {
+    const spellElement = DOMUtils.createElement('div', {
+        className: 'spell-search-item',
+        onclick: () => selectHandler(spell)
+    });
+    
+    const nameDiv = DOMUtils.createElement('div', {
+        className: 'spell-search-name',
+        textContent: `${spell.Name} (Tier ${spell.tier})`
+    });
+    
+    const detailsDiv = DOMUtils.createElement('div', {
+        className: 'spell-search-details',
+        textContent: `Lvl ${spell.levelRequired} • DPS: ${spell.dps} • Cost: ${spell.energyPerSecond}/sec`
+    });
+    
+    spellElement.appendChild(nameDiv);
+    spellElement.appendChild(detailsDiv);
+    
+    return spellElement;
+};
+
+UIFactory.generateSpellTooltipContent = function(spell) {
+    let content = `<div class="tooltip-title">${spell.Name} (Tier ${spell.tier})</div>`;
+    content += `<div class="tooltip-level">Level ${spell.levelRequired} Spell</div>`;
+    
+    const statsHtml = [];
+    statsHtml.push(`<div>Damage: ${spell.minDamage}-${spell.maxDamage}</div>`);
+    statsHtml.push(`<div>Cast Time: ${spell.castTime}s</div>`);
+    statsHtml.push(`<div>Energy Cost: ${spell.energyCost}</div>`);
+    if (spell.cooldown > 0) {
+        statsHtml.push(`<div>Cooldown: ${spell.cooldown}s</div>`);
+    }
+    statsHtml.push(`<div class="effect-positive">DPS: ${spell.dps}</div>`);
+    statsHtml.push(`<div class="effect-negative">Energy/sec: ${spell.energyPerSecond}</div>`);
+    
+    content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
+    
+    return content;
+};
+
 // ------------------------------------------------------------------
 // data-service.js - Data processing service
 // ------------------------------------------------------------------
@@ -1242,7 +1357,7 @@ const DataService = {
             DOMUtils.showNotification("Loading game data...", "info");
             
             // Fetch all data files in parallel
-            const [itemsResponse, mobsResponse, buffsResponse] = await Promise.all([
+            const [itemsResponse, mobsResponse, buffsResponse, spellsResponse] = await Promise.all([
                 fetch('assets/build-sandbox/data/items.json').catch(e => {
                     console.error("Fetch items failed:", e);
                     return { ok: false, json: () => null };
@@ -1254,18 +1369,23 @@ const DataService = {
                 fetch('assets/build-sandbox/data/buffs.json').catch(e => {
                     console.error("Fetch buffs failed:", e);
                     return { ok: false, json: () => null };
+                }),
+                fetch('assets/build-sandbox/data/spells.json').catch(e => {
+                    console.error("Fetch spells failed:", e);
+                    return { ok: false, json: () => null };
                 })
             ]);
             
-            if (!itemsResponse.ok || !mobsResponse.ok || !buffsResponse.ok) {
+            if (!itemsResponse.ok || !mobsResponse.ok || !buffsResponse.ok || !spellsResponse.ok) {
                 throw new Error("One or more data files failed to load. Check network or file paths.");
             }
             
             const rawItemsArray = await itemsResponse.json();
             const rawMobsData = await mobsResponse.json();
             const rawBuffsArray = await buffsResponse.json();
+            const rawSpellsArray = await spellsResponse.json();
             
-            if (rawItemsArray === null || rawMobsData === null || rawBuffsArray === null) {
+            if (rawItemsArray === null || rawMobsData === null || rawBuffsArray === null || rawSpellsArray === null) {
                 throw new Error("One or more data files parsed to null.");
             }
             
@@ -1274,6 +1394,7 @@ const DataService = {
             // Process each data type in correct order
             const itemData = this.processItemData(rawItemsArray);
             const buffsData = this.processBuffsData(rawBuffsArray);
+            const spellsData = this.processSpellsData(rawSpellsArray);
             const mobsData = this.processMobsData(rawMobsData, itemData.itemsById);
             
             DOMUtils.showNotification("Game data loaded successfully!", "success");
@@ -1283,14 +1404,76 @@ const DataService = {
                 itemsById: itemData.itemsById,
                 mobs: mobsData.mobs,
                 mobsMaxLevel: mobsData.mobsMaxLevel,
-                buffs: buffsData
+                buffs: buffsData,
+                spells: spellsData
             };
         } catch (error) {
             console.error("Error loading data:", error);
             DOMUtils.showNotification(`Failed to load game data: ${error.message}`, "error");
             throw error;
         }
+    },
+
+    /**
+     * Process and normalize spells data
+     * @param {Array} spellsArray - Raw spells data
+     * @returns {Array} Processed spells data
+     */
+    processSpellsData(spellsArray) {
+        try {
+            if (!spellsArray || !Array.isArray(spellsArray)) {
+                console.error("Invalid spells data provided.");
+                return [];
+            }
+
+            const processedSpells = spellsArray.map(spell => {
+                // Parse numeric fields
+                const energyCost = parseInt(spell["Energy Cost"]) || 0;
+                const castTime = parseFloat(spell["Cast Time"]) || 1;
+                const levelRequired = parseInt(spell["Level Required"]) || 1;
+                const tier = parseInt(spell.Tier) || 1;
+                const cooldown = parseFloat(spell.Cooldown) || 0;
+
+                // Parse damage range
+                const damageValues = FO2Utils.parseDamageString(spell.Damage);
+                
+                // Calculate DPS and energy per second
+                const avgDamage = (damageValues.minDamage + damageValues.maxDamage) / 2;
+                const effectiveCastTime = Math.max(castTime, cooldown); // Use longer of cast time or cooldown
+                const dps = effectiveCastTime > 0 ? avgDamage / effectiveCastTime : 0;
+                const energyPerSecond = effectiveCastTime > 0 ? energyCost / effectiveCastTime : 0;
+
+                return {
+                    ...spell,
+                    energyCost,
+                    castTime,
+                    levelRequired,
+                    tier,
+                    cooldown,
+                    minDamage: damageValues.minDamage,
+                    maxDamage: damageValues.maxDamage,
+                    avgDamage,
+                    dps: Math.round(dps),
+                    energyPerSecond: Math.round(energyPerSecond * 10) / 10 // Round to 1 decimal
+                };
+            });
+
+            // Sort by level required, then by tier
+            processedSpells.sort((a, b) => {
+                if (a.levelRequired !== b.levelRequired) {
+                    return a.levelRequired - b.levelRequired;
+                }
+                return a.tier - b.tier;
+            });
+
+            console.log(`Processed ${processedSpells.length} spells.`);
+            return processedSpells;
+        } catch (error) {
+            console.error("Error processing spells data:", error);
+            return [];
+        }
     }
+
 };
 
 // ------------------------------------------------------------------
@@ -1732,15 +1915,16 @@ const StateManager = {
     state: {
         // Game Data
         data: {
-            items: {
-                weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
-                equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
-            },
-            itemsById: new Map(),
-            mobs: [],
-            mobsMaxLevel: 1,
-            buffs: { "Buff": [], "Morph": [] }
+        items: {
+            weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
+            equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
         },
+        itemsById: new Map(),
+        mobs: [],
+        mobsMaxLevel: 1,
+        buffs: { "Buff": [], "Morph": [] },
+        spells: []  // <-- ADD THIS LINE
+    },
         
         // Current Build
         currentBuild: {
@@ -1755,7 +1939,9 @@ const StateManager = {
             pointsRemaining: FO2Config.GAME.LEVEL.INITIAL_POINTS,
             equipment: {},
             activeBuffs: [],
-            calculatedStats: {}
+            calculatedStats: {},
+            selectedSpell: null
+
         },
         
         // UI State
@@ -2513,8 +2699,162 @@ validateEquipmentRequirements() {
     // In the actual game, equipment is not unequipped when requirements are no longer met
     // So this function now does nothing and returns an empty array
     return [];
-},
+}
 
+};
+
+// Add spell-related methods to StateManager after its definition
+StateManager.setSelectedSpell = function(spellObject) {
+    this.state.currentBuild.selectedSpell = spellObject;
+    this.saveCurrentStateToLocalStorage();
+    EventSystem.publish('spell-updated', spellObject);
+};
+
+StateManager.resetSpell = function() {
+    this.setSelectedSpell(null);
+};
+
+// Update StateManager save/load methods to handle spells:
+StateManager.saveCurrentStateToLocalStorageOriginal = StateManager.saveCurrentStateToLocalStorage;
+StateManager.saveCurrentStateToLocalStorage = function() {
+    const saveData = {
+        level: this.state.currentBuild.level,
+        rebirth: this.state.currentBuild.rebirth,
+        stats: this.state.currentBuild.statPoints,
+        equipment: {},
+        activeBuffNames: this.state.currentBuild.activeBuffs.map(buff => buff.Name),
+        selectedSpellName: this.state.currentBuild.selectedSpell ? this.state.currentBuild.selectedSpell.Name : null,
+        uiPerformance: this.state.ui.performance,
+        uiMode: this.state.ui.mode
+    };
+    
+    // Store item IDs for equipment
+    for (const slot in this.state.currentBuild.equipment) {
+        if (this.state.currentBuild.equipment[slot]) {
+            const itemId = this.state.currentBuild.equipment[slot]['Item ID'];
+            if (itemId !== undefined) {
+                saveData.equipment[slot] = itemId;
+            }
+        }
+    }
+    
+    try {
+        localStorage.setItem(FO2Config.STORAGE.CURRENT_STATE_KEY, JSON.stringify(saveData));
+    } catch (e) {
+        console.error("Failed to save state:", e);
+        DOMUtils.showNotification("Could not save current build state.", "error");
+    }
+};
+
+StateManager.loadCurrentStateFromLocalStorageOriginal = StateManager.loadCurrentStateFromLocalStorage;
+StateManager.loadCurrentStateFromLocalStorage = function() {
+    const savedDataString = localStorage.getItem(FO2Config.STORAGE.CURRENT_STATE_KEY);
+    if (!savedDataString) {
+        console.log("No saved build state found in localStorage. Using defaults.");
+        return false;
+    }
+
+    try {
+        const savedData = FO2Utils.safeJSONParse(savedDataString);
+        if (!savedData) {
+            console.error("Invalid saved state data.");
+            return false;
+        }
+
+        console.log("Loading build state from localStorage:", savedData);
+
+        // Apply saved data to currentBuild
+        this.state.currentBuild.level = savedData.level || 1;
+        this.state.currentBuild.rebirth = savedData.rebirth || false;
+        this.state.currentBuild.statPoints = savedData.stats || {
+            agi: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+            str: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+            int: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
+            sta: FO2Config.GAME.LEVEL.BASE_STAT_POINTS
+        };
+
+        // Load UI mode if present
+        if (savedData.uiMode) {
+            this.state.ui.mode = savedData.uiMode;
+        }
+
+        // Reset equipment, buffs, and spell before loading
+        this.state.currentBuild.equipment = {};
+        this.state.currentBuild.activeBuffs = [];
+        this.state.currentBuild.selectedSpell = null;
+
+        // Load equipment
+        if (savedData.equipment && this.state.data.itemsById.size > 0) {
+            for (const slot in savedData.equipment) {
+                const itemIdToLoad = savedData.equipment[slot];
+                const itemToEquip = this.state.data.itemsById.get(itemIdToLoad);
+                if (itemToEquip) {
+                    this.state.currentBuild.equipment[slot] = itemToEquip;
+                } else {
+                    console.warn(`Could not find item ID ${itemIdToLoad} for slot ${slot} during load.`);
+                }
+            }
+        }
+
+        // Load active buffs
+        if (savedData.activeBuffNames && 
+           (this.state.data.buffs.Buff.length > 0 || this.state.data.buffs.Morph.length > 0)) {
+            savedData.activeBuffNames.forEach(buffNameToLoad => {
+                let buffToActivate = null;
+                for (const category in this.state.data.buffs) {
+                    if (Array.isArray(this.state.data.buffs[category])) {
+                        buffToActivate = this.state.data.buffs[category].find(b => b.Name === buffNameToLoad);
+                        if (buffToActivate) break;
+                    }
+                }
+                
+                if (buffToActivate) {
+                    this.state.currentBuild.activeBuffs.push(buffToActivate);
+                } else {
+                    console.warn(`Buff data missing for ${buffNameToLoad} during load.`);
+                }
+            });
+        }
+
+        // Load selected spell
+        if (savedData.selectedSpellName && this.state.data.spells && this.state.data.spells.length > 0) {
+            const spellToSelect = this.state.data.spells.find(s => s.Name === savedData.selectedSpellName);
+            if (spellToSelect) {
+                this.state.currentBuild.selectedSpell = spellToSelect;
+            } else {
+                console.warn(`Spell data missing for ${savedData.selectedSpellName} during load.`);
+            }
+        }
+
+        // Load UI state (performance filters)
+        if (savedData.uiPerformance) {
+            Object.assign(this.state.ui.performance, savedData.uiPerformance);
+            
+            // Clamp loaded levels
+            this.state.ui.performance.minLevel = Math.max(1, Math.min(
+                parseInt(this.state.ui.performance.minLevel) || 1,
+                this.state.data.mobsMaxLevel
+            ));
+            
+            this.state.ui.performance.maxLevel = Math.max(
+                this.state.ui.performance.minLevel,
+                Math.min(
+                    parseInt(this.state.ui.performance.maxLevel) || this.state.data.mobsMaxLevel,
+                    this.state.data.mobsMaxLevel
+                )
+            );
+        }
+
+        console.log("Successfully loaded state from localStorage.");
+        this.recalculatePoints();
+        this.triggerRecalculationAndUpdateUI();
+        
+        return true;
+    } catch (e) {
+        console.error("Failed to load or parse saved state:", e);
+        localStorage.removeItem(FO2Config.STORAGE.CURRENT_STATE_KEY);
+        return false;
+    }
 };
 
 
@@ -2859,6 +3199,32 @@ const UIController = {
             }
         });
 
+        const spellSlot = DOMUtils.getElement('spell-slot');
+    if (spellSlot) {
+        spellSlot.addEventListener('click', (event) => {
+            if (!event.target.classList.contains('spell-clear')) {
+                this.openSpellSearch();
+            }
+        });
+        
+        spellSlot.addEventListener('mouseenter', () => {
+            const selectedSpell = StateManager.state.currentBuild.selectedSpell;
+            if (selectedSpell) {
+                const content = UIFactory.generateSpellTooltipContent(selectedSpell);
+                UIFactory.createTooltip(spellSlot, content, 'spell-tooltip', 'item-tooltip');
+            }
+        });
+        
+        spellSlot.addEventListener('mouseleave', () => {
+            UIFactory.hideTooltip('spell-tooltip');
+        });
+    }
+    
+    // Subscribe to spell update events
+    EventSystem.subscribe('spell-updated', () => {
+        this.updateSpellDisplay();
+    });
+
 // 14. Subscribe to mode changes
 EventSystem.subscribe('mode-changed', (data) => {
     UIController.updateModeDisplay(data.mode);
@@ -3010,6 +3376,9 @@ registerSlotItemRemovedListener() {
         
         // Buff Grid
         this.updateBuffGrid();
+
+        // Spell Slot
+        this.updateSpellDisplay();
         
         // Performance Filters
         const hideBossesCheckbox = DOMUtils.getElement('hide-bosses-checkbox');
@@ -3288,6 +3657,10 @@ registerSlotItemRemovedListener() {
     DOMUtils.clearElement(searchResults);
     
     const currentSlot = StateManager.state.ui.currentItemSearchSlot;
+    if (currentSlot === 'spell') {
+        this.populateSpellSearchResults(query);
+        return;
+    }
     if (!currentSlot) return;
     
     const itemsState = StateManager.state.data.items;
@@ -3826,8 +4199,118 @@ registerSlotItemRemovedListener() {
         
         resultElement.classList.toggle('requirements-not-met', failsRequirements);
     });
-}
+} // <-- Close the UIController object literal here.
+};
+// Add spell-related methods to UIController after its definition
+UIController.updateSpellDisplay = function() {
+    const spellSlot = DOMUtils.getElement('spell-slot');
+    const spellInfo = DOMUtils.getElement('spell-info');
+    
+    if (!spellSlot || !spellInfo) return;
+    
+    const selectedSpell = StateManager.state.currentBuild.selectedSpell;
+    
+    // Update spell slot
+    UIFactory.updateSpellSlotContent(spellSlot, selectedSpell);
+    
+    // Update spell info
+    DOMUtils.clearElement(spellInfo);
+    
+    if (selectedSpell) {
+        const nameDiv = DOMUtils.createElement('div', {
+            className: 'spell-name',
+            textContent: `${selectedSpell.Name} (Tier ${selectedSpell.tier})`
+        });
+        
+        const statsDiv = DOMUtils.createElement('div', {
+            className: 'spell-stats'
+        });
+        
+        const dpsDiv = DOMUtils.createElement('div', {
+            innerHTML: `DPS: <span class="spell-dps">${selectedSpell.dps}</span>`
+        });
+        
+        const costDiv = DOMUtils.createElement('div', {
+            innerHTML: `Cost: <span class="spell-cost">${selectedSpell.energyPerSecond} energy/sec</span>`
+        });
+        
+        statsDiv.appendChild(dpsDiv);
+        statsDiv.appendChild(costDiv);
+        
+        spellInfo.appendChild(nameDiv);
+        spellInfo.appendChild(statsDiv);
+    } else {
+        const placeholderDiv = DOMUtils.createElement('div', {
+            style: 'color: #666; font-style: italic;',
+            textContent: 'Click to select a spell'
+        });
+        
+        spellInfo.appendChild(placeholderDiv);
+    }
+};
 
+UIController.openSpellSearch = function() {
+    const searchModal = DOMUtils.getElement('item-search-modal');
+    const searchTitle = document.getElementById('search-title');
+    const searchInput = DOMUtils.getElement('item-search-input');
+    
+    if (!searchModal) return;
+    
+    // Set search mode to spells
+    StateManager.setCurrentItemSearchSlot('spell');
+    
+    // Update Title
+    if (searchTitle) {
+        searchTitle.textContent = 'Select Spell';
+    }
+    
+    // Show and position modal
+    searchModal.style.display = 'flex';
+    searchModal.style.top = '50%';
+    searchModal.style.left = '50%';
+    searchModal.style.transform = 'translate(-50%, -50%)';
+    
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+    
+    this.populateSpellSearchResults();
+};
+
+UIController.populateSpellSearchResults = function(query = '') {
+    const searchResults = DOMUtils.getElement('search-results');
+    if (!searchResults) return;
+    
+    DOMUtils.clearElement(searchResults);
+    
+    const spells = StateManager.state.data.spells || [];
+    
+    // Filter by query
+    let filteredSpells = spells;
+    if (query) {
+        const lowerQuery = query.toLowerCase();
+        filteredSpells = spells.filter(spell => 
+            spell.Name.toLowerCase().includes(lowerQuery) ||
+            spell.tier.toString().includes(lowerQuery)
+        );
+    }
+    
+    // Display results
+    if (filteredSpells.length === 0) {
+        searchResults.innerHTML = '<div class="search-item">No matching spells found.</div>';
+    } else {
+        filteredSpells.forEach(spell => {
+            const spellElement = UIFactory.createSpellSearchResult(spell, (selectedSpell) => {
+                StateManager.setSelectedSpell(selectedSpell);
+                this.updateSpellDisplay();
+                this.closeItemSearch();
+                DOMUtils.showNotification(`Selected ${selectedSpell.Name}`, 'success');
+            });
+            
+            searchResults.appendChild(spellElement);
+        });
+    }
 };
 
 // ------------------------------------------------------------------
