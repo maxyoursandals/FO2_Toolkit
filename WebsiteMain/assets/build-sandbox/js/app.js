@@ -534,127 +534,58 @@ const UIFactory = {
      * @param {string} tooltipId - The ID for the tooltip
      * @param {string} tooltipClass - The CSS class for the tooltip
      */
-    createTooltip(element, contentHtml, tooltipId = 'item-tooltip', tooltipClass = 'item-tooltip') {
-        this.hideTooltip(tooltipId);
+    generateItemTooltipContent(item) {
+        let content = `<div class="tooltip-title">${item.Name}</div>`;
         
-        const tooltip = DOMUtils.createElement('div', {
-            className: tooltipClass,
-            id: tooltipId,
-            innerHTML: contentHtml
+        if (item.Level !== undefined) {
+            content += `<div class="tooltip-level">Level ${item.Level}${item.Subtype ? ` ${item.Subtype}` : ''}</div>`;
+        }
+        
+        // Stats section - UPDATED to include new fields
+        const statsHtml = [];
+        ['STA', 'STR', 'INT', 'AGI', 'Armor'].forEach(stat => {
+            if (item[stat]) {
+                const value = item[stat];
+                const cssClass = value > 0 ? 'stat-positive' : 'stat-negative';
+                statsHtml.push(`<div class="${cssClass}">${stat}: ${value > 0 ? '+' : ''}${value}</div>`);
+            }
         });
         
-        document.body.appendChild(tooltip);
-        
-        // Position tooltip
-        const elemRect = element.getBoundingClientRect();
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const margin = 10;
-        
-        // Default position: right, vertical center
-        let left = elemRect.right + margin;
-        let top = elemRect.top + (elemRect.height / 2) - (tooltipRect.height / 2) + window.scrollY;
-        
-        // Adjust if off-screen
-        if (left + tooltipRect.width > window.innerWidth - margin) {
-            // Try left side instead
-            left = elemRect.left - tooltipRect.width - margin;
-            if (left < margin) left = margin;
-        }
-        
-        if (top < window.scrollY + margin) {
-            top = window.scrollY + margin;
-        } else if (top + tooltipRect.height > window.innerHeight + window.scrollY - margin) {
-            top = window.innerHeight + window.scrollY - tooltipRect.height - margin;
-        }
-        
-        tooltip.style.left = `${left}px`;
-        tooltip.style.top = `${top}px`;
-        
-        // Fade in
-        requestAnimationFrame(() => { tooltip.style.opacity = 1; });
-        
-        return tooltip;
-    },
-    
-    /**
-     * Hides a tooltip by ID
-     * @param {string} tooltipId - The ID of the tooltip to hide
-     */
-    hideTooltip(tooltipId = 'item-tooltip') {
-        const existingTooltip = document.getElementById(tooltipId);
-        if (existingTooltip) {
-            existingTooltip.remove();
-        }
-    },
-
-    /**
-     * Shows an item tooltip
-     * @param {HTMLElement} element - The element to attach to
-     * @param {Object} item - The item data
-     */
-    showItemTooltip(element, item) {
-        if (!item) return;
-        
-        const content = this.generateItemTooltipContent(item);
-        this.createTooltip(element, content, 'item-tooltip');
-    },
-    
-    /**
-     * Shows a buff tooltip
-     * @param {Object} buff - The buff data
-     * @param {HTMLElement} element - The element to attach to
-     */
-    showBuffTooltip(buff, element) {
-        if (!buff) return;
-        
-        const content = this.generateBuffTooltipContent(buff);
-        this.createTooltip(element, content, 'buff-tooltip', 'buff-tooltip');
-    },
-    
-    /**
-     * Generates item tooltip HTML content
-     * @param {Object} item - The item data
-     * @returns {string} HTML content for tooltip
-     */
-    generateItemTooltipContent(item) {
-    let content = `<div class="tooltip-title">${item.Name}</div>`;
-    
-    if (item.Level !== undefined) {
-        content += `<div class="tooltip-level">Level ${item.Level}${item.Subtype ? ` ${item.Subtype}` : ''}</div>`;
-    }
-    
-    // Stats section
-    const statsHtml = [];
-    ['STA', 'STR', 'INT', 'AGI', 'Armor'].forEach(stat => {
-        if (item[stat]) {
-            const value = item[stat];
+        // NEW: Add Direct Crit and Direct ATK Power to stats display
+        if (item["Direct Crit"] && item["Direct Crit"] !== 0) {
+            const value = item["Direct Crit"];
             const cssClass = value > 0 ? 'stat-positive' : 'stat-negative';
-            statsHtml.push(`<div class="${cssClass}">${stat}: ${value > 0 ? '+' : ''}${value}</div>`);
+            statsHtml.push(`<div class="${cssClass}">Direct Crit: ${value > 0 ? '+' : ''}${value}%</div>`);
         }
-    });
-    
-    if (item.Damage) statsHtml.push(`<div>Damage: ${item.Damage}</div>`);
-    if (item['Atk Spd']) statsHtml.push(`<div>Speed: ${item['Atk Spd']}</div>`);
-    
-    if (statsHtml.length > 0) {
-        content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
-    }
-    
-    // Requirements section - don't show current stat values or special styling
-    const reqHtml = [];
-    ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(req => {
-        if (item[req]) {
-            reqHtml.push(`<div>Requires ${req.replace('Req ', '')}: ${item[req]}</div>`);
+        
+        if (item["Direct ATK Power"] && item["Direct ATK Power"] !== 0) {
+            const value = item["Direct ATK Power"];
+            const cssClass = value > 0 ? 'stat-positive' : 'stat-negative';
+            statsHtml.push(`<div class="${cssClass}">Direct ATK Power: ${value > 0 ? '+' : ''}${value}</div>`);
         }
-    });
-    
-    if (reqHtml.length > 0) {
-        if (statsHtml.length > 0) content += `<div class="tooltip-separator"></div>`;
-        content += `<div class="tooltip-req">${reqHtml.join('')}</div>`;
-    }
-    
-    return content;
-},
+        
+        if (item.Damage) statsHtml.push(`<div>Damage: ${item.Damage}</div>`);
+        if (item['Atk Spd']) statsHtml.push(`<div>Speed: ${item['Atk Spd']}</div>`);
+        
+        if (statsHtml.length > 0) {
+            content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
+        }
+        
+        // Requirements section - don't show current stat values or special styling
+        const reqHtml = [];
+        ['Req STA', 'Req STR', 'Req INT', 'Req AGI'].forEach(req => {
+            if (item[req]) {
+                reqHtml.push(`<div>Requires ${req.replace('Req ', '')}: ${item[req]}</div>`);
+            }
+        });
+        
+        if (reqHtml.length > 0) {
+            if (statsHtml.length > 0) content += `<div class="tooltip-separator"></div>`;
+            content += `<div class="tooltip-req">${reqHtml.join('')}</div>`;
+        }
+        
+        return content;
+    },
     
     /**
      * Generates buff tooltip HTML content
@@ -1002,7 +933,7 @@ const UIFactory = {
         content += `<h4 class="viewer-title">${item.Name}</h4>`;
         content += `<div class="viewer-level-type">Level ${item.Level || 0} - ${item.Type || ''}${item.Subtype ? ` / ${item.Subtype}` : ''}</div>`;
         
-        // Stats section
+        // Stats section - UPDATED to include new fields
         const statsHtml = [];
         const statMappings = [
             { key: 'STA', label: 'STA', classPositive: 'stat-positive', classNegative: 'stat-negative' },
@@ -1010,6 +941,8 @@ const UIFactory = {
             { key: 'INT', label: 'INT', classPositive: 'stat-positive', classNegative: 'stat-negative' },
             { key: 'AGI', label: 'AGI', classPositive: 'stat-positive', classNegative: 'stat-negative' },
             { key: 'Armor', label: 'Armor', classPositive: 'stat-positive', classNegative: 'stat-negative' },
+            { key: 'Direct Crit', label: 'Direct Crit (%)', classPositive: 'stat-positive', classNegative: 'stat-negative' }, // NEW
+            { key: 'Direct ATK Power', label: 'Direct ATK Power', classPositive: 'stat-positive', classNegative: 'stat-negative' }, // NEW
             { key: 'Damage', label: 'Damage', classPositive: '', classNegative: '' },
             { key: 'Atk Spd', label: 'Speed (ms)', classPositive: '', classNegative: '' }
         ];
@@ -1187,6 +1120,19 @@ const DataService = {
                 if (item.Level !== undefined) item.Level = parseInt(item.Level) || 0;
                 if (item.Armor !== undefined && item.Armor !== "") item.Armor = parseInt(item.Armor) || 0; else item.Armor = 0;
                 if (item["Atk Spd"] !== undefined && item["Atk Spd"] !== "") item["Atk Spd"] = parseInt(item["Atk Spd"]) || 0; else item["Atk Spd"] = 0;
+                
+                // Parse new fields - Direct Crit and Direct ATK Power
+                if (item["Direct Crit"] !== undefined && item["Direct Crit"] !== "") {
+                    item["Direct Crit"] = parseFloat(item["Direct Crit"]) || 0;
+                } else {
+                    item["Direct Crit"] = 0;
+                }
+                
+                if (item["Direct ATK Power"] !== undefined && item["Direct ATK Power"] !== "") {
+                    item["Direct ATK Power"] = parseInt(item["Direct ATK Power"]) || 0;
+                } else {
+                    item["Direct ATK Power"] = 0;
+                }
                 
                 ["STA", "STR", "INT", "AGI", "Req STA", "Req STR", "Req INT", "Req AGI"].forEach(stat => {
                     item[stat] = parseInt(item[stat]) || 0;
@@ -1582,6 +1528,7 @@ const StatsCalculator = {
         // 2. Accumulators for direct bonuses
         let totalDirectArmorBonus = 0;
         let totalDirectAPBonus = 0;
+        let totalDirectCritBonus = 0; // NEW: Direct crit bonus accumulator
         let totalHPRegenPerSecond = 0;
         let totalEnergyRegenPerSecond = 0;
         
@@ -1599,6 +1546,10 @@ const StatsCalculator = {
                 finalCharacterStats.int += item.INT || 0;
                 finalCharacterStats.sta += item.STA || 0;
                 totalDirectArmorBonus += item.Armor || 0;
+                
+                // NEW: Add direct crit and atk power from items
+                totalDirectCritBonus += item["Direct Crit"] || 0;
+                totalDirectAPBonus += item["Direct ATK Power"] || 0;
                 
                 if (slot === 'weapon' && item.minDamage !== undefined && item.maxDamage !== undefined) {
                     currentWeaponMinDamage = item.minDamage;
@@ -1698,12 +1649,15 @@ const StatsCalculator = {
         
         finalAP += Math.max(0, apFromPrimaryStats);
         finalAP += Math.max(0, apFromSecondaryStr);
-        finalAP += totalDirectAPBonus;
+        finalAP += totalDirectAPBonus; // Add direct AP bonus from items/buffs
         finalAP = Math.max(0, finalAP);
         
-        // Critical Chance
+        // Critical Chance - UPDATED to include direct crit bonus
         let critFromStats = this.calculateCritical(finalCharacterStats, base.critical);
         let finalCrit = critFromStats;
+        
+        // Add direct crit bonus from items BEFORE applying buff crit with diminishing returns
+        finalCrit += totalDirectCritBonus;
         
         // Apply buff crit with diminishing returns
         if (rawBuffCritPercentContribution !== 0) {
