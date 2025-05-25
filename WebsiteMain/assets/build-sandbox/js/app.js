@@ -1120,21 +1120,9 @@ UIFactory.updateSpellSlotContent = function(spellSlot, spell) {
 UIFactory.createSpellSearchResult = function(spell, selectHandler) {
     const spellElement = DOMUtils.createElement('div', {
         className: 'spell-search-item',
+        textContent: `${spell.Name} ${spell.tier}`,
         onclick: () => selectHandler(spell)
     });
-    
-    const nameDiv = DOMUtils.createElement('div', {
-        className: 'spell-search-name',
-        textContent: `${spell.Name} (Tier ${spell.tier})`
-    });
-    
-    const detailsDiv = DOMUtils.createElement('div', {
-        className: 'spell-search-details',
-        textContent: `Lvl ${spell.levelRequired} • DPS: ${spell.dps} • Cost: ${spell.energyPerSecond}/sec`
-    });
-    
-    spellElement.appendChild(nameDiv);
-    spellElement.appendChild(detailsDiv);
     
     return spellElement;
 };

@@ -69,18 +69,18 @@
         }
         
         .derived-stats {
-			flex: 2;
-			display: flex;
-			align-items: stretch;
-			min-width: 0;
-		}
+            flex: 2;
+            display: flex;
+            align-items: stretch;
+            min-width: 0;
+        }
         
         .equipment-slots {
-            display: grid; /* USE GRID */
-            grid-template-columns: 1fr 1fr; /* TWO COLUMNS */
-            gap: 10px; /* Gap between slots */
-            align-content: start;
-        }
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        align-content: start;
+    }
         
         .slot {
             width: 75px;
@@ -104,13 +104,14 @@
         }
         
 		.character-display {
-			position: relative;
-			flex: 1;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-		}
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 10px; /* Add some padding to prevent overlap */
+        }
         
         .stats-display {
             flex: 1;
@@ -1568,4 +1569,196 @@ input:checked + .toggle-slider:before {
 
 .tooltip-req-met {
     color: var(--positive-button);
+}
+/* Spell Section Styles */
+.spell-section {
+    margin: 0px 0 0 0; /* Top margin only to separate from equipment above */
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: var(--slot-bg);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-height: 80px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.spell-slot {
+    width: 64px;
+    height: 64px;
+    background-color: var(--slot-bg);
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid var(--border);
+    position: relative;
+    flex-shrink: 0;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.spell-slot:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(var(--accent-rgb, 199, 212, 228), 0.4);
+}
+
+.spell-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    image-rendering: pixelated;
+}
+
+.spell-slot-fallback {
+    font-size: 24px;
+    color: #666;
+    user-select: none;
+}
+
+.spell-info {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.spell-name {
+    font-weight: bold;
+    color: var(--accent);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.95em;
+}
+
+.spell-stats {
+    font-size: 0.85em;
+    color: #ccc;
+    line-height: 1.3;
+}
+
+.spell-stats div {
+    margin-bottom: 2px;
+}
+
+.spell-dps {
+    color: var(--positive-button);
+    font-weight: bold;
+}
+
+.spell-cost {
+    color: var(--energy);
+}
+
+.spell-clear {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 16px;
+    height: 16px;
+    background-color: var(--negative-button);
+    color: white;
+    border-radius: 50%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 10px;
+    z-index: 5;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.spell-slot:hover .spell-clear {
+    display: flex;
+}
+
+.spell-clear:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Spell Search Results */
+.spell-search-item {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    background-color: var(--background);
+    transition: background-color 0.2s;
+}
+
+.spell-search-item:hover {
+    background-color: var(--accent-hover);
+}
+
+.spell-search-item:last-child {
+    border-bottom: none;
+}
+
+.spell-search-name {
+    font-weight: bold;
+    margin-bottom: 2px;
+    color: var(--text);
+}
+
+.spell-search-details {
+    font-size: 0.85em;
+    color: #aaa;
+}
+
+/* Spell Tooltip Styles */
+.spell-tooltip {
+    position: absolute;
+    z-index: 150;
+    background-color: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 12px;
+    width: auto;
+    min-width: 160px;
+    max-width: 280px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+    color: var(--text);
+}
+
+/* Responsive adjustments for smaller screens */
+@media screen and (max-width: 768px) {
+    .spell-section {
+        margin: 0; /* Remove top/bottom margin */
+        padding: 15px;
+        border: 1px solid var(--border); /* Add full border instead of just top/bottom */
+        border-radius: 8px; /* Add border radius to match other elements */
+        background-color: var(--slot-bg); /* Add background to make it stand out */
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        min-height: 80px;
+        width: 100%;
+        max-width: 280px; /* Constrain width so it doesn't take up too much space */
+        box-sizing: border-box;
+    }
+    
+    .spell-slot {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .spell-info {
+        text-align: center;
+    }
+    
+    .spell-name {
+        white-space: normal;
+        text-align: center;
+    }
 }
