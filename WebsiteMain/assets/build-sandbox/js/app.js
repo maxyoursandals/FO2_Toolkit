@@ -983,6 +983,106 @@ const UIFactory = {
     }
 };
 
+UIFactory.createItemDetailViewWithEdit = function(item) {
+    const container = document.createElement('div');
+    
+    if (!item) {
+        container.innerHTML = '<p class="empty-message">Select an item.</p>';
+        return container;
+    }
+
+    let isEditing = false;
+
+    const renderView = () => {
+        DOMUtils.clearElement(container);
+        
+        if (isEditing) {
+            const editor = ItemEditor.createItemEditor(
+                item,
+                (updatedItem) => {
+                    // Update the item in the data store
+                    StateManager.state.data.itemsById.set(updatedItem['Item ID'], updatedItem);
+                    
+                    // Reprocess items to update categories
+                    const allItems = Array.from(StateManager.state.data.itemsById.values());
+                    const processedData = DataService.processItemData(allItems);
+                    StateManager.state.data.items = processedData.items;
+                    
+                    // Update the item reference and switch back to view mode
+                    Object.assign(item, updatedItem);
+                    isEditing = false;
+                    renderView();
+                    
+                    // Refresh the grid
+                    UIController.populateItemDictionaryGrid();
+                    
+                    DOMUtils.showNotification(`${updatedItem.Name} updated successfully!`, 'success');
+                },
+                () => {
+                    isEditing = false;
+                    renderView();
+                }
+            );
+            container.appendChild(editor);
+        } else {
+            // Regular view with edit button
+            const viewContent = UIFactory.createItemDetailView(item);
+            
+            const editButton = DOMUtils.createElement('button', {
+                textContent: 'Edit Item',
+                className: 'action-button positive',
+                style: { marginTop: '10px' },
+                onclick: () => {
+                    isEditing = true;
+                    renderView();
+                }
+            });
+            
+            container.appendChild(viewContent);
+            container.appendChild(editButton);
+        }
+    };
+
+    renderView();
+    return container;
+};
+
+const ItemDictionaryEnhancements = {
+    addExportImportButtons() {
+        const filtersPanel = DOMUtils.getElement('item-dictionary-page')?.querySelector('.item-filters-panel');
+        if (!filtersPanel) return;
+
+        const exportImportSection = DOMUtils.createElement('div', {
+            className: 'filter-section export-import-section'
+        });
+
+        const title = DOMUtils.createElement('h4', {
+            textContent: 'Data Management',
+            style: { marginBottom: '10px' }
+        });
+
+        const exportAllButton = DOMUtils.createElement('button', {
+            textContent: 'Export All Items',
+            className: 'action-button',
+            style: { width: '100%', marginBottom: '5px' },
+            onclick: ItemEditor.exportAllItems
+        });
+
+        const importButton = DOMUtils.createElement('button', {
+            textContent: 'Import Items',
+            className: 'action-button',
+            style: { width: '100%' },
+            onclick: ItemEditor.importItems
+        });
+
+        exportImportSection.appendChild(title);
+        exportImportSection.appendChild(exportAllButton);
+        exportImportSection.appendChild(importButton);
+        
+        filtersPanel.appendChild(exportImportSection);
+    }
+};
+
 // Add spell-related methods to UIFactory as properties after the object definition
 UIFactory.createSpellSlot = function(spell, clickHandler) {
     const spellSlot = DOMUtils.createElement('div', {
@@ -3162,6 +3262,15 @@ const UIController = {
             }
         });
 
+        EventSystem.subscribe('page-changed', (data) => {
+            if (data.page === 'item-dictionary') {
+                // Add export/import buttons if they don't exist
+                if (!document.querySelector('.export-import-section')) {
+                    ItemDictionaryEnhancements.addExportImportButtons();
+                }
+            }
+        });
+
         const spellSlot = DOMUtils.getElement('spell-slot');
     if (spellSlot) {
         spellSlot.addEventListener('click', (event) => {
@@ -4044,17 +4153,76 @@ registerSlotItemRemovedListener() {
     },
     
     /**
-     * Display an item in the item viewer
+     * Display an item in the item viewer (Enhanced with edit capability)
      * @param {Object} item - Item to display
      */
     displayItemInViewer(item) {
         const itemDictionaryViewer = DOMUtils.getElement('item-dictionary-viewer');
         if (!itemDictionaryViewer) return;
         
-        const detailView = UIFactory.createItemDetailView(item);
+        const container = document.createElement('div');
         
+        if (!item) {
+            container.innerHTML = '<p class="empty-message">Select an item.</p>';
+            itemDictionaryViewer.appendChild(container);
+            return;
+        }
+
+        let isEditing = false;
+
+        const renderView = () => {
+            DOMUtils.clearElement(container);
+            
+            if (isEditing) {
+                const editor = ItemEditor.createItemEditor(
+                    item,
+                    (updatedItem) => {
+                        // Update the item in the data store
+                        StateManager.state.data.itemsById.set(updatedItem['Item ID'], updatedItem);
+                        
+                        // Reprocess items to update categories
+                        const allItems = Array.from(StateManager.state.data.itemsById.values());
+                        const processedData = DataService.processItemData(allItems);
+                        StateManager.state.data.items = processedData.items;
+                        
+                        // Update the item reference and switch back to view mode
+                        Object.assign(item, updatedItem);
+                        isEditing = false;
+                        renderView();
+                        
+                        // Refresh the grid
+                        this.populateItemDictionaryGrid();
+                        
+                        DOMUtils.showNotification(`${updatedItem.Name} updated successfully!`, 'success');
+                    },
+                    () => {
+                        isEditing = false;
+                        renderView();
+                    }
+                );
+                container.appendChild(editor);
+            } else {
+                // Regular view with edit button
+                const viewContent = UIFactory.createItemDetailView(item);
+                
+                const editButton = DOMUtils.createElement('button', {
+                    textContent: 'Edit Item',
+                    className: 'action-button positive',
+                    style: { marginTop: '10px' },
+                    onclick: () => {
+                        isEditing = true;
+                        renderView();
+                    }
+                });
+                
+                container.appendChild(viewContent);
+                container.appendChild(editButton);
+            }
+        };
+
+        renderView();
         DOMUtils.clearElement(itemDictionaryViewer);
-        itemDictionaryViewer.appendChild(detailView);
+        itemDictionaryViewer.appendChild(container);
     },
     
     /**
@@ -4297,6 +4465,218 @@ UIController.populateSpellSearchResults = function(query = '') {
             
             searchResults.appendChild(spellElement);
         });
+    }
+};
+
+const ItemEditor = {
+    /**
+     * Creates an editable item details view
+     * @param {Object} item - The item to edit
+     * @param {Function} onSave - Callback when item is saved
+     * @param {Function} onCancel - Callback when editing is cancelled
+     * @returns {HTMLElement} The editor element
+     */
+    createItemEditor(item, onSave, onCancel) {
+        const container = DOMUtils.createElement('div', {
+            className: 'item-editor-container'
+        });
+
+        const form = DOMUtils.createElement('form', {
+            className: 'item-editor-form'
+        });
+
+        // Create form fields for each editable property
+        const fields = [
+            { key: 'Name', label: 'Name', type: 'text', required: true },
+            { key: 'Level', label: 'Level', type: 'number', min: 0 },
+            { key: 'Type', label: 'Type', type: 'select', options: ['weapon', 'equipment'] },
+            { key: 'Subtype', label: 'Subtype', type: 'text' },
+            { key: 'STA', label: 'STA', type: 'number' },
+            { key: 'STR', label: 'STR', type: 'number' },
+            { key: 'INT', label: 'INT', type: 'number' },
+            { key: 'AGI', label: 'AGI', type: 'number' },
+            { key: 'Req STA', label: 'Req STA', type: 'number', min: 0 },
+            { key: 'Req STR', label: 'Req STR', type: 'number', min: 0 },
+            { key: 'Req INT', label: 'Req INT', type: 'number', min: 0 },
+            { key: 'Req AGI', label: 'Req AGI', type: 'number', min: 0 },
+            { key: 'Armor', label: 'Armor', type: 'number' },
+            { key: 'Damage', label: 'Damage', type: 'text', placeholder: 'e.g., 10-20 or 5K-10K' },
+            { key: 'Atk Spd', label: 'Attack Speed (ms)', type: 'number', min: 100 },
+            { key: 'Sprite-Link', label: 'Sprite URL', type: 'url' }
+        ];
+
+        const formContent = DOMUtils.createElement('div', {
+            className: 'item-editor-fields'
+        });
+
+        fields.forEach(field => {
+            const fieldContainer = DOMUtils.createElement('div', {
+                className: 'form-field'
+            });
+
+            const label = DOMUtils.createElement('label', {
+                textContent: field.label + ':',
+                className: 'field-label'
+            });
+
+            let input;
+            if (field.type === 'select') {
+                input = DOMUtils.createElement('select', {
+                    name: field.key,
+                    className: 'field-input'
+                });
+                
+                field.options.forEach(option => {
+                    const optionEl = DOMUtils.createElement('option', {
+                        value: option,
+                        textContent: option,
+                        selected: item[field.key] === option
+                    });
+                    input.appendChild(optionEl);
+                });
+            } else {
+                input = DOMUtils.createElement('input', {
+                    type: field.type,
+                    name: field.key,
+                    value: item[field.key] || '',
+                    className: 'field-input',
+                    placeholder: field.placeholder || '',
+                    min: field.min !== undefined ? field.min : undefined,
+                    required: field.required || false
+                });
+            }
+
+            fieldContainer.appendChild(label);
+            fieldContainer.appendChild(input);
+            formContent.appendChild(fieldContainer);
+        });
+
+        const buttonContainer = DOMUtils.createElement('div', {
+            className: 'item-editor-buttons'
+        });
+
+        const saveButton = DOMUtils.createElement('button', {
+            type: 'submit',
+            textContent: 'Save Changes',
+            className: 'action-button positive'
+        });
+
+        const cancelButton = DOMUtils.createElement('button', {
+            type: 'button',
+            textContent: 'Cancel',
+            className: 'action-button',
+            onclick: onCancel
+        });
+
+        const exportButton = DOMUtils.createElement('button', {
+            type: 'button',
+            textContent: 'Export JSON',
+            className: 'action-button',
+            onclick: () => this.exportSingleItem(item)
+        });
+
+        buttonContainer.appendChild(saveButton);
+        buttonContainer.appendChild(cancelButton);
+        buttonContainer.appendChild(exportButton);
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const updatedItem = { ...item };
+
+            // Update item properties from form
+            for (const [key, value] of formData.entries()) {
+                if (value === '') {
+                    updatedItem[key] = '';
+                } else if (['Level', 'STA', 'STR', 'INT', 'AGI', 'Req STA', 'Req STR', 'Req INT', 'Req AGI', 'Armor', 'Atk Spd'].includes(key)) {
+                    updatedItem[key] = parseInt(value) || 0;
+                } else {
+                    updatedItem[key] = value;
+                }
+            }
+
+            onSave(updatedItem);
+        });
+
+        form.appendChild(formContent);
+        form.appendChild(buttonContainer);
+        container.appendChild(form);
+
+        return container;
+    },
+
+    /**
+     * Export a single item as JSON
+     */
+    exportSingleItem(item) {
+        const jsonStr = JSON.stringify(item, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${item.Name || 'item'}_${item['Item ID']}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    },
+
+    /**
+     * Export all items as JSON
+     */
+    exportAllItems() {
+        const allItems = Array.from(StateManager.state.data.itemsById.values());
+        const jsonStr = JSON.stringify(allItems, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'items_modified.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    },
+
+    /**
+     * Import items from JSON file
+     */
+    importItems() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const items = JSON.parse(e.target.result);
+                    if (Array.isArray(items)) {
+                        // Process and update the items
+                        const processedData = DataService.processItemData(items);
+                        StateManager.state.data.items = processedData.items;
+                        StateManager.state.data.itemsById = processedData.itemsById;
+                        
+                        // Update UI
+                        UIController.populateItemDictionaryGrid();
+                        UIController.populateItemCategoryFilter();
+                        
+                        DOMUtils.showNotification('Items imported successfully!', 'success');
+                    } else {
+                        throw new Error('Invalid JSON format');
+                    }
+                } catch (error) {
+                    console.error('Import error:', error);
+                    DOMUtils.showNotification('Error importing items: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        });
+        input.click();
     }
 };
 
