@@ -18,7 +18,9 @@
     "Damage": "5-8",
     "Atk Spd": 1400,
     "minDamage": 5,
-    "maxDamage": 8
+    "maxDamage": 8,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 3,
@@ -39,7 +41,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 4,
@@ -60,7 +64,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 5,
@@ -81,7 +87,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 6,
@@ -102,7 +110,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 7,
@@ -123,7 +133,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 8,
@@ -144,7 +156,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 9,
@@ -165,7 +179,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 10,
@@ -186,7 +202,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 11,
@@ -207,7 +225,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 12,
@@ -228,7 +248,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 13,
@@ -249,7 +271,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 15,
@@ -270,7 +294,9 @@
     "Damage": "6-14",
     "Atk Spd": 1400,
     "minDamage": 6,
-    "maxDamage": 14
+    "maxDamage": 14,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 16,
@@ -291,7 +317,9 @@
     "Damage": "4-14",
     "Atk Spd": 2400,
     "minDamage": 4,
-    "maxDamage": 14
+    "maxDamage": 14,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 17,
@@ -312,7 +340,9 @@
     "Damage": "3-5",
     "Atk Spd": 2000,
     "minDamage": 3,
-    "maxDamage": 5
+    "maxDamage": 5,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 21,
@@ -333,7 +363,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 22,
@@ -354,7 +386,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 24,
@@ -375,7 +409,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 25,
@@ -396,7 +432,9 @@
     "Damage": "3-6",
     "Atk Spd": 2400,
     "minDamage": 3,
-    "maxDamage": 6
+    "maxDamage": 6,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 26,
@@ -417,7 +455,9 @@
     "Damage": "4-6",
     "Atk Spd": 1400,
     "minDamage": 4,
-    "maxDamage": 6
+    "maxDamage": 6,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 75,
@@ -438,7 +478,9 @@
     "Damage": "6-22",
     "Atk Spd": 2600,
     "minDamage": 6,
-    "maxDamage": 22
+    "maxDamage": 22,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 76,
@@ -459,7 +501,9 @@
     "Damage": "10-20",
     "Atk Spd": 2800,
     "minDamage": 10,
-    "maxDamage": 20
+    "maxDamage": 20,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 78,
@@ -480,7 +524,9 @@
     "Damage": "7-27",
     "Atk Spd": 2600,
     "minDamage": 7,
-    "maxDamage": 27
+    "maxDamage": 27,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 84,
@@ -501,7 +547,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 85,
@@ -522,7 +570,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 86,
@@ -543,7 +593,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 87,
@@ -564,7 +616,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 88,
@@ -585,7 +639,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 89,
@@ -606,7 +662,9 @@
     "Damage": "6-8",
     "Atk Spd": 2500,
     "minDamage": 6,
-    "maxDamage": 8
+    "maxDamage": 8,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 90,
@@ -627,7 +685,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 91,
@@ -648,7 +708,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 93,
@@ -669,7 +731,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 94,
@@ -690,7 +754,9 @@
     "Damage": "24-27",
     "Atk Spd": 2800,
     "minDamage": 24,
-    "maxDamage": 27
+    "maxDamage": 27,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 98,
@@ -711,7 +777,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 100,
@@ -732,7 +800,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 102,
@@ -753,7 +823,9 @@
     "Damage": "9-18",
     "Atk Spd": 2900,
     "minDamage": 9,
-    "maxDamage": 18
+    "maxDamage": 18,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 103,
@@ -774,7 +846,9 @@
     "Damage": "6-14",
     "Atk Spd": 2900,
     "minDamage": 6,
-    "maxDamage": 14
+    "maxDamage": 14,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 104,
@@ -795,7 +869,9 @@
     "Damage": "16-22",
     "Atk Spd": 2800,
     "minDamage": 16,
-    "maxDamage": 22
+    "maxDamage": 22,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 105,
@@ -816,7 +892,9 @@
     "Damage": "15-35",
     "Atk Spd": 3200,
     "minDamage": 15,
-    "maxDamage": 35
+    "maxDamage": 35,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 106,
@@ -837,7 +915,9 @@
     "Damage": "9-30",
     "Atk Spd": 3000,
     "minDamage": 9,
-    "maxDamage": 30
+    "maxDamage": 30,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 107,
@@ -858,7 +938,9 @@
     "Damage": "14-22",
     "Atk Spd": 2800,
     "minDamage": 14,
-    "maxDamage": 22
+    "maxDamage": 22,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 108,
@@ -879,7 +961,9 @@
     "Damage": "16-26",
     "Atk Spd": 2800,
     "minDamage": 16,
-    "maxDamage": 26
+    "maxDamage": 26,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 109,
@@ -900,7 +984,9 @@
     "Damage": "20-30",
     "Atk Spd": 2800,
     "minDamage": 20,
-    "maxDamage": 30
+    "maxDamage": 30,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 110,
@@ -921,7 +1007,9 @@
     "Damage": "16-20",
     "Atk Spd": 2700,
     "minDamage": 16,
-    "maxDamage": 20
+    "maxDamage": 20,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 111,
@@ -942,7 +1030,9 @@
     "Damage": "8-11",
     "Atk Spd": 2800,
     "minDamage": 8,
-    "maxDamage": 11
+    "maxDamage": 11,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 112,
@@ -963,7 +1053,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 113,
@@ -984,7 +1076,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 114,
@@ -1005,7 +1099,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 115,
@@ -1026,7 +1122,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 116,
@@ -1047,7 +1145,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 117,
@@ -1068,7 +1168,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 118,
@@ -1089,7 +1191,9 @@
     "Damage": "11-36",
     "Atk Spd": 3000,
     "minDamage": 11,
-    "maxDamage": 36
+    "maxDamage": 36,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 119,
@@ -1110,7 +1214,9 @@
     "Damage": "15-45",
     "Atk Spd": 2900,
     "minDamage": 15,
-    "maxDamage": 45
+    "maxDamage": 45,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 120,
@@ -1131,7 +1237,9 @@
     "Damage": "18-22",
     "Atk Spd": 2600,
     "minDamage": 18,
-    "maxDamage": 22
+    "maxDamage": 22,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 121,
@@ -1152,7 +1260,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 122,
@@ -1173,7 +1283,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 123,
@@ -1194,7 +1306,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 125,
@@ -1215,7 +1329,9 @@
     "Damage": "12-20",
     "Atk Spd": 3000,
     "minDamage": 12,
-    "maxDamage": 20
+    "maxDamage": 20,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 126,
@@ -1236,7 +1352,9 @@
     "Damage": "12-18",
     "Atk Spd": 3000,
     "minDamage": 12,
-    "maxDamage": 18
+    "maxDamage": 18,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 129,
@@ -1257,7 +1375,9 @@
     "Damage": "15-25",
     "Atk Spd": 2600,
     "minDamage": 15,
-    "maxDamage": 25
+    "maxDamage": 25,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 134,
@@ -1278,7 +1398,9 @@
     "Damage": "18-25",
     "Atk Spd": 2800,
     "minDamage": 18,
-    "maxDamage": 25
+    "maxDamage": 25,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 135,
@@ -1299,7 +1421,9 @@
     "Damage": "16-20",
     "Atk Spd": 2800,
     "minDamage": 16,
-    "maxDamage": 20
+    "maxDamage": 20,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 139,
@@ -1320,7 +1444,9 @@
     "Damage": "14-26",
     "Atk Spd": 2900,
     "minDamage": 14,
-    "maxDamage": 26
+    "maxDamage": 26,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 140,
@@ -1341,7 +1467,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 141,
@@ -1362,7 +1490,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 147,
@@ -1383,7 +1513,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 148,
@@ -1404,7 +1536,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 185,
@@ -1425,7 +1559,9 @@
     "Damage": "30-60",
     "Atk Spd": 3600,
     "minDamage": 30,
-    "maxDamage": 60
+    "maxDamage": 60,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 186,
@@ -1446,7 +1582,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 188,
@@ -1467,7 +1605,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 190,
@@ -1488,7 +1628,9 @@
     "Damage": "16-26",
     "Atk Spd": 2600,
     "minDamage": 16,
-    "maxDamage": 26
+    "maxDamage": 26,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 191,
@@ -1509,7 +1651,9 @@
     "Damage": "25-45",
     "Atk Spd": 3400,
     "minDamage": 25,
-    "maxDamage": 45
+    "maxDamage": 45,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 192,
@@ -1530,7 +1674,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 196,
@@ -1551,7 +1697,9 @@
     "Damage": "1-2",
     "Atk Spd": 1000,
     "minDamage": 1,
-    "maxDamage": 2
+    "maxDamage": 2,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 211,
@@ -1572,7 +1720,9 @@
     "Damage": "1-2",
     "Atk Spd": 1000,
     "minDamage": 1,
-    "maxDamage": 2
+    "maxDamage": 2,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 216,
@@ -1593,7 +1743,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 237,
@@ -1614,7 +1766,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 238,
@@ -1635,7 +1789,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 239,
@@ -1656,7 +1812,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 254,
@@ -1677,7 +1835,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 256,
@@ -1698,7 +1858,9 @@
     "Damage": "24-42",
     "Atk Spd": 2700,
     "minDamage": 24,
-    "maxDamage": 42
+    "maxDamage": 42,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 258,
@@ -1719,7 +1881,9 @@
     "Damage": "28-38",
     "Atk Spd": 3100,
     "minDamage": 28,
-    "maxDamage": 38
+    "maxDamage": 38,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 260,
@@ -1740,7 +1904,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 262,
@@ -1761,7 +1927,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 263,
@@ -1782,7 +1950,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 265,
@@ -1803,7 +1973,9 @@
     "Damage": "10-18",
     "Atk Spd": 2900,
     "minDamage": 10,
-    "maxDamage": 18
+    "maxDamage": 18,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 266,
@@ -1824,7 +1996,9 @@
     "Damage": "30-45",
     "Atk Spd": 3100,
     "minDamage": 30,
-    "maxDamage": 45
+    "maxDamage": 45,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 276,
@@ -1845,7 +2019,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 278,
@@ -1866,7 +2042,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 301,
@@ -1887,7 +2065,9 @@
     "Damage": "16-24",
     "Atk Spd": 2600,
     "minDamage": 16,
-    "maxDamage": 24
+    "maxDamage": 24,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 307,
@@ -1908,7 +2088,9 @@
     "Damage": "34-55",
     "Atk Spd": 2800,
     "minDamage": 34,
-    "maxDamage": 55
+    "maxDamage": 55,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 308,
@@ -1929,7 +2111,9 @@
     "Damage": "20-80",
     "Atk Spd": 3400,
     "minDamage": 20,
-    "maxDamage": 80
+    "maxDamage": 80,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 328,
@@ -1950,7 +2134,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 330,
@@ -1971,7 +2157,9 @@
     "Damage": "40-50",
     "Atk Spd": 2600,
     "minDamage": 40,
-    "maxDamage": 50
+    "maxDamage": 50,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 340,
@@ -1992,7 +2180,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 341,
@@ -2013,7 +2203,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 342,
@@ -2034,7 +2226,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 343,
@@ -2055,7 +2249,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 344,
@@ -2076,7 +2272,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 345,
@@ -2097,7 +2295,9 @@
     "Damage": "45-80",
     "Atk Spd": 3600,
     "minDamage": 45,
-    "maxDamage": 80
+    "maxDamage": 80,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 346,
@@ -2118,7 +2318,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 347,
@@ -2139,7 +2341,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 354,
@@ -2160,7 +2364,9 @@
     "Damage": "26-36",
     "Atk Spd": 1900,
     "minDamage": 26,
-    "maxDamage": 36
+    "maxDamage": 36,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 362,
@@ -2181,7 +2387,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 363,
@@ -2202,7 +2410,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 364,
@@ -2223,7 +2433,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 365,
@@ -2244,7 +2456,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 369,
@@ -2265,7 +2479,9 @@
     "Damage": "55-90",
     "Atk Spd": 4500,
     "minDamage": 55,
-    "maxDamage": 90
+    "maxDamage": 90,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 370,
@@ -2286,7 +2502,9 @@
     "Damage": "40-60",
     "Atk Spd": 3000,
     "minDamage": 40,
-    "maxDamage": 60
+    "maxDamage": 60,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 371,
@@ -2307,7 +2525,9 @@
     "Damage": "55-70",
     "Atk Spd": 3400,
     "minDamage": 55,
-    "maxDamage": 70
+    "maxDamage": 70,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 372,
@@ -2328,7 +2548,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 374,
@@ -2349,7 +2571,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 375,
@@ -2370,7 +2594,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 376,
@@ -2391,7 +2617,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 379,
@@ -2412,7 +2640,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 381,
@@ -2433,7 +2663,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 387,
@@ -2454,7 +2686,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 388,
@@ -2475,7 +2709,9 @@
     "Damage": "20-40",
     "Atk Spd": 2200,
     "minDamage": 20,
-    "maxDamage": 40
+    "maxDamage": 40,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 389,
@@ -2496,7 +2732,9 @@
     "Damage": "40-60",
     "Atk Spd": 3000,
     "minDamage": 40,
-    "maxDamage": 60
+    "maxDamage": 60,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 391,
@@ -2517,7 +2755,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 392,
@@ -2538,7 +2778,9 @@
     "Damage": "1-100",
     "Atk Spd": 4200,
     "minDamage": 1,
-    "maxDamage": 100
+    "maxDamage": 100,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 409,
@@ -2559,7 +2801,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 410,
@@ -2580,7 +2824,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 411,
@@ -2601,7 +2847,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 412,
@@ -2622,7 +2870,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 413,
@@ -2643,7 +2893,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 414,
@@ -2664,7 +2916,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 415,
@@ -2685,7 +2939,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 416,
@@ -2706,7 +2962,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 417,
@@ -2727,7 +2985,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 424,
@@ -2748,7 +3008,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 425,
@@ -2769,7 +3031,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 426,
@@ -2790,7 +3054,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 427,
@@ -2811,7 +3077,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 429,
@@ -2832,7 +3100,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 430,
@@ -2853,7 +3123,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 432,
@@ -2874,7 +3146,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 433,
@@ -2895,7 +3169,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 436,
@@ -2916,7 +3192,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 440,
@@ -2937,7 +3215,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 442,
@@ -2958,7 +3238,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 443,
@@ -2979,7 +3261,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 444,
@@ -3000,7 +3284,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 445,
@@ -3021,7 +3307,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 446,
@@ -3042,7 +3330,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 447,
@@ -3063,7 +3353,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 448,
@@ -3084,7 +3376,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 449,
@@ -3105,7 +3399,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 450,
@@ -3126,7 +3422,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 454,
@@ -3147,7 +3445,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 455,
@@ -3168,7 +3468,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 456,
@@ -3189,7 +3491,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 457,
@@ -3210,7 +3514,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 458,
@@ -3231,7 +3537,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 461,
@@ -3252,7 +3560,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 477,
@@ -3273,7 +3583,9 @@
     "Damage": "25-45",
     "Atk Spd": 2600,
     "minDamage": 25,
-    "maxDamage": 45
+    "maxDamage": 45,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 538,
@@ -3294,7 +3606,9 @@
     "Damage": "40-50",
     "Atk Spd": 2400,
     "minDamage": 40,
-    "maxDamage": 50
+    "maxDamage": 50,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 539,
@@ -3315,7 +3629,9 @@
     "Damage": "65-140",
     "Atk Spd": 2000,
     "minDamage": 65,
-    "maxDamage": 140
+    "maxDamage": 140,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 540,
@@ -3336,7 +3652,9 @@
     "Damage": "80-180",
     "Atk Spd": 2900,
     "minDamage": 80,
-    "maxDamage": 180
+    "maxDamage": 180,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 541,
@@ -3357,7 +3675,9 @@
     "Damage": "70-150",
     "Atk Spd": 3300,
     "minDamage": 70,
-    "maxDamage": 150
+    "maxDamage": 150,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 551,
@@ -3378,7 +3698,9 @@
     "Damage": "30-40",
     "Atk Spd": 1500,
     "minDamage": 30,
-    "maxDamage": 40
+    "maxDamage": 40,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 577,
@@ -3399,7 +3721,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 578,
@@ -3420,7 +3744,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 579,
@@ -3441,7 +3767,9 @@
     "Damage": "120-200",
     "Atk Spd": 3000,
     "minDamage": 120,
-    "maxDamage": 200
+    "maxDamage": 200,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 594,
@@ -3462,7 +3790,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 596,
@@ -3483,7 +3813,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 598,
@@ -3504,7 +3836,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 599,
@@ -3525,7 +3859,9 @@
     "Damage": "90-175",
     "Atk Spd": 2400,
     "minDamage": 90,
-    "maxDamage": 175
+    "maxDamage": 175,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 604,
@@ -3546,7 +3882,9 @@
     "Damage": "50-150",
     "Atk Spd": 1900,
     "minDamage": 50,
-    "maxDamage": 150
+    "maxDamage": 150,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 608,
@@ -3567,7 +3905,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 610,
@@ -3588,7 +3928,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 611,
@@ -3609,7 +3951,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 613,
@@ -3630,7 +3974,9 @@
     "Damage": "85-150",
     "Atk Spd": 2000,
     "minDamage": 85,
-    "maxDamage": 150
+    "maxDamage": 150,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 616,
@@ -3651,7 +3997,9 @@
     "Damage": "100-150",
     "Atk Spd": 2100,
     "minDamage": 100,
-    "maxDamage": 150
+    "maxDamage": 150,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 617,
@@ -3672,7 +4020,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 618,
@@ -3693,7 +4043,9 @@
     "Damage": "90-175",
     "Atk Spd": 2000,
     "minDamage": 90,
-    "maxDamage": 175
+    "maxDamage": 175,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 619,
@@ -3714,7 +4066,9 @@
     "Damage": "35-45",
     "Atk Spd": 2400,
     "minDamage": 35,
-    "maxDamage": 45
+    "maxDamage": 45,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 622,
@@ -3735,7 +4089,9 @@
     "Damage": "130-165",
     "Atk Spd": 2200,
     "minDamage": 130,
-    "maxDamage": 165
+    "maxDamage": 165,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 623,
@@ -3756,7 +4112,9 @@
     "Damage": "115-180",
     "Atk Spd": 2000,
     "minDamage": 115,
-    "maxDamage": 180
+    "maxDamage": 180,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 629,
@@ -3777,7 +4135,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 630,
@@ -3798,7 +4158,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 631,
@@ -3819,7 +4181,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 632,
@@ -3840,7 +4204,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 647,
@@ -3861,7 +4227,9 @@
     "Damage": "80-150",
     "Atk Spd": 2000,
     "minDamage": 80,
-    "maxDamage": 150
+    "maxDamage": 150,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 654,
@@ -3882,7 +4250,9 @@
     "Damage": "150-225",
     "Atk Spd": 2500,
     "minDamage": 150,
-    "maxDamage": 225
+    "maxDamage": 225,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 656,
@@ -3903,7 +4273,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 657,
@@ -3924,7 +4296,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 658,
@@ -3945,7 +4319,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 659,
@@ -3966,7 +4342,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 663,
@@ -3987,7 +4365,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 664,
@@ -4008,7 +4388,9 @@
     "Damage": "135-175",
     "Atk Spd": 2000,
     "minDamage": 135,
-    "maxDamage": 175
+    "maxDamage": 175,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 665,
@@ -4029,7 +4411,9 @@
     "Damage": "120-195",
     "Atk Spd": 2500,
     "minDamage": 120,
-    "maxDamage": 195
+    "maxDamage": 195,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 666,
@@ -4050,7 +4434,9 @@
     "Damage": "95-180",
     "Atk Spd": 2100,
     "minDamage": 95,
-    "maxDamage": 180
+    "maxDamage": 180,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 684,
@@ -4071,7 +4457,9 @@
     "Damage": "1-3",
     "Atk Spd": 1000,
     "minDamage": 1,
-    "maxDamage": 3
+    "maxDamage": 3,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 703,
@@ -4092,7 +4480,9 @@
     "Damage": "10K-10K",
     "Atk Spd": 1000,
     "minDamage": 10000,
-    "maxDamage": 10000
+    "maxDamage": 10000,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 716,
@@ -4113,7 +4503,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 717,
@@ -4134,7 +4526,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 718,
@@ -4155,7 +4549,9 @@
     "Damage": "85-165",
     "Atk Spd": 2300,
     "minDamage": 85,
-    "maxDamage": 165
+    "maxDamage": 165,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 720,
@@ -4176,7 +4572,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 721,
@@ -4197,7 +4595,9 @@
     "Damage": "80-140",
     "Atk Spd": 1900,
     "minDamage": 80,
-    "maxDamage": 140
+    "maxDamage": 140,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 722,
@@ -4218,7 +4618,9 @@
     "Damage": "105-175",
     "Atk Spd": 2100,
     "minDamage": 105,
-    "maxDamage": 175
+    "maxDamage": 175,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 724,
@@ -4239,7 +4641,9 @@
     "Damage": "125-210",
     "Atk Spd": 2400,
     "minDamage": 125,
-    "maxDamage": 210
+    "maxDamage": 210,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 753,
@@ -4260,7 +4664,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 754,
@@ -4281,7 +4687,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 755,
@@ -4302,7 +4710,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 756,
@@ -4323,7 +4733,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 757,
@@ -4344,7 +4756,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 758,
@@ -4365,7 +4779,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 759,
@@ -4386,7 +4802,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 760,
@@ -4407,7 +4825,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 762,
@@ -4428,7 +4848,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 763,
@@ -4449,7 +4871,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 764,
@@ -4470,7 +4894,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 765,
@@ -4491,7 +4917,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 769,
@@ -4512,7 +4940,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 770,
@@ -4533,7 +4963,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 771,
@@ -4554,7 +4986,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 772,
@@ -4575,7 +5009,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 773,
@@ -4596,7 +5032,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 774,
@@ -4617,7 +5055,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 775,
@@ -4638,7 +5078,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 776,
@@ -4659,7 +5101,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 777,
@@ -4680,7 +5124,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 778,
@@ -4701,7 +5147,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 779,
@@ -4722,7 +5170,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 780,
@@ -4743,7 +5193,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 781,
@@ -4764,7 +5216,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 782,
@@ -4785,7 +5239,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 783,
@@ -4806,7 +5262,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 784,
@@ -4827,7 +5285,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 808,
@@ -4848,7 +5308,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 809,
@@ -4869,7 +5331,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 810,
@@ -4890,7 +5354,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 811,
@@ -4911,7 +5377,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 812,
@@ -4932,7 +5400,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 813,
@@ -4953,7 +5423,9 @@
     "Damage": "100-160",
     "Atk Spd": 2000,
     "minDamage": 100,
-    "maxDamage": 160
+    "maxDamage": 160,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 814,
@@ -4974,7 +5446,9 @@
     "Damage": "140-190",
     "Atk Spd": 2200,
     "minDamage": 140,
-    "maxDamage": 190
+    "maxDamage": 190,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 815,
@@ -4995,7 +5469,9 @@
     "Damage": "120-150",
     "Atk Spd": 2000,
     "minDamage": 120,
-    "maxDamage": 150
+    "maxDamage": 150,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 816,
@@ -5016,7 +5492,9 @@
     "Damage": "135-155",
     "Atk Spd": 2000,
     "minDamage": 135,
-    "maxDamage": 155
+    "maxDamage": 155,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 817,
@@ -5037,7 +5515,9 @@
     "Damage": "145-185",
     "Atk Spd": 2200,
     "minDamage": 145,
-    "maxDamage": 185
+    "maxDamage": 185,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 818,
@@ -5058,7 +5538,9 @@
     "Damage": "200-225",
     "Atk Spd": 2600,
     "minDamage": 200,
-    "maxDamage": 225
+    "maxDamage": 225,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 819,
@@ -5079,7 +5561,9 @@
     "Damage": "155-195",
     "Atk Spd": 2200,
     "minDamage": 155,
-    "maxDamage": 195
+    "maxDamage": 195,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 820,
@@ -5100,7 +5584,9 @@
     "Damage": "125-165",
     "Atk Spd": 2400,
     "minDamage": 125,
-    "maxDamage": 165
+    "maxDamage": 165,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 821,
@@ -5121,7 +5607,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 822,
@@ -5142,7 +5630,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 823,
@@ -5163,7 +5653,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 824,
@@ -5184,7 +5676,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 848,
@@ -5205,7 +5699,9 @@
     "Damage": "190-265",
     "Atk Spd": 2500,
     "minDamage": 190,
-    "maxDamage": 265
+    "maxDamage": 265,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 849,
@@ -5226,7 +5722,9 @@
     "Damage": "195-240",
     "Atk Spd": 2400,
     "minDamage": 195,
-    "maxDamage": 240
+    "maxDamage": 240,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 850,
@@ -5247,7 +5745,9 @@
     "Damage": "275-320",
     "Atk Spd": 3000,
     "minDamage": 275,
-    "maxDamage": 320
+    "maxDamage": 320,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 859,
@@ -5268,7 +5768,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 865,
@@ -5289,7 +5791,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 866,
@@ -5310,7 +5814,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 30
   },
   {
     "Item ID": 867,
@@ -5331,7 +5837,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 50
   },
   {
     "Item ID": 868,
@@ -5352,7 +5860,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 869,
@@ -5373,7 +5883,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 870,
@@ -5382,11 +5894,11 @@
     "Type": "equipment",
     "Subtype": "faction",
     "Level": 10,
-    "STA": 0,
+    "STA": -4,
     "STR": 8,
     "INT": 0,
     "AGI": 0,
-    "Req STA": -4,
+    "Req STA": 0,
     "Req STR": 0,
     "Req INT": 0,
     "Req AGI": 0,
@@ -5394,7 +5906,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 20
   },
   {
     "Item ID": 871,
@@ -5415,7 +5929,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 40
   },
   {
     "Item ID": 872,
@@ -5436,7 +5952,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 1,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 873,
@@ -5457,7 +5975,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 3,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 874,
@@ -5478,7 +5998,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 1,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 875,
@@ -5499,7 +6021,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 1,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 876,
@@ -5520,7 +6044,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 30
   },
   {
     "Item ID": 877,
@@ -5541,7 +6067,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 50
   },
   {
     "Item ID": 878,
@@ -5562,7 +6090,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 1,
+    "Direct ATK Power": 20
   },
   {
     "Item ID": 879,
@@ -5583,7 +6113,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 2,
+    "Direct ATK Power": 20
   },
   {
     "Item ID": 880,
@@ -5604,7 +6136,9 @@
     "Damage": "245-375",
     "Atk Spd": 3400,
     "minDamage": 245,
-    "maxDamage": 375
+    "maxDamage": 375,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 913,
@@ -5625,7 +6159,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 926,
@@ -5646,7 +6182,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 944,
@@ -5667,7 +6205,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 945,
@@ -5688,7 +6228,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 946,
@@ -5709,7 +6251,9 @@
     "Damage": "135-165",
     "Atk Spd": 1800,
     "minDamage": 135,
-    "maxDamage": 165
+    "maxDamage": 165,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 947,
@@ -5730,7 +6274,9 @@
     "Damage": "135-185",
     "Atk Spd": 2000,
     "minDamage": 135,
-    "maxDamage": 185
+    "maxDamage": 185,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 948,
@@ -5751,7 +6297,9 @@
     "Damage": "250-300",
     "Atk Spd": 3200,
     "minDamage": 250,
-    "maxDamage": 300
+    "maxDamage": 300,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 949,
@@ -5772,7 +6320,9 @@
     "Damage": "215-300",
     "Atk Spd": 3000,
     "minDamage": 215,
-    "maxDamage": 300
+    "maxDamage": 300,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 950,
@@ -5793,7 +6343,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 951,
@@ -5814,7 +6366,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 952,
@@ -5835,7 +6389,9 @@
     "Damage": "200-275",
     "Atk Spd": 2800,
     "minDamage": 200,
-    "maxDamage": 275
+    "maxDamage": 275,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 963,
@@ -5856,7 +6412,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 964,
@@ -5877,7 +6435,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 965,
@@ -5898,7 +6458,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 966,
@@ -5919,7 +6481,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 967,
@@ -5940,7 +6504,9 @@
     "Damage": "300-400",
     "Atk Spd": 3500,
     "minDamage": 300,
-    "maxDamage": 400
+    "maxDamage": 400,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 969,
@@ -5961,7 +6527,9 @@
     "Damage": "150-195",
     "Atk Spd": 2000,
     "minDamage": 150,
-    "maxDamage": 195
+    "maxDamage": 195,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 970,
@@ -5982,7 +6550,9 @@
     "Damage": "155-210",
     "Atk Spd": 2200,
     "minDamage": 155,
-    "maxDamage": 210
+    "maxDamage": 210,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 971,
@@ -6003,7 +6573,9 @@
     "Damage": "180-230",
     "Atk Spd": 2400,
     "minDamage": 180,
-    "maxDamage": 230
+    "maxDamage": 230,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 998,
@@ -6024,7 +6596,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 999,
@@ -6045,7 +6619,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1000,
@@ -6066,7 +6642,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1001,
@@ -6087,7 +6665,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1002,
@@ -6108,7 +6688,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1003,
@@ -6129,7 +6711,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1004,
@@ -6150,7 +6734,9 @@
     "Damage": "130-180",
     "Atk Spd": 2200,
     "minDamage": 130,
-    "maxDamage": 180
+    "maxDamage": 180,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1005,
@@ -6171,7 +6757,9 @@
     "Damage": "150-200",
     "Atk Spd": 2300,
     "minDamage": 150,
-    "maxDamage": 200
+    "maxDamage": 200,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1006,
@@ -6192,7 +6780,9 @@
     "Damage": "225-275",
     "Atk Spd": 3000,
     "minDamage": 225,
-    "maxDamage": 275
+    "maxDamage": 275,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1007,
@@ -6213,7 +6803,9 @@
     "Damage": "215-300",
     "Atk Spd": 3000,
     "minDamage": 215,
-    "maxDamage": 300
+    "maxDamage": 300,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1008,
@@ -6234,7 +6826,9 @@
     "Damage": "160-200",
     "Atk Spd": 2100,
     "minDamage": 160,
-    "maxDamage": 200
+    "maxDamage": 200,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1009,
@@ -6255,7 +6849,9 @@
     "Damage": "145-180",
     "Atk Spd": 1900,
     "minDamage": 145,
-    "maxDamage": 180
+    "maxDamage": 180,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1010,
@@ -6276,7 +6872,9 @@
     "Damage": "165-215",
     "Atk Spd": 2200,
     "minDamage": 165,
-    "maxDamage": 215
+    "maxDamage": 215,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1021,
@@ -6297,7 +6895,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1022,
@@ -6318,7 +6918,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1023,
@@ -6339,7 +6941,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1070,
@@ -6360,7 +6964,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1071,
@@ -6381,7 +6987,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1072,
@@ -6402,7 +7010,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1073,
@@ -6423,7 +7033,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1074,
@@ -6444,7 +7056,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1075,
@@ -6465,7 +7079,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1076,
@@ -6486,7 +7102,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1077,
@@ -6507,7 +7125,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1080,
@@ -6528,7 +7148,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1081,
@@ -6549,7 +7171,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1082,
@@ -6570,7 +7194,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1083,
@@ -6591,7 +7217,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1084,
@@ -6612,7 +7240,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1085,
@@ -6633,7 +7263,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1086,
@@ -6654,7 +7286,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1087,
@@ -6675,7 +7309,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1088,
@@ -6696,7 +7332,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1089,
@@ -6717,7 +7355,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1090,
@@ -6738,7 +7378,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1091,
@@ -6759,7 +7401,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1092,
@@ -6780,7 +7424,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1093,
@@ -6801,7 +7447,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1094,
@@ -6822,7 +7470,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1095,
@@ -6843,7 +7493,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1096,
@@ -6864,7 +7516,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1097,
@@ -6885,7 +7539,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1098,
@@ -6906,7 +7562,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1099,
@@ -6927,7 +7585,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1101,
@@ -6948,7 +7608,9 @@
     "Damage": "300-460",
     "Atk Spd": 3000,
     "minDamage": 300,
-    "maxDamage": 460
+    "maxDamage": 460,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1102,
@@ -6969,7 +7631,9 @@
     "Damage": "375-445",
     "Atk Spd": 3000,
     "minDamage": 375,
-    "maxDamage": 445
+    "maxDamage": 445,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1103,
@@ -6990,7 +7654,9 @@
     "Damage": "275-335",
     "Atk Spd": 2400,
     "minDamage": 275,
-    "maxDamage": 335
+    "maxDamage": 335,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1104,
@@ -7011,7 +7677,9 @@
     "Damage": "285-325",
     "Atk Spd": 2400,
     "minDamage": 285,
-    "maxDamage": 325
+    "maxDamage": 325,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1163,
@@ -7032,7 +7700,9 @@
     "Damage": "200-300",
     "Atk Spd": 2000,
     "minDamage": 200,
-    "maxDamage": 300
+    "maxDamage": 300,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1164,
@@ -7053,7 +7723,9 @@
     "Damage": "250-300",
     "Atk Spd": 2300,
     "minDamage": 250,
-    "maxDamage": 300
+    "maxDamage": 300,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1165,
@@ -7074,7 +7746,9 @@
     "Damage": "300-400",
     "Atk Spd": 3300,
     "minDamage": 300,
-    "maxDamage": 400
+    "maxDamage": 400,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1166,
@@ -7095,7 +7769,9 @@
     "Damage": "300-375",
     "Atk Spd": 2300,
     "minDamage": 300,
-    "maxDamage": 375
+    "maxDamage": 375,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1167,
@@ -7116,7 +7792,9 @@
     "Damage": "300-525",
     "Atk Spd": 3000,
     "minDamage": 300,
-    "maxDamage": 525
+    "maxDamage": 525,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1168,
@@ -7137,7 +7815,9 @@
     "Damage": "250-350",
     "Atk Spd": 2400,
     "minDamage": 250,
-    "maxDamage": 350
+    "maxDamage": 350,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1169,
@@ -7158,7 +7838,9 @@
     "Damage": "200-300",
     "Atk Spd": 2100,
     "minDamage": 200,
-    "maxDamage": 300
+    "maxDamage": 300,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1170,
@@ -7179,7 +7861,9 @@
     "Damage": "200-350",
     "Atk Spd": 2300,
     "minDamage": 200,
-    "maxDamage": 350
+    "maxDamage": 350,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1171,
@@ -7200,7 +7884,9 @@
     "Damage": "215-295",
     "Atk Spd": 2100,
     "minDamage": 215,
-    "maxDamage": 295
+    "maxDamage": 295,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1172,
@@ -7221,7 +7907,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1173,
@@ -7242,7 +7930,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1174,
@@ -7263,7 +7953,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1175,
@@ -7284,7 +7976,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1176,
@@ -7305,7 +7999,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1194,
@@ -7326,7 +8022,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1195,
@@ -7347,7 +8045,9 @@
     "Damage": "355-445",
     "Atk Spd": 2700,
     "minDamage": 355,
-    "maxDamage": 445
+    "maxDamage": 445,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1196,
@@ -7368,7 +8068,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1197,
@@ -7389,7 +8091,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1258,
@@ -7410,7 +8114,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1280,
@@ -7431,7 +8137,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1281,
@@ -7452,7 +8160,9 @@
     "Damage": "500-700",
     "Atk Spd": 4100,
     "minDamage": 500,
-    "maxDamage": 700
+    "maxDamage": 700,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1282,
@@ -7473,7 +8183,9 @@
     "Damage": "300-375",
     "Atk Spd": 2300,
     "minDamage": 300,
-    "maxDamage": 375
+    "maxDamage": 375,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1283,
@@ -7494,7 +8206,9 @@
     "Damage": "265-350",
     "Atk Spd": 2200,
     "minDamage": 265,
-    "maxDamage": 350
+    "maxDamage": 350,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1284,
@@ -7515,7 +8229,9 @@
     "Damage": "220-330",
     "Atk Spd": 1900,
     "minDamage": 220,
-    "maxDamage": 330
+    "maxDamage": 330,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1285,
@@ -7536,7 +8252,9 @@
     "Damage": "250-350",
     "Atk Spd": 2300,
     "minDamage": 250,
-    "maxDamage": 350
+    "maxDamage": 350,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1286,
@@ -7557,7 +8275,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1287,
@@ -7578,7 +8298,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1290,
@@ -7599,7 +8321,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1291,
@@ -7620,7 +8344,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1292,
@@ -7641,7 +8367,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1293,
@@ -7662,7 +8390,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1294,
@@ -7683,7 +8413,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1298,
@@ -7704,7 +8436,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1299,
@@ -7725,7 +8459,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1305,
@@ -7746,7 +8482,9 @@
     "Damage": "1-4",
     "Atk Spd": 1000,
     "minDamage": 1,
-    "maxDamage": 4
+    "maxDamage": 4,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1307,
@@ -7767,7 +8505,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1308,
@@ -7788,7 +8528,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1309,
@@ -7809,7 +8551,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1310,
@@ -7830,7 +8574,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1314,
@@ -7851,7 +8597,9 @@
     "Damage": "1-3",
     "Atk Spd": 1000,
     "minDamage": 1,
-    "maxDamage": 3
+    "maxDamage": 3,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1342,
@@ -7872,7 +8620,9 @@
     "Damage": "300-525",
     "Atk Spd": 3000,
     "minDamage": 300,
-    "maxDamage": 525
+    "maxDamage": 525,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1343,
@@ -7893,7 +8643,9 @@
     "Damage": "400-500",
     "Atk Spd": 2400,
     "minDamage": 400,
-    "maxDamage": 500
+    "maxDamage": 500,
+    "Direct Crit": 2,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1344,
@@ -7914,7 +8666,9 @@
     "Damage": "400-475",
     "Atk Spd": 2400,
     "minDamage": 400,
-    "maxDamage": 475
+    "maxDamage": 475,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1345,
@@ -7935,7 +8689,9 @@
     "Damage": "400-700",
     "Atk Spd": 3200,
     "minDamage": 400,
-    "maxDamage": 700
+    "maxDamage": 700,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1346,
@@ -7956,7 +8712,9 @@
     "Damage": "525-700",
     "Atk Spd": 2800,
     "minDamage": 525,
-    "maxDamage": 700
+    "maxDamage": 700,
+    "Direct Crit": 0,
+    "Direct ATK Power": 30
   },
   {
     "Item ID": 1347,
@@ -7977,7 +8735,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 1,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1348,
@@ -7998,7 +8758,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1349,
@@ -8019,7 +8781,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1350,
@@ -8040,7 +8804,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 20
   },
   {
     "Item ID": 1351,
@@ -8061,7 +8827,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 1,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1352,
@@ -8082,7 +8850,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1353,
@@ -8103,7 +8873,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1354,
@@ -8124,7 +8896,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 20
   },
   {
     "Item ID": 1355,
@@ -8145,7 +8919,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1356,
@@ -8166,7 +8942,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1357,
@@ -8187,7 +8965,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1358,
@@ -8208,7 +8988,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1359,
@@ -8229,7 +9011,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1360,
@@ -8250,7 +9034,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1361,
@@ -8271,7 +9057,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1362,
@@ -8292,7 +9080,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1363,
@@ -8313,7 +9103,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1364,
@@ -8334,7 +9126,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1365,
@@ -8355,7 +9149,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1366,
@@ -8376,7 +9172,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1367,
@@ -8397,7 +9195,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1368,
@@ -8418,7 +9218,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1369,
@@ -8439,7 +9241,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1370,
@@ -8460,7 +9264,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 20
   },
   {
     "Item ID": 1371,
@@ -8481,7 +9287,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 30
   },
   {
     "Item ID": 1372,
@@ -8502,7 +9310,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 40
   },
   {
     "Item ID": 1373,
@@ -8523,7 +9333,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 20
   },
   {
     "Item ID": 1374,
@@ -8544,7 +9356,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 50
   },
   {
     "Item ID": 1466,
@@ -8565,7 +9379,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 30
   },
   {
     "Item ID": 1467,
@@ -8586,7 +9402,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1468,
@@ -8607,7 +9425,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 40
   },
   {
     "Item ID": 1469,
@@ -8628,7 +9448,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1470,
@@ -8649,7 +9471,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 2,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1471,
@@ -8670,7 +9494,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 1,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1472,
@@ -8691,7 +9517,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 40
   },
   {
     "Item ID": 1473,
@@ -8712,7 +9540,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 1,
+    "Direct ATK Power": 20
   },
   {
     "Item ID": 1474,
@@ -8733,7 +9563,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1475,
@@ -8754,7 +9586,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1503,
@@ -8775,7 +9609,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 3,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1504,
@@ -8796,7 +9632,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1505,
@@ -8817,7 +9655,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1506,
@@ -8838,7 +9678,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1508,
@@ -8859,7 +9701,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1509,
@@ -8880,7 +9724,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1510,
@@ -8901,7 +9747,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1511,
@@ -8922,7 +9770,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1512,
@@ -8943,7 +9793,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1513,
@@ -8964,7 +9816,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1514,
@@ -8985,7 +9839,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1515,
@@ -9006,7 +9862,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1516,
@@ -9027,7 +9885,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1517,
@@ -9048,7 +9908,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1518,
@@ -9069,7 +9931,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1519,
@@ -9090,7 +9954,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1520,
@@ -9111,7 +9977,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1521,
@@ -9132,7 +10000,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1522,
@@ -9153,7 +10023,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1523,
@@ -9174,7 +10046,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1524,
@@ -9195,7 +10069,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1525,
@@ -9216,7 +10092,9 @@
     "Damage": "70-750",
     "Atk Spd": 2000,
     "minDamage": 70,
-    "maxDamage": 750
+    "maxDamage": 750,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1526,
@@ -9237,7 +10115,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1527,
@@ -9258,7 +10138,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1528,
@@ -9279,7 +10161,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1529,
@@ -9300,7 +10184,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1530,
@@ -9321,7 +10207,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1531,
@@ -9342,7 +10230,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1533,
@@ -9363,7 +10253,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1534,
@@ -9384,7 +10276,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1535,
@@ -9405,7 +10299,9 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1537,
@@ -9426,7 +10322,9 @@
     "Damage": "425-465",
     "Atk Spd": 2000,
     "minDamage": 425,
-    "maxDamage": 465
+    "maxDamage": 465,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1558,
@@ -9447,7 +10345,9 @@
     "Damage": "500-800",
     "Atk Spd": 2800,
     "minDamage": 500,
-    "maxDamage": 800
+    "maxDamage": 800,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1559,
@@ -9468,7 +10368,9 @@
     "Damage": "200-750",
     "Atk Spd": 2200,
     "minDamage": 200,
-    "maxDamage": 750
+    "maxDamage": 750,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1560,
@@ -9489,7 +10391,9 @@
     "Damage": "500-700",
     "Atk Spd": 2600,
     "minDamage": 500,
-    "maxDamage": 700
+    "maxDamage": 700,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   },
   {
     "Item ID": 1561,
@@ -9510,6 +10414,8 @@
     "Damage": "",
     "Atk Spd": 0,
     "minDamage": 0,
-    "maxDamage": 0
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   }
 ]

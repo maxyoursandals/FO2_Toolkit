@@ -406,21 +406,21 @@ const UIFactory = {
      * @returns {HTMLElement} The created slot element
      */
     createSlot(slotName, item, clickHandler) {
-    const slotElement = DOMUtils.createElement('div', {
-        className: 'slot',
-        dataset: { slot: slotName },
-        onclick: (e) => {
-            // Only handle clicks on the slot itself, not on clear button
-            if (!e.target.classList.contains('clear-slot')) {
-                clickHandler(e);
+        const slotElement = DOMUtils.createElement('div', {
+            className: 'slot',
+            dataset: { slot: slotName },
+            onclick: (e) => {
+                // Only handle clicks on the slot itself, not on clear button
+                if (!e.target.classList.contains('clear-slot')) {
+                    clickHandler(e);
+                }
             }
-        }
-    });
-    
-    // Use the fixed updateSlotContent method to populate the slot
-    this.updateSlotContent(slotElement, slotName, item);
-    return slotElement;
-},
+        });
+        
+        // Use the fixed updateSlotContent method to populate the slot
+        this.updateSlotContent(slotElement, slotName, item);
+        return slotElement;
+    },
     
     /**
      * Updates the content of an equipment slot
@@ -429,50 +429,50 @@ const UIFactory = {
      * @param {Object|null} item - The equipped item or null
      */
     updateSlotContent(slotElement, slotName, item) {
-    DOMUtils.clearElement(slotElement);
-    
-    if (item) {
-        // Item equipped - show item image or fallback
-        if (item["Sprite-Link"]) {
-            slotElement.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slotName}" title="${item.Name || slotName}" style="image-rendering: pixelated;">`;
-        } else {
-            slotElement.innerHTML = `<div class="slot-text-fallback" title="${item.Name || ''}">${item.Name ? item.Name.substring(0, 3) : '?'}</div>`;
-        }
+        DOMUtils.clearElement(slotElement);
         
-        // Add clear button with fixed event handling
-        const clearButton = DOMUtils.createElement('div', {
-            className: 'clear-slot',
-            textContent: 'x',
-            title: 'Remove item'
-        });
-        
-        // Add the event listener directly to the button
-        clearButton.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent slot click event
-            // Directly call StateManager to remove the item
-            StateManager.equipItem(slotName, null);
-            // Update the UI to reflect the change
-            UIController.updateEquipmentSlots();
-        });
-        
-        slotElement.appendChild(clearButton);
-    } else {
-        // No item - show default icon
-        let iconName = slotName;
-        if (slotName === 'ring1' || slotName === 'ring2') iconName = 'ring';
-        if (slotName === 'trinket1' || slotName === 'trinket2') iconName = 'trinket';
-        
-        const defaultIcon = DOMUtils.createElement('img', {
-            src: `assets/build-sandbox/icons/${iconName}-icon.png`,
-            alt: slotName.charAt(0).toUpperCase() + slotName.slice(1),
-            onerror: function() {
-                this.parentNode.innerHTML = `<div class="slot-text-fallback">${this.alt.substring(0, 3)}</div>`;
+        if (item) {
+            // Item equipped - show item image or fallback
+            if (item["Sprite-Link"]) {
+                slotElement.innerHTML = `<img src="${item["Sprite-Link"]}" alt="${item.Name || slotName}" title="${item.Name || slotName}" style="image-rendering: pixelated;">`;
+            } else {
+                slotElement.innerHTML = `<div class="slot-text-fallback" title="${item.Name || ''}">${item.Name ? item.Name.substring(0, 3) : '?'}</div>`;
             }
-        });
-        
-        slotElement.appendChild(defaultIcon);
-    }
-},
+            
+            // Add clear button with fixed event handling
+            const clearButton = DOMUtils.createElement('div', {
+                className: 'clear-slot',
+                textContent: 'x',
+                title: 'Remove item'
+            });
+            
+            // Add the event listener directly to the button
+            clearButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent slot click event
+                // Directly call StateManager to remove the item
+                StateManager.equipItem(slotName, null);
+                // Update the UI to reflect the change
+                UIController.updateEquipmentSlots();
+            });
+            
+            slotElement.appendChild(clearButton);
+        } else {
+            // No item - show default icon
+            let iconName = slotName;
+            if (slotName === 'ring1' || slotName === 'ring2') iconName = 'ring';
+            if (slotName === 'trinket1' || slotName === 'trinket2') iconName = 'trinket';
+            
+            const defaultIcon = DOMUtils.createElement('img', {
+                src: `assets/build-sandbox/icons/${iconName}-icon.png`,
+                alt: slotName.charAt(0).toUpperCase() + slotName.slice(1),
+                onerror: function() {
+                    this.parentNode.innerHTML = `<div class="slot-text-fallback">${this.alt.substring(0, 3)}</div>`;
+                }
+            });
+            
+            slotElement.appendChild(defaultIcon);
+        }
+    },
     
     /**
      * Creates a buff icon element
@@ -533,6 +533,88 @@ const UIFactory = {
      * @param {string} contentHtml - The HTML content
      * @param {string} tooltipId - The ID for the tooltip
      * @param {string} tooltipClass - The CSS class for the tooltip
+     */
+    createTooltip(element, contentHtml, tooltipId = 'item-tooltip', tooltipClass = 'item-tooltip') {
+        this.hideTooltip(tooltipId);
+        
+        const tooltip = DOMUtils.createElement('div', {
+            className: tooltipClass,
+            id: tooltipId,
+            innerHTML: contentHtml
+        });
+        
+        document.body.appendChild(tooltip);
+        
+        // Position tooltip
+        const elemRect = element.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const margin = 10;
+        
+        // Default position: right, vertical center
+        let left = elemRect.right + margin;
+        let top = elemRect.top + (elemRect.height / 2) - (tooltipRect.height / 2) + window.scrollY;
+        
+        // Adjust if off-screen
+        if (left + tooltipRect.width > window.innerWidth - margin) {
+            // Try left side instead
+            left = elemRect.left - tooltipRect.width - margin;
+            if (left < margin) left = margin;
+        }
+        
+        if (top < window.scrollY + margin) {
+            top = window.scrollY + margin;
+        } else if (top + tooltipRect.height > window.innerHeight + window.scrollY - margin) {
+            top = window.innerHeight + window.scrollY - tooltipRect.height - margin;
+        }
+        
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+        
+        // Fade in
+        requestAnimationFrame(() => { tooltip.style.opacity = 1; });
+        
+        return tooltip;
+    },
+    
+    /**
+     * Hides a tooltip by ID
+     * @param {string} tooltipId - The ID of the tooltip to hide
+     */
+    hideTooltip(tooltipId = 'item-tooltip') {
+        const existingTooltip = document.getElementById(tooltipId);
+        if (existingTooltip) {
+            existingTooltip.remove();
+        }
+    },
+
+    /**
+     * Shows an item tooltip
+     * @param {HTMLElement} element - The element to attach to
+     * @param {Object} item - The item data
+     */
+    showItemTooltip(element, item) {
+        if (!item) return;
+        
+        const content = this.generateItemTooltipContent(item);
+        this.createTooltip(element, content, 'item-tooltip');
+    },
+    
+    /**
+     * Shows a buff tooltip
+     * @param {Object} buff - The buff data
+     * @param {HTMLElement} element - The element to attach to
+     */
+    showBuffTooltip(buff, element) {
+        if (!buff) return;
+        
+        const content = this.generateBuffTooltipContent(buff);
+        this.createTooltip(element, content, 'buff-tooltip', 'buff-tooltip');
+    },
+    
+    /**
+     * Generates item tooltip HTML content - UPDATED with new fields
+     * @param {Object} item - The item data
+     * @returns {string} HTML content for tooltip
      */
     generateItemTooltipContent(item) {
         let content = `<div class="tooltip-title">${item.Name}</div>`;
@@ -742,61 +824,61 @@ const UIFactory = {
         });
         
         if (build.activeBuffNames?.length > 0) {
-    build.activeBuffNames.forEach(buffName => {
-        let buff = null;
-        for (const cat in buffs) {
-            buff = buffs[cat]?.find(b => b.Name === buffName);
-            if (buff) break;
-        }
-        
-        if (buff) {
-            const buffIconDiv = DOMUtils.createElement('div', {
-                className: 'build-item-buff-icon'
-            });
-            
-            // Extract tier number if present (same logic as in createBuffIcon)
-            const tierMatch = buff.Name.match(/\s(\d+)$/);
-            const tier = tierMatch ? tierMatch[1] : null;
-            
-            // Create base name for icon (same as in createBuffIcon)
-            const baseName = buff.Name.toLowerCase()
-                .replace(/\s+\d+$/, '')
-                .replace(/[^a-z0-9\s-]/g, '')
-                .trim()
-                .replace(/\s+/g, '-');
-            
-            const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
-            
-            // Create the image element
-            const img = DOMUtils.createElement('img', {
-                src: iconFileName,
-                alt: buff.Name,
-                title: buff.Name,
-                onerror: function() { buffIconDiv.innerHTML = '?'; }
-            });
-            
-            buffIconDiv.appendChild(img);
-            
-            // Add tier number indicator if present
-            if (tier) {
-                const tierSpan = DOMUtils.createElement('span', {
-                    className: 'buff-tier',
-                    textContent: tier
-                });
+            build.activeBuffNames.forEach(buffName => {
+                let buff = null;
+                for (const cat in buffs) {
+                    buff = buffs[cat]?.find(b => b.Name === buffName);
+                    if (buff) break;
+                }
                 
-                buffIconDiv.appendChild(tierSpan);
-            }
-            
-            // Add event listeners for tooltip
-            buffIconDiv.addEventListener('mouseenter', (e) => UIFactory.showBuffTooltip(buff, e.currentTarget));
-            buffIconDiv.addEventListener('mouseleave', () => UIFactory.hideTooltip('buff-tooltip'));
-            
-            buffsDiv.appendChild(buffIconDiv);
+                if (buff) {
+                    const buffIconDiv = DOMUtils.createElement('div', {
+                        className: 'build-item-buff-icon'
+                    });
+                    
+                    // Extract tier number if present (same logic as in createBuffIcon)
+                    const tierMatch = buff.Name.match(/\s(\d+)$/);
+                    const tier = tierMatch ? tierMatch[1] : null;
+                    
+                    // Create base name for icon (same as in createBuffIcon)
+                    const baseName = buff.Name.toLowerCase()
+                        .replace(/\s+\d+$/, '')
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .trim()
+                        .replace(/\s+/g, '-');
+                    
+                    const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
+                    
+                    // Create the image element
+                    const img = DOMUtils.createElement('img', {
+                        src: iconFileName,
+                        alt: buff.Name,
+                        title: buff.Name,
+                        onerror: function() { buffIconDiv.innerHTML = '?'; }
+                    });
+                    
+                    buffIconDiv.appendChild(img);
+                    
+                    // Add tier number indicator if present
+                    if (tier) {
+                        const tierSpan = DOMUtils.createElement('span', {
+                            className: 'buff-tier',
+                            textContent: tier
+                        });
+                        
+                        buffIconDiv.appendChild(tierSpan);
+                    }
+                    
+                    // Add event listeners for tooltip
+                    buffIconDiv.addEventListener('mouseenter', (e) => UIFactory.showBuffTooltip(buff, e.currentTarget));
+                    buffIconDiv.addEventListener('mouseleave', () => UIFactory.hideTooltip('buff-tooltip'));
+                    
+                    buffsDiv.appendChild(buffIconDiv);
+                }
+            });
+        } else {
+            buffsDiv.innerHTML = '<div class="build-item-no-buffs">No buffs</div>';
         }
-    });
-} else {
-    buffsDiv.innerHTML = '<div class="build-item-no-buffs">No buffs</div>';
-}
         
         // Add the four columns to content wrapper
         contentWrapper.appendChild(infoDiv);
@@ -913,7 +995,7 @@ const UIFactory = {
     },
     
     /**
-     * Creates detailed item view for the dictionary
+     * Creates detailed item view for the dictionary - UPDATED with new fields
      * @param {Object} item - The item data
      * @returns {HTMLElement} The created item view
      */
@@ -941,7 +1023,7 @@ const UIFactory = {
             { key: 'INT', label: 'INT', classPositive: 'stat-positive', classNegative: 'stat-negative' },
             { key: 'AGI', label: 'AGI', classPositive: 'stat-positive', classNegative: 'stat-negative' },
             { key: 'Armor', label: 'Armor', classPositive: 'stat-positive', classNegative: 'stat-negative' },
-            { key: 'Direct Crit', label: 'Direct Crit (%)', classPositive: 'stat-positive', classNegative: 'stat-negative' }, // NEW
+            { key: 'Direct Crit', label: 'Crit (%)', classPositive: 'stat-positive', classNegative: 'stat-negative' }, // NEW
             { key: 'Direct ATK Power', label: 'Direct ATK Power', classPositive: 'stat-positive', classNegative: 'stat-negative' }, // NEW
             { key: 'Damage', label: 'Damage', classPositive: '', classNegative: '' },
             { key: 'Atk Spd', label: 'Speed (ms)', classPositive: '', classNegative: '' }
@@ -1056,20 +1138,20 @@ const ItemDictionaryEnhancements = {
             className: 'filter-section export-import-section'
         });
 
-        const title = DOMUtils.createElement('h4', {
+        const title = DOMUtils.createElement('h3', {
             textContent: 'Data Management',
             style: { marginBottom: '10px' }
         });
 
         const exportAllButton = DOMUtils.createElement('button', {
-            textContent: 'Export All Items',
+            textContent: 'Export json',
             className: 'action-button',
             style: { width: '100%', marginBottom: '5px' },
             onclick: ItemEditor.exportAllItems
         });
 
         const importButton = DOMUtils.createElement('button', {
-            textContent: 'Import Items',
+            textContent: 'Import json',
             className: 'action-button',
             style: { width: '100%' },
             onclick: ItemEditor.importItems
@@ -1189,11 +1271,6 @@ UIFactory.generateSpellTooltipContent = function(spell) {
 // ------------------------------------------------------------------
 
 const DataService = {
-    /**
-     * Process and normalize item data
-     * @param {Array} itemArray - Raw item data array
-     * @returns {Object} Processed data
-     */
     processItemData(itemArray) {
         try {
             if (!itemArray || !Array.isArray(itemArray) || itemArray.length === 0) {
@@ -4485,7 +4562,7 @@ const ItemEditor = {
             className: 'item-editor-form'
         });
 
-        // Create form fields for each editable property
+        // Create form fields for each editable property - UPDATED with new fields
         const fields = [
             { key: 'Name', label: 'Name', type: 'text', required: true },
             { key: 'Level', label: 'Level', type: 'number', min: 0 },
@@ -4500,6 +4577,8 @@ const ItemEditor = {
             { key: 'Req INT', label: 'Req INT', type: 'number', min: 0 },
             { key: 'Req AGI', label: 'Req AGI', type: 'number', min: 0 },
             { key: 'Armor', label: 'Armor', type: 'number' },
+            { key: 'Direct Crit', label: 'Crit (%)', type: 'number', step: 0.1, min: 0, placeholder: '0.0' }, // NEW
+            { key: 'Direct ATK Power', label: 'Direct ATK Power', type: 'number', min: 0, placeholder: '0' }, // NEW
             { key: 'Damage', label: 'Damage', type: 'text', placeholder: 'e.g., 10-20 or 5K-10K' },
             { key: 'Atk Spd', label: 'Attack Speed (ms)', type: 'number', min: 100 },
             { key: 'Sprite-Link', label: 'Sprite URL', type: 'url' }
@@ -4542,6 +4621,7 @@ const ItemEditor = {
                     className: 'field-input',
                     placeholder: field.placeholder || '',
                     min: field.min !== undefined ? field.min : undefined,
+                    step: field.step !== undefined ? field.step : undefined, // NEW: Add step support for decimals
                     required: field.required || false
                 });
             }
@@ -4584,12 +4664,14 @@ const ItemEditor = {
             const formData = new FormData(form);
             const updatedItem = { ...item };
 
-            // Update item properties from form
+            // Update item properties from form - UPDATED to handle new fields
             for (const [key, value] of formData.entries()) {
                 if (value === '') {
                     updatedItem[key] = '';
-                } else if (['Level', 'STA', 'STR', 'INT', 'AGI', 'Req STA', 'Req STR', 'Req INT', 'Req AGI', 'Armor', 'Atk Spd'].includes(key)) {
+                } else if (['Level', 'STA', 'STR', 'INT', 'AGI', 'Req STA', 'Req STR', 'Req INT', 'Req AGI', 'Armor', 'Atk Spd', 'Direct ATK Power'].includes(key)) {
                     updatedItem[key] = parseInt(value) || 0;
+                } else if (key === 'Direct Crit') { // NEW: Handle Direct Crit as float
+                    updatedItem[key] = parseFloat(value) || 0;
                 } else {
                     updatedItem[key] = value;
                 }
