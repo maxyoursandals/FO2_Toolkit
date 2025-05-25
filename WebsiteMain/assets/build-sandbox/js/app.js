@@ -1128,6 +1128,11 @@ UIFactory.createSpellSearchResult = function(spell, selectHandler) {
 };
 
 UIFactory.generateSpellTooltipContent = function(spell) {
+    // Get current crit % from calculated stats
+    const calculatedStats = StateManager.state.currentBuild.calculatedStats;
+    const critPercent = calculatedStats?.finalCrit || 0;
+    const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(spell, critPercent);
+    
     let content = `<div class="tooltip-title">${spell.Name} (Tier ${spell.tier})</div>`;
     content += `<div class="tooltip-level">Level ${spell.levelRequired} Spell</div>`;
     
@@ -1138,7 +1143,7 @@ UIFactory.generateSpellTooltipContent = function(spell) {
     if (spell.cooldown > 0) {
         statsHtml.push(`<div>Cooldown: ${spell.cooldown}s</div>`);
     }
-    statsHtml.push(`<div class="effect-positive">DPS: ${spell.dps}</div>`);
+    statsHtml.push(`<div class="effect-positive">DPS: ${dpsWithCrit}</div>`);
     statsHtml.push(`<div class="effect-negative">Energy/sec: ${spell.energyPerSecond}</div>`);
     
     content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
@@ -1335,6 +1340,70 @@ const DataService = {
             return { "Buff": [], "Morph": [] };
         }
     },
+
+    /**
+     * Process and normalize spells data
+     * @param {Array} spellsArray - Raw spells data
+     * @returns {Array} Processed spells data
+     */
+    processSpellsData(spellsArray) {
+        try {
+            if (!spellsArray || !Array.isArray(spellsArray)) {
+                console.error("Invalid spells data provided.");
+                return [];
+            }
+            
+            const processedSpells = spellsArray.map(spell => {
+                // Parse numeric fields with proper error handling
+                const energyCost = parseInt(spell["Energy Cost"]) || 0;
+                const castTime = parseFloat(spell["Cast Time"]) || 0;
+                const levelRequired = parseInt(spell["Level Required"]) || 1;
+                const tier = parseInt(spell.Tier) || 1;
+                const cooldown = parseFloat(spell.Cooldown) || 0;
+                
+                // Parse damage range
+                const damageValues = FO2Utils.parseDamageString(spell.Damage);
+               
+                // Calculate base DPS and energy per second (without crit)
+                const avgDamage = (damageValues.minDamage + damageValues.maxDamage) / 2;
+                
+                // Use the maximum of cast time and cooldown for effective casting rate
+                // If both are 0, assume 1 second for calculation purposes
+                const effectiveCastTime = Math.max(castTime, cooldown) || 1;
+                
+                const baseDps = avgDamage / effectiveCastTime;
+                const energyPerSecond = energyCost / effectiveCastTime;
+                
+                return {
+                    ...spell, // Preserve all original spell properties
+                    energyCost,
+                    castTime,
+                    levelRequired,
+                    tier,
+                    cooldown,
+                    minDamage: damageValues.minDamage,
+                    maxDamage: damageValues.maxDamage,
+                    avgDamage,
+                    baseDps: Math.round(baseDps * 100) / 100,
+                    energyPerSecond: Math.round(energyPerSecond * 100) / 100
+                };
+            });
+            
+            // Sort by level required, then by tier
+            processedSpells.sort((a, b) => {
+                if (a.levelRequired !== b.levelRequired) {
+                    return a.levelRequired - b.levelRequired;
+                }
+                return a.tier - b.tier;
+            });
+            
+            console.log(`Processed ${processedSpells.length} spells.`);
+            return processedSpells;
+        } catch (error) {
+            console.error("Error processing spells data:", error);
+            return [];
+        }
+    },
     
     /**
      * Load data from server API endpoints
@@ -1400,68 +1469,7 @@ const DataService = {
             DOMUtils.showNotification(`Failed to load game data: ${error.message}`, "error");
             throw error;
         }
-    },
-
-    /**
-     * Process and normalize spells data
-     * @param {Array} spellsArray - Raw spells data
-     * @returns {Array} Processed spells data
-     */
-    processSpellsData(spellsArray) {
-        try {
-            if (!spellsArray || !Array.isArray(spellsArray)) {
-                console.error("Invalid spells data provided.");
-                return [];
-            }
-
-            const processedSpells = spellsArray.map(spell => {
-                // Parse numeric fields
-                const energyCost = parseInt(spell["Energy Cost"]) || 0;
-                const castTime = parseFloat(spell["Cast Time"]) || 1;
-                const levelRequired = parseInt(spell["Level Required"]) || 1;
-                const tier = parseInt(spell.Tier) || 1;
-                const cooldown = parseFloat(spell.Cooldown) || 0;
-
-                // Parse damage range
-                const damageValues = FO2Utils.parseDamageString(spell.Damage);
-                
-                // Calculate DPS and energy per second
-                const avgDamage = (damageValues.minDamage + damageValues.maxDamage) / 2;
-                const effectiveCastTime = Math.max(castTime, cooldown); // Use longer of cast time or cooldown
-                const dps = effectiveCastTime > 0 ? avgDamage / effectiveCastTime : 0;
-                const energyPerSecond = effectiveCastTime > 0 ? energyCost / effectiveCastTime : 0;
-
-                return {
-                    ...spell,
-                    energyCost,
-                    castTime,
-                    levelRequired,
-                    tier,
-                    cooldown,
-                    minDamage: damageValues.minDamage,
-                    maxDamage: damageValues.maxDamage,
-                    avgDamage,
-                    dps: Math.round(dps),
-                    energyPerSecond: Math.round(energyPerSecond * 10) / 10 // Round to 1 decimal
-                };
-            });
-
-            // Sort by level required, then by tier
-            processedSpells.sort((a, b) => {
-                if (a.levelRequired !== b.levelRequired) {
-                    return a.levelRequired - b.levelRequired;
-                }
-                return a.tier - b.tier;
-            });
-
-            console.log(`Processed ${processedSpells.length} spells.`);
-            return processedSpells;
-        } catch (error) {
-            console.error("Error processing spells data:", error);
-            return [];
-        }
     }
-
 };
 
 // ------------------------------------------------------------------
@@ -1889,6 +1897,14 @@ calculatePerformance(currentDPS, mobList, filters) {
         
         // Calculate stats using the temp state
         return this.performFullStatCalculation(tempState, gameConfig);
+    },
+
+    calculateSpellDpsWithCrit: function(spell, critPercent) {
+        if (!spell || !spell.baseDps) return 0;
+        
+        // Apply crit multiplier: (1 + crit% / 100)
+        const critMultiplier = 1.0 + (critPercent / 100.0);
+        return Math.round(spell.baseDps * critMultiplier);
     }
 };
 
@@ -2286,27 +2302,32 @@ const StateManager = {
     triggerRecalculationAndUpdateUI() {
         // 1. Recalculate core build stats
         this.state.currentBuild.calculatedStats = StatsCalculator.performFullStatCalculation(
-            this.state.currentBuild,
-            FO2Config
-        );
-        
-        // 2. Calculate performance against mobs
-        const perfData = StatsCalculator.calculatePerformance(
-            this.state.currentBuild.calculatedStats?.finalDPS || 0,
-            this.state.data.mobs,
-            this.state.ui.performance
-        );
-        
-        // 3. Publish events for UI updates
-        EventSystem.publish('stats-updated', this.state.currentBuild.calculatedStats);
-        EventSystem.publish('performance-updated', {
-            data: perfData,
-            sortColumn: this.state.ui.performance.sortColumn,
-            sortAscending: this.state.ui.performance.sortAscending
-        });
-        
-        // 4. Save the current state
-        this.saveCurrentStateToLocalStorage();
+        this.state.currentBuild,
+        FO2Config
+    );
+    
+    // 2. Calculate performance against mobs
+    const perfData = StatsCalculator.calculatePerformance(
+        this.state.currentBuild.calculatedStats?.finalDPS || 0,
+        this.state.data.mobs,
+        this.state.ui.performance
+    );
+    
+    // 3. Publish events for UI updates
+    EventSystem.publish('stats-updated', this.state.currentBuild.calculatedStats);
+    EventSystem.publish('performance-updated', {
+        data: perfData,
+        sortColumn: this.state.ui.performance.sortColumn,
+        sortAscending: this.state.ui.performance.sortAscending
+    });
+    
+    // 4. Update spell display with new crit values (ADD THIS)
+    if (this.state.currentBuild.selectedSpell) {
+        EventSystem.publish('spell-updated', this.state.currentBuild.selectedSpell);
+    }
+    
+    // 5. Save the current state
+    this.saveCurrentStateToLocalStorage();
     },
     
     /**
@@ -3212,6 +3233,12 @@ const UIController = {
     EventSystem.subscribe('spell-updated', () => {
         this.updateSpellDisplay();
     });
+
+    EventSystem.subscribe('stats-updated', (calculatedStats) => {
+    this.updateDisplay(calculatedStats);
+    // Update spell display when stats change (ADD THIS)
+    this.updateSpellDisplay();
+});
 
 // 14. Subscribe to mode changes
 EventSystem.subscribe('mode-changed', (data) => {
@@ -4139,8 +4166,8 @@ registerSlotItemRemovedListener() {
         
         if (modeLabel) {
             modeLabel.textContent = mode === FO2Config.UI.MODE.RESTRICTED
-                ? 'Restricted Mode'
-                : 'Sandbox Mode';
+                ? 'Restricted'
+                : 'Sandbox';
         }
         
         // Update item search UI to show requirements status
@@ -4205,6 +4232,13 @@ UIController.updateSpellDisplay = function() {
     DOMUtils.clearElement(spellInfo);
     
     if (selectedSpell) {
+        // Get current crit % from calculated stats
+        const calculatedStats = StateManager.state.currentBuild.calculatedStats;
+        const critPercent = calculatedStats?.finalCrit || 0;
+        
+        // Calculate DPS with crit
+        const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(selectedSpell, critPercent);
+        
         const nameDiv = DOMUtils.createElement('div', {
             className: 'spell-name',
             textContent: `${selectedSpell.Name} (Tier ${selectedSpell.tier})`
@@ -4215,11 +4249,11 @@ UIController.updateSpellDisplay = function() {
         });
         
         const dpsDiv = DOMUtils.createElement('div', {
-            innerHTML: `DPS: <span class="spell-dps">${selectedSpell.dps}</span>`
+            innerHTML: `DPS: <span class="spell-dps">${dpsWithCrit}</span> (Base: ${selectedSpell.baseDps})`
         });
         
         const costDiv = DOMUtils.createElement('div', {
-            innerHTML: `Cost: <span class="spell-cost">${selectedSpell.energyPerSecond} energy/sec</span>`
+            innerHTML: `Cost: <span class="spell-cost">${selectedSpell.energyPerSecond.toFixed(1)} energy/sec</span>`
         });
         
         statsDiv.appendChild(dpsDiv);
@@ -4283,6 +4317,17 @@ UIController.populateSpellSearchResults = function(query = '') {
             spell.tier.toString().includes(lowerQuery)
         );
     }
+    
+    // Sort alphabetically by name first, then by tier
+    filteredSpells.sort((a, b) => {
+        // First sort by spell name (alphabetical)
+        const nameComparison = a.Name.localeCompare(b.Name);
+        if (nameComparison !== 0) {
+            return nameComparison;
+        }
+        // If names are the same, sort by tier (ascending)
+        return a.tier - b.tier;
+    });
     
     // Display results
     if (filteredSpells.length === 0) {

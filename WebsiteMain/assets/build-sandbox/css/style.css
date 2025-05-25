@@ -1625,6 +1625,7 @@ input:checked + .toggle-slider:before {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    padding: 8px 0; /* Add vertical padding to create space from borders */
 }
 
 .spell-name {
