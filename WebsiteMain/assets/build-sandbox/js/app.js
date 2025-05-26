@@ -91,6 +91,13 @@ const FO2Config = {
             }
         }
     },
+
+    SETS: {
+        // Set bonus categories
+        CATEGORIES: {
+            CRAFTED: 'crafted'
+        }
+    },
     
     // Lists of boss mobs
     BOSS_NAMES: new Set([
@@ -1062,7 +1069,68 @@ const UIFactory = {
         
         container.innerHTML = content;
         return container;
-    }
+    },
+
+    /**
+     * Creates a set bonus display element - FIXED to only show active bonuses
+     * @param {string} setName - Name of the set
+     * @param {number} equippedCount - Number of equipped pieces
+     * @param {Object} setData - Set data
+     * @returns {HTMLElement} Set bonus display element
+     */
+    createSetBonusDisplay(setName, equippedCount, setData) {
+        const container = DOMUtils.createElement('div', {
+            className: 'set-bonus-item'
+        });
+        
+        // Find the maximum bonus tier possible for this set
+        const maxPieces = Math.max(...Object.keys(setData.bonuses).map(tier => parseInt(tier)));
+        
+        const header = DOMUtils.createElement('div', {
+            className: 'set-bonus-header',
+            innerHTML: `<strong>${setName}</strong> (${maxPieces} pieces MAX)`
+        });
+        
+        container.appendChild(header);
+        
+        // Find the highest applicable bonus tier
+        const availableTiers = Object.keys(setData.bonuses)
+            .map(tier => parseInt(tier))
+            .filter(tier => tier <= equippedCount)
+            .sort((a, b) => b - a); // Sort descending to get highest first
+        
+        if (availableTiers.length > 0) {
+            const applicableTier = availableTiers[0];
+            const bonus = setData.bonuses[applicableTier.toString()];
+            
+            const bonusList = DOMUtils.createElement('div', {
+                className: 'set-bonus-list'
+            });
+            
+            const tierDiv = DOMUtils.createElement('div', {
+                className: 'set-bonus-tier active'
+            });
+            
+            // Create the bonus text showing only non-zero values
+            const bonusText = Object.entries(bonus)
+                .filter(([stat, value]) => value !== 0)
+                .map(([stat, value]) => `${stat}: +${value}`)
+                .join(', ');
+            
+            tierDiv.innerHTML = `${applicableTier} pieces: ${bonusText}`;
+            bonusList.appendChild(tierDiv);
+            container.appendChild(bonusList);
+        } else {
+            // No bonuses active
+            const noBonusDiv = DOMUtils.createElement('div', {
+                className: 'set-bonus-tier inactive',
+                textContent: 'No bonuses active'
+            });
+            container.appendChild(noBonusDiv);
+        }
+        
+        return container;
+    },
 };
 
 UIFactory.createItemDetailViewWithEdit = function(item) {
@@ -1364,7 +1432,76 @@ const DataService = {
             };
         }
     },
+
+    /**
+     * Process and normalize sets data
+     * @param {Array} setsArray - Raw sets data
+     * @returns {Object} Processed sets data
+     */
+    processSetsData(setsArray) {
+        try {
+            if (!setsArray || !Array.isArray(setsArray)) {
+                console.error("Invalid sets data provided.");
+                return { sets: [], setsByName: new Map() };
+            }
+            
+            const setsByName = new Map();
+            
+            // Process each set
+            setsArray.forEach(setData => {
+                // Normalize bonus values
+                Object.keys(setData.bonuses).forEach(pieceCount => {
+                    const bonus = setData.bonuses[pieceCount];
+                    // Ensure numeric values
+                    ['CRIT', 'AGI', 'STR', 'INT', 'STA', 'ATKP', 'ARMOR'].forEach(stat => {
+                        if (bonus[stat] !== undefined) {
+                            bonus[stat] = parseFloat(bonus[stat]) || 0;
+                        }
+                    });
+                });
+                
+                setsByName.set(setData.setName, setData);
+            });
+            
+            console.log(`Processed ${setsArray.length} equipment sets.`);
+            return { sets: setsArray, setsByName };
+        } catch (error) {
+            console.error("Error processing sets data:", error);
+            return { sets: [], setsByName: new Map() };
+        }
+    },
     
+    /**
+     * Assign set information to items based on item IDs in sets data
+     * @param {Map} itemsById - Map of items by ID
+     * @param {Map} setsByName - Map of sets by name
+     */
+    assignSetInformation(itemsById, setsByName) {
+        // Create a map from item ID to set data for quick lookup
+        const itemIdToSetMap = new Map();
+        
+        setsByName.forEach((setData, setName) => {
+            if (setData.itemIds && Array.isArray(setData.itemIds)) {
+                setData.itemIds.forEach(itemId => {
+                    itemIdToSetMap.set(itemId, {
+                        setName: setName,
+                        setData: setData
+                    });
+                });
+            }
+        });
+        
+        // Assign set information to items
+        itemsById.forEach((item, itemId) => {
+            const setInfo = itemIdToSetMap.get(itemId);
+            if (setInfo) {
+                item.setName = setInfo.setName;
+                item.setData = setInfo.setData;
+            }
+        });
+        
+        console.log(`Assigned set information to ${itemIdToSetMap.size} items across ${setsByName.size} sets.`);
+    },
     /**
      * Process and normalize mobs data
      * @param {Object} mobsJsonData - Raw mobs data
@@ -1536,8 +1673,8 @@ const DataService = {
         try {
             DOMUtils.showNotification("Loading game data...", "info");
             
-            // Fetch all data files in parallel
-            const [itemsResponse, mobsResponse, buffsResponse, spellsResponse] = await Promise.all([
+            // Add sets to the fetch calls
+            const [itemsResponse, mobsResponse, buffsResponse, spellsResponse, setsResponse] = await Promise.all([
                 fetch('assets/build-sandbox/data/items.json').catch(e => {
                     console.error("Fetch items failed:", e);
                     return { ok: false, json: () => null };
@@ -1553,10 +1690,14 @@ const DataService = {
                 fetch('assets/build-sandbox/data/spells.json').catch(e => {
                     console.error("Fetch spells failed:", e);
                     return { ok: false, json: () => null };
+                }),
+                fetch('assets/build-sandbox/data/sets.json').catch(e => {
+                    console.error("Fetch sets failed:", e);
+                    return { ok: false, json: () => null };
                 })
             ]);
             
-            if (!itemsResponse.ok || !mobsResponse.ok || !buffsResponse.ok || !spellsResponse.ok) {
+            if (!itemsResponse.ok || !mobsResponse.ok || !buffsResponse.ok || !spellsResponse.ok || !setsResponse.ok) {
                 throw new Error("One or more data files failed to load. Check network or file paths.");
             }
             
@@ -1564,8 +1705,9 @@ const DataService = {
             const rawMobsData = await mobsResponse.json();
             const rawBuffsArray = await buffsResponse.json();
             const rawSpellsArray = await spellsResponse.json();
+            const rawSetsArray = await setsResponse.json();
             
-            if (rawItemsArray === null || rawMobsData === null || rawBuffsArray === null || rawSpellsArray === null) {
+            if (rawItemsArray === null || rawMobsData === null || rawBuffsArray === null || rawSpellsArray === null || rawSetsArray === null) {
                 throw new Error("One or more data files parsed to null.");
             }
             
@@ -1575,7 +1717,9 @@ const DataService = {
             const itemData = this.processItemData(rawItemsArray);
             const buffsData = this.processBuffsData(rawBuffsArray);
             const spellsData = this.processSpellsData(rawSpellsArray);
+            const setsData = this.processSetsData(rawSetsArray); // Add this line
             const mobsData = this.processMobsData(rawMobsData, itemData.itemsById);
+            this.assignSetInformation(itemData.itemsById, setsData.setsByName);
             
             DOMUtils.showNotification("Game data loaded successfully!", "success");
             
@@ -1585,7 +1729,9 @@ const DataService = {
                 mobs: mobsData.mobs,
                 mobsMaxLevel: mobsData.mobsMaxLevel,
                 buffs: buffsData,
-                spells: spellsData
+                spells: spellsData,
+                sets: setsData.sets, // Add this line
+                setsByName: setsData.setsByName // Add this line
             };
         } catch (error) {
             console.error("Error loading data:", error);
@@ -1757,7 +1903,19 @@ const StatsCalculator = {
             }
         });
         
-        // --- 6. Calculate Final Derived Stats ---
+        // 6. Calculate Set Bonuses (ADD THIS SECTION)
+        const setBonuses = this.calculateSetBonuses(build.equipment, StateManager.state.data.setsByName);
+
+        // Apply set bonuses to stats
+        finalCharacterStats.agi += setBonuses.AGI || 0;
+        finalCharacterStats.str += setBonuses.STR || 0;
+        finalCharacterStats.int += setBonuses.INT || 0;
+        finalCharacterStats.sta += setBonuses.STA || 0;
+        totalDirectArmorBonus += setBonuses.ARMOR || 0;
+        totalDirectAPBonus += setBonuses.ATKP || 0;
+        totalDirectCritBonus += setBonuses.CRIT || 0;
+
+        // --- 7. Calculate Final Derived Stats ---
         
         // HP and Energy
         const resourceConfig = gameConfig.GAME.RESOURCES;
@@ -2036,7 +2194,63 @@ calculatePerformance(currentDPS, mobList, filters) {
         // Apply crit multiplier: (1 + crit% / 100)
         const critMultiplier = 1.0 + (critPercent / 100.0);
         return Math.round(spell.baseDps * critMultiplier);
-    }
+    },
+
+    /**
+     * Calculate active set bonuses from equipped items
+     * @param {Object} equipment - Equipped items
+     * @param {Map} setsByName - Map of sets by name
+     * @returns {Object} Active set bonuses
+     */
+    calculateSetBonuses(equipment, setsByName) {
+        const setBonuses = {
+            CRIT: 0,
+            AGI: 0,
+            STR: 0,
+            INT: 0,
+            STA: 0,
+            ATKP: 0,
+            ARMOR: 0
+        };
+        
+        if (!equipment || !setsByName) return setBonuses;
+        
+        // Count equipped items by set
+        const setCounts = new Map();
+        
+        Object.values(equipment).forEach(item => {
+            if (item && item.setName) {
+                const currentCount = setCounts.get(item.setName) || 0;
+                setCounts.set(item.setName, currentCount + 1);
+            }
+        });
+        
+        // Apply set bonuses
+        setCounts.forEach((count, setName) => {
+            const setData = setsByName.get(setName);
+            if (!setData || !setData.bonuses) return;
+            
+            // Find the highest applicable bonus tier
+            const availableTiers = Object.keys(setData.bonuses)
+                .map(tier => parseInt(tier))
+                .filter(tier => tier <= count)
+                .sort((a, b) => b - a); // Sort descending
+            
+            if (availableTiers.length > 0) {
+                const applicableTier = availableTiers[0];
+                const bonus = setData.bonuses[applicableTier.toString()];
+                
+                // Add bonuses
+                Object.keys(setBonuses).forEach(stat => {
+                    if (bonus[stat] !== undefined) {
+                        setBonuses[stat] += bonus[stat];
+                    }
+                });
+            }
+        });
+        
+        return setBonuses;
+    },
 };
 
 // ------------------------------------------------------------------
@@ -2058,7 +2272,9 @@ const StateManager = {
         mobs: [],
         mobsMaxLevel: 1,
         buffs: { "Buff": [], "Morph": [] },
-        spells: []  // <-- ADD THIS LINE
+        spells: [],
+        sets: [], 
+        setsByName: new Map()
     },
         
         // Current Build
@@ -2452,10 +2668,12 @@ const StateManager = {
         sortAscending: this.state.ui.performance.sortAscending
     });
     
-    // 4. Update spell display with new crit values (ADD THIS)
+    // 4. Update spell display with new crit values
     if (this.state.currentBuild.selectedSpell) {
         EventSystem.publish('spell-updated', this.state.currentBuild.selectedSpell);
     }
+
+    EventSystem.publish('sets-updated');
     
     // 5. Save the current state
     this.saveCurrentStateToLocalStorage();
@@ -2723,6 +2941,11 @@ loadBuildIntoEditor(buildId) {
     EventSystem.publish('build-loaded', buildToLoad);
     
     DOMUtils.showNotification(`Loaded build: ${buildToLoad.name}`, 'success');
+
+    setTimeout(() => {
+        UIController.updateDisplayFromState();
+    }, 100);
+
     return true;
 },
 
@@ -3293,6 +3516,10 @@ const UIController = {
         EventSystem.subscribe('build-loaded', () => {
             this.updateDisplayFromState();
         });
+
+        EventSystem.subscribe('sets-updated', () => {
+            this.updateSetBonusesDisplay();
+        });
         
         EventSystem.subscribe('page-changed', (data) => {
             if (data.page === 'build-management') {
@@ -3553,6 +3780,10 @@ registerSlotItemRemovedListener() {
 
         // Update mode display
         this.updateModeDisplay(StateManager.state.ui.mode);
+
+        // Update set bonus display
+        this.updateSetBonusesDisplay();
+
     },
     
     /**
@@ -4413,7 +4644,65 @@ registerSlotItemRemovedListener() {
         
         resultElement.classList.toggle('requirements-not-met', failsRequirements);
     });
-} // <-- Close the UIController object literal here.
+},
+
+    /**
+     * Update set bonuses display
+     */
+    updateSetBonusesDisplay() {
+        const setBonusesContainer = DOMUtils.getElement('active-set-bonuses');
+        if (!setBonusesContainer) return;
+        
+        DOMUtils.clearElement(setBonusesContainer);
+        
+        const equipment = StateManager.state.currentBuild.equipment;
+        const setsByName = StateManager.state.data.setsByName;
+        
+        if (!equipment || !setsByName) return;
+        
+        // Count equipped items by set
+        const setCounts = new Map();
+        
+        Object.values(equipment).forEach(item => {
+            if (item && item.setName) {
+                const currentCount = setCounts.get(item.setName) || 0;
+                setCounts.set(item.setName, currentCount + 1);
+            }
+        });
+        
+        // Filter out sets that don't have any active bonuses
+        const setsWithActiveBonuses = new Map();
+        
+        setCounts.forEach((count, setName) => {
+            const setData = setsByName.get(setName);
+            if (setData && setData.bonuses) {
+                // Check if this set has any bonus tiers that the current count qualifies for
+                const availableTiers = Object.keys(setData.bonuses)
+                    .map(tier => parseInt(tier))
+                    .filter(tier => tier <= count);
+                
+                // Only add to display if there are qualifying tiers
+                if (availableTiers.length > 0) {
+                    setsWithActiveBonuses.set(setName, count);
+                }
+            }
+        });
+        
+        if (setsWithActiveBonuses.size === 0) {
+            setBonusesContainer.innerHTML = '<div class="no-sets">No set bonuses active</div>';
+            return;
+        }
+        
+        // Display each set with active bonuses
+        setsWithActiveBonuses.forEach((count, setName) => {
+            const setData = setsByName.get(setName);
+            if (setData) {
+                const setDisplay = UIFactory.createSetBonusDisplay(setName, count, setData);
+                setBonusesContainer.appendChild(setDisplay);
+            }
+        });
+    },
+
 };
 // Add spell-related methods to UIController after its definition
 UIController.updateSpellDisplay = function() {
