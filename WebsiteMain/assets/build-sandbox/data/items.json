@@ -3318,10 +3318,10 @@
     "Type": "equipment",
     "Subtype": "guild",
     "Level": 80,
-    "STA": 8,
-    "STR": 8,
-    "INT": 8,
-    "AGI": 8,
+    "STA": 10,
+    "STR": 10,
+    "INT": 10,
+    "AGI": 10,
     "Req STA": 0,
     "Req STR": 0,
     "Req INT": 0,
@@ -10347,7 +10347,7 @@
     "minDamage": 500,
     "maxDamage": 800,
     "Direct Crit": 0,
-    "Direct ATK Power": 0
+    "Direct ATK Power": 125
   },
   {
     "Item ID": 1559,
@@ -10392,7 +10392,7 @@
     "Atk Spd": 2600,
     "minDamage": 500,
     "maxDamage": 700,
-    "Direct Crit": 0,
+    "Direct Crit": 5,
     "Direct ATK Power": 0
   },
   {
@@ -10416,6 +10416,6 @@
     "minDamage": 0,
     "maxDamage": 0,
     "Direct Crit": 0,
-    "Direct ATK Power": 0
+    "Direct ATK Power": 175
   }
 ]
