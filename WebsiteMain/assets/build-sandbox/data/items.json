@@ -9633,8 +9633,8 @@
     "Atk Spd": 0,
     "minDamage": 0,
     "maxDamage": 0,
-    "Direct Crit": 0,
-    "Direct ATK Power": 0
+    "Direct Crit": 4,
+    "Direct ATK Power": 80
   },
   {
     "Item ID": 1505,
