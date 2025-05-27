@@ -2308,7 +2308,7 @@ const StateManager = {
                 search: '',
                 category: 'all',
                 sortCriteria: 'level',
-                sortOrder: 'asc'
+                sortAscending: true
             },
             currentItemSearchSlot: null,
 
@@ -3477,24 +3477,43 @@ const UIController = {
         // Item dictionary filters
         const dictionarySearch = DOMUtils.getElement('item-dictionary-search');
         const dictionaryCategory = DOMUtils.getElement('item-dictionary-category-filter');
-        const dictionarySortCriteria = DOMUtils.getElement('item-dictionary-sort-criteria');
-        const dictionarySortOrder = DOMUtils.getElement('item-dictionary-sort-order');
         
         const handleDictionaryFilterChange = () => {
-            if (dictionarySearch && dictionaryCategory && dictionarySortCriteria && dictionarySortOrder) {
+            if (dictionarySearch && dictionaryCategory) {
                 StateManager.updateItemDictionaryFilters({
                     search: dictionarySearch.value.toLowerCase(),
-                    category: dictionaryCategory.value,
-                    sortCriteria: dictionarySortCriteria.value,
-                    sortOrder: dictionarySortOrder.value
+                    category: dictionaryCategory.value
                 });
             }
         };
+
+        // Item dictionary sort buttons
+        const sortButtons = document.querySelectorAll('.sort-button[data-sort]');
+        sortButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const sortType = button.dataset.sort;
+                const currentSort = StateManager.state.ui.itemDictionary.sortCriteria;
+                const currentAsc = StateManager.state.ui.itemDictionary.sortAscending;
+                
+                if (currentSort === sortType) {
+                    // Same button clicked - toggle direction
+                    StateManager.updateItemDictionaryFilters({
+                        sortAscending: !currentAsc
+                    });
+                } else {
+                    // Different button clicked - set new sort, default to ascending
+                    StateManager.updateItemDictionaryFilters({
+                        sortCriteria: sortType,
+                        sortAscending: true
+                    });
+                }
+                
+                UIController.updateSortButtonsDisplay();
+            });
+        });
         
         if (dictionarySearch) dictionarySearch.addEventListener('input', handleDictionaryFilterChange);
         if (dictionaryCategory) dictionaryCategory.addEventListener('change', handleDictionaryFilterChange);
-        if (dictionarySortCriteria) dictionarySortCriteria.addEventListener('change', handleDictionaryFilterChange);
-        if (dictionarySortOrder) dictionarySortOrder.addEventListener('change', handleDictionaryFilterChange);
         
         // Subscribe to events
         EventSystem.subscribe('stats-updated', (calculatedStats) => {
@@ -3527,6 +3546,11 @@ const UIController = {
             } else if (data.page === 'item-dictionary') {
                 this.populateItemDictionaryGrid();
             }
+        });
+
+        EventSystem.subscribe('item-dictionary-updated', () => {
+            this.populateItemDictionaryGrid();
+            this.updateSortButtonsDisplay(); // Add this line
         });
 
         EventSystem.subscribe('load-build', (data) => {
@@ -3761,6 +3785,9 @@ registerSlotItemRemovedListener() {
 
         // Spell Slot
         this.updateSpellDisplay();
+
+        // Update sort buttons display
+        this.updateSortButtonsDisplay();
         
         // Performance Filters
         const hideBossesCheckbox = DOMUtils.getElement('hide-bosses-checkbox');
@@ -4390,9 +4417,7 @@ registerSlotItemRemovedListener() {
         });
     },
     
-    /**
-     * Populate the item dictionary grid
-     */
+    /* Populate the item dictionary grid */
     populateItemDictionaryGrid() {
         const itemDictionaryGrid = DOMUtils.getElement('item-dictionary-grid');
         if (!itemDictionaryGrid) return;
@@ -4426,21 +4451,31 @@ registerSlotItemRemovedListener() {
             });
         }
         
-        // Sort Items
+        // Sort Items - UPDATED to use sortAscending and handle stat sorting
         filteredItems.sort((a, b) => {
             let valA, valB;
             switch (filters.sortCriteria) {
                 case 'name':
                     valA = a.Name?.toLowerCase() || '';
                     valB = b.Name?.toLowerCase() || '';
-                    return filters.sortOrder === 'asc' ? 
+                    return filters.sortAscending ? 
                         valA.localeCompare(valB) : 
                         valB.localeCompare(valA);
+                case 'STR':
+                case 'AGI':
+                case 'STA':
+                case 'INT':
+                    // Handle stat sorting - items without the stat are treated as 0
+                    valA = parseInt(a[filters.sortCriteria]) || 0;
+                    valB = parseInt(b[filters.sortCriteria]) || 0;
+                    return filters.sortAscending ? 
+                        valA - valB : 
+                        valB - valA;
                 case 'level':
                 default:
                     valA = a.Level || 0;
                     valB = b.Level || 0;
-                    return filters.sortOrder === 'asc' ? 
+                    return filters.sortAscending ? 
                         valA - valB : 
                         valB - valA;
             }
@@ -4699,6 +4734,24 @@ registerSlotItemRemovedListener() {
             if (setData) {
                 const setDisplay = UIFactory.createSetBonusDisplay(setName, count, setData);
                 setBonusesContainer.appendChild(setDisplay);
+            }
+        });
+    },
+
+    /**
+     * Update sort buttons display based on current state
+     */
+    updateSortButtonsDisplay() {
+        const filters = StateManager.state.ui.itemDictionary;
+        const buttons = document.querySelectorAll('.sort-button[data-sort]');
+        
+        buttons.forEach(button => {
+            const sortType = button.dataset.sort;
+            button.classList.remove('active', 'asc', 'desc');
+            
+            if (sortType === filters.sortCriteria) {
+                button.classList.add('active');
+                button.classList.add(filters.sortAscending ? 'asc' : 'desc');
             }
         });
     },

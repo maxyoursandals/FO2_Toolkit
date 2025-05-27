@@ -1923,3 +1923,55 @@ input:checked + .toggle-slider:before {
     color: var(--accent);
     font-weight: bold;
 }
+
+/* Sort buttons grid */
+.sort-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.sort-button {
+    padding: 0px 0px;
+    background-color: var(--slot-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.6em;
+    text-align: center;
+    transition: all 0.2s;
+    position: relative;
+    user-select: none;
+}
+
+.sort-button:hover {
+    background-color: var(--accent-hover);
+    border-color: var(--accent);
+}
+
+.sort-button.active {
+    background-color: var(--accent);
+    color: var(--background);
+    font-weight: bold;
+}
+
+.sort-button .sort-indicator {
+    font-size: 10px;
+    margin-left: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.sort-button.active .sort-indicator {
+    opacity: 1;
+}
+
+.sort-button.active.asc .sort-indicator::after {
+    content: '▲';
+}
+
+.sort-button.active.desc .sort-indicator::after {
+    content: '▼';
+}
