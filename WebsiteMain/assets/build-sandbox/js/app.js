@@ -2308,7 +2308,8 @@ const StateManager = {
                 search: '',
                 category: 'all',
                 sortCriteria: 'level',
-                sortAscending: true
+                sortAscending: true,
+                activeSorts: []
             },
             currentItemSearchSlot: null,
 
@@ -2800,6 +2801,18 @@ const StateManager = {
                     this.state.data.mobsMaxLevel
                 )
             );
+        }
+
+        if (savedData.uiItemDictionary) {
+            // Migrate old single-sort format to new multi-sort format
+            if (!savedData.uiItemDictionary.activeSorts && savedData.uiItemDictionary.sortCriteria) {
+                savedData.uiItemDictionary.activeSorts = [{
+                    criteria: savedData.uiItemDictionary.sortCriteria,
+                    ascending: savedData.uiItemDictionary.sortAscending !== false
+                }];
+            }
+            
+            Object.assign(this.state.ui.itemDictionary, savedData.uiItemDictionary);
         }
 
         console.log("Successfully loaded state from localStorage.");
@@ -3477,7 +3490,7 @@ const UIController = {
         // Item dictionary filters
         const dictionarySearch = DOMUtils.getElement('item-dictionary-search');
         const dictionaryCategory = DOMUtils.getElement('item-dictionary-category-filter');
-        
+
         const handleDictionaryFilterChange = () => {
             if (dictionarySearch && dictionaryCategory) {
                 StateManager.updateItemDictionaryFilters({
@@ -3492,21 +3505,37 @@ const UIController = {
         sortButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const sortType = button.dataset.sort;
-                const currentSort = StateManager.state.ui.itemDictionary.sortCriteria;
-                const currentAsc = StateManager.state.ui.itemDictionary.sortAscending;
+                const activeSorts = StateManager.state.ui.itemDictionary.activeSorts;
                 
-                if (currentSort === sortType) {
-                    // Same button clicked - toggle direction
-                    StateManager.updateItemDictionaryFilters({
-                        sortAscending: !currentAsc
-                    });
+                // Find if this sort is already active
+                const existingIndex = activeSorts.findIndex(sort => sort.criteria === sortType);
+                
+                if (existingIndex !== -1) {
+                    // Sort is already active
+                    const currentSort = activeSorts[existingIndex];
+                    
+                    if (currentSort.ascending) {
+                        // First click -> Second click: Change to descending
+                        activeSorts[existingIndex].ascending = false;
+                    } else {
+                        // Second click -> Third click: Remove this sort
+                        activeSorts.splice(existingIndex, 1);
+                    }
                 } else {
-                    // Different button clicked - set new sort, default to ascending
-                    StateManager.updateItemDictionaryFilters({
-                        sortCriteria: sortType,
-                        sortAscending: true
-                    });
+                    // Sort is not active - add it
+                    activeSorts.push({ criteria: sortType, ascending: true });
                 }
+                
+                // Update legacy properties for compatibility
+                if (activeSorts.length > 0) {
+                    StateManager.state.ui.itemDictionary.sortCriteria = activeSorts[0].criteria;
+                    StateManager.state.ui.itemDictionary.sortAscending = activeSorts[0].ascending;
+                }
+                
+                // Trigger update
+                StateManager.updateItemDictionaryFilters({
+                    activeSorts: [...activeSorts] // Create new array to trigger reactivity
+                });
                 
                 UIController.updateSortButtonsDisplay();
             });
@@ -4451,34 +4480,56 @@ registerSlotItemRemovedListener() {
             });
         }
         
-        // Sort Items - UPDATED to use sortAscending and handle stat sorting
+        // Sort Items - UPDATED for multi-sort functionality
         filteredItems.sort((a, b) => {
-            let valA, valB;
-            switch (filters.sortCriteria) {
-                case 'name':
-                    valA = a.Name?.toLowerCase() || '';
-                    valB = b.Name?.toLowerCase() || '';
-                    return filters.sortAscending ? 
-                        valA.localeCompare(valB) : 
-                        valB.localeCompare(valA);
-                case 'STR':
-                case 'AGI':
-                case 'STA':
-                case 'INT':
-                    // Handle stat sorting - items without the stat are treated as 0
-                    valA = parseInt(a[filters.sortCriteria]) || 0;
-                    valB = parseInt(b[filters.sortCriteria]) || 0;
-                    return filters.sortAscending ? 
-                        valA - valB : 
-                        valB - valA;
-                case 'level':
-                default:
-                    valA = a.Level || 0;
-                    valB = b.Level || 0;
-                    return filters.sortAscending ? 
-                        valA - valB : 
-                        valB - valA;
+            const activeSorts = filters.activeSorts || [];
+                if (activeSorts.length === 0) {
+                    return 0; // No sorting - maintain original order
+                }
+            
+            // Apply each sort in priority order
+            for (const sort of activeSorts) {
+                let valA, valB, comparison = 0;
+                
+                switch (sort.criteria) {
+                    case 'name':
+                        valA = a.Name?.toLowerCase() || '';
+                        valB = b.Name?.toLowerCase() || '';
+                        comparison = sort.ascending ? 
+                            valA.localeCompare(valB) : 
+                            valB.localeCompare(valA);
+                        break;
+                    case 'STR':
+                    case 'AGI':
+                    case 'STA':
+                    case 'INT':
+                        // Handle stat sorting - items without the stat are treated as 0
+                        valA = parseInt(a[sort.criteria]) || 0;
+                        valB = parseInt(b[sort.criteria]) || 0;
+                        comparison = sort.ascending ? 
+                            valA - valB : 
+                            valB - valA;
+                        break;
+                    case 'level':
+                    default:
+                        valA = a.Level || 0;
+                        valB = b.Level || 0;
+                        comparison = sort.ascending ? 
+                            valA - valB : 
+                            valB - valA;
+                        break;
+                }
+                
+                // If this sort produces a meaningful difference, use it
+                if (comparison !== 0) {
+                    return comparison;
+                }
+                
+                // If values are equal, continue to next sort criteria
             }
+            
+            // If all sorts result in equality, maintain original order
+            return 0;
         });
         
         // Render Grid Items
@@ -4742,16 +4793,39 @@ registerSlotItemRemovedListener() {
      * Update sort buttons display based on current state
      */
     updateSortButtonsDisplay() {
-        const filters = StateManager.state.ui.itemDictionary;
+        const activeSorts = StateManager.state.ui.itemDictionary.activeSorts || [];
         const buttons = document.querySelectorAll('.sort-button[data-sort]');
         
         buttons.forEach(button => {
             const sortType = button.dataset.sort;
-            button.classList.remove('active', 'asc', 'desc');
+            const sortIndex = activeSorts.findIndex(sort => sort.criteria === sortType);
             
-            if (sortType === filters.sortCriteria) {
+            // Reset all classes
+            button.classList.remove('active', 'asc', 'desc', 'primary', 'secondary', 'tertiary');
+            
+            const prioritySpan = button.querySelector('.sort-priority');
+            const indicatorSpan = button.querySelector('.sort-indicator');
+            
+            if (sortIndex !== -1) {
+                // This sort is active
+                const sort = activeSorts[sortIndex];
                 button.classList.add('active');
-                button.classList.add(filters.sortAscending ? 'asc' : 'desc');
+                button.classList.add(sort.ascending ? 'asc' : 'desc');
+                
+                // Add priority class based on order
+                if (sortIndex === 0) button.classList.add('primary');
+                else if (sortIndex === 1) button.classList.add('secondary');
+                else if (sortIndex === 2) button.classList.add('tertiary');
+                
+                // Show priority number
+                if (prioritySpan) {
+                    prioritySpan.textContent = sortIndex + 1;
+                }
+            } else {
+                // Sort is not active
+                if (prioritySpan) {
+                    prioritySpan.textContent = '';
+                }
             }
         });
     },
