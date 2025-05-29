@@ -9963,7 +9963,7 @@
     "Name": "Dolphin Broach",
     "Sprite-Link": "https://art.fantasyonline2.com/textures/icons/items/trinket-dolphin-broach-icon.png",
     "Type": "equipment",
-    "Subtype": "face",
+    "Subtype": "trinket",
     "Level": 80,
     "STA": 20,
     "STR": 20,
