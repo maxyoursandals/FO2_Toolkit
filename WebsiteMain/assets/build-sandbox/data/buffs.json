@@ -253,6 +253,76 @@
   },
   {
     "Category": "Buff",
+    "Name": "Self-Motivated 6",
+    "ATK Power": 150,
+    "Crit %": "",
+    "ATK Speed": "",
+    "Energy Per Second": 60,
+    "Health Per Second": "",
+    "Armor": "",
+    "STR": "",
+    "STA": "",
+    "AGI": "",
+    "INT": ""
+  },
+  {
+    "Category": "Buff",
+    "Name": "Self-Motivated 7",
+    "ATK Power": 300,
+    "Crit %": "",
+    "ATK Speed": "",
+    "Energy Per Second": 80,
+    "Health Per Second": "",
+    "Armor": "",
+    "STR": "",
+    "STA": "",
+    "AGI": "",
+    "INT": ""
+  },
+  {
+    "Category": "Buff",
+    "Name": "That's the Stuff 1",
+    "ATK Power": "",
+    "Crit %": -1,
+    "ATK Speed": "",
+    "Energy Per Second": "",
+    "Health Per Second": 15,
+    "Armor": "",
+    "STR": "",
+    "STA": "",
+    "AGI": "",
+    "INT": ""
+  },
+  {
+    "Category": "Buff",
+    "Name": "That's the Stuff 2",
+    "ATK Power": "",
+    "Crit %": -1,
+    "ATK Speed": "",
+    "Energy Per Second": "",
+    "Health Per Second": 30,
+    "Armor": "",
+    "STR": "",
+    "STA": "",
+    "AGI": "",
+    "INT": ""
+  },
+  {
+      "Category": "Buff",
+      "Name": "That's the Stuff 3",
+      "ATK Power": "",
+      "Crit %": -1,
+      "ATK Speed": "",
+      "Energy Per Second": "",
+      "Health Per Second": 45,
+      "Armor": "",
+      "STR": "",
+      "STA": "",
+      "AGI": "",
+      "INT": ""
+  },
+  {
+    "Category": "Buff",
     "Name": "That's the Stuff 4",
     "ATK Power": "",
     "Crit %": -1,
@@ -477,6 +547,20 @@
   },
   {
     "Category": "Morph",
+    "Name": "Ice Metamorph 2",
+    "ATK Power": "",
+    "Crit %": "",
+    "ATK Speed": "",
+    "Energy Per Second": "",
+    "Health Per Second": "",
+    "Armor": "",
+    "STR": 35,
+    "STA": 35,
+    "AGI": 35,
+    "INT": 50
+  },
+  {
+    "Category": "Morph",
     "Name": "Wind Metamorph",
     "ATK Power": "",
     "Crit %": "",
@@ -516,5 +600,19 @@
         "STA": "",
         "AGI": "",
         "INT": ""
-    }
+    },
+    {
+    "Category": "Morph",
+    "Name": "Cottontail Carnage",
+    "ATK Power": 300,
+    "Crit %": 7,
+    "ATK Speed": "",
+    "Energy Per Second": "",
+    "Health Per Second": "",
+    "Armor": "",
+    "STR": "",
+    "STA": "",
+    "AGI": "",
+    "INT": ""
+  }
 ]

@@ -10532,5 +10532,29 @@
     "maxDamage": 500,
     "Direct Crit": 0,
     "Direct ATK Power": 0
+  },
+  {
+    "Item ID": 9995,
+    "Name": "Werebear Totem",
+    "Sprite-Link": "https://art.fantasyonline2.com/textures/icons/items/trinket-werebear-totem-icon.png",
+    "Type": "equipment",
+    "Subtype": "trinket",
+    "Level": 86,
+    "STA": 22,
+    "STR": 22,
+    "INT": 22,
+    "AGI": 22,
+    "Req STA": 0,
+    "Req STR": 0,
+    "Req INT": 0,
+    "Req AGI": 0,
+    "Armor": 2400,
+    "Damage": "",
+    "Atk Spd": 0,
+    "minDamage": 0,
+    "maxDamage": 0,
+    "Direct Crit": 0,
+    "Direct ATK Power": 0
   }
+
 ]
