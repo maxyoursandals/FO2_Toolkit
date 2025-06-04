@@ -614,5 +614,19 @@
     "STA": "",
     "AGI": "",
     "INT": ""
+  },
+  {
+    "Category": "Buff"  ,
+    "Name": "Cottontail Carnage 2",
+    "ATK Power": 500,
+    "Crit %": 10,
+    "ATK Speed": "",
+    "Energy Per Second": "",
+    "Health Per Second": "",
+    "Armor": "",
+    "STR": "",
+    "STA": "",
+    "AGI": "",
+    "INT": ""
   }
 ]
