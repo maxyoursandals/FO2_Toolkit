@@ -3341,10 +3341,10 @@
     "Type": "equipment",
     "Subtype": "guild",
     "Level": 90,
-    "STA": 12,
-    "STR": 12,
-    "INT": 12,
-    "AGI": 12,
+    "STA": 14,
+    "STR": 14,
+    "INT": 14,
+    "AGI": 14,
     "Req STA": 0,
     "Req STR": 0,
     "Req INT": 0,
@@ -8920,7 +8920,7 @@
     "Atk Spd": 0,
     "minDamage": 0,
     "maxDamage": 0,
-    "Direct Crit": 0,
+    "Direct Crit": 1,
     "Direct ATK Power": 0
   },
   {
@@ -8943,7 +8943,7 @@
     "Atk Spd": 0,
     "minDamage": 0,
     "maxDamage": 0,
-    "Direct Crit": 0,
+    "Direct Crit": 2,
     "Direct ATK Power": 0
   },
   {
@@ -8966,7 +8966,7 @@
     "Atk Spd": 0,
     "minDamage": 0,
     "maxDamage": 0,
-    "Direct Crit": 0,
+    "Direct Crit": 2,
     "Direct ATK Power": 0
   },
   {
@@ -8989,7 +8989,7 @@
     "Atk Spd": 0,
     "minDamage": 0,
     "maxDamage": 0,
-    "Direct Crit": 0,
+    "Direct Crit": 1,
     "Direct ATK Power": 0
   },
   {
@@ -9012,7 +9012,7 @@
     "Atk Spd": 0,
     "minDamage": 0,
     "maxDamage": 0,
-    "Direct Crit": 0,
+    "Direct Crit": 3,
     "Direct ATK Power": 0
   },
   {
