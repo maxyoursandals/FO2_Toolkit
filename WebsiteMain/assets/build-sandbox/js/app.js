@@ -5333,7 +5333,7 @@ const FO2ApiService = {
             }
         }
         
-        // Skip non-equipment items EARLY
+        // Skip non-equipment items EARLY using both type and slot
         if (!this._isEquipmentItem(apiItem.ty, apiItem.st, name)) {
             // Debug: log a few skipped items to understand what we're filtering out
             if (Math.random() < 0.01) { // Log ~1% of skipped items
@@ -5342,13 +5342,18 @@ const FO2ApiService = {
             return null;
         }
         
-        // Debug: log a few kept items to understand what we're keeping
-        if (Math.random() < 0.05) { // Log ~5% of kept items
-            console.log(`Kept equipment: "${name}" (Type: ${apiItem.ty}, Slot: ${apiItem.st})`);
+        // Map item types and slots using the advanced method with type ID
+        const itemType = this._mapItemSlotAdvanced(apiItem.st, name, stats, apiItem.ty);
+        
+        // If mapping returned null, skip this item
+        if (!itemType) {
+            return null;
         }
         
-        // Map item types and slots using the advanced method
-        const itemType = this._mapItemSlotAdvanced(apiItem.st, name, stats);
+        // Debug: log all items to see what we're actually getting
+        if (Math.random() < 0.1) { // Log ~10% of kept items
+            console.log(`Processing: "${name}" (Type: ${apiItem.ty}, Slot: ${apiItem.st}) -> ${itemType.type}/${itemType.subtype}`);
+        }
         
         // Build damage string if applicable
         let damageString = '';
@@ -5360,20 +5365,15 @@ const FO2ApiService = {
             }
         }
         
-        // Create sprite link - try multiple URL patterns
+        // Create sprite link using the correct FO2 art server URL
         let spriteLink = null;
         if (apiItem.sfn) {
-            // Try different possible sprite URL patterns
-            const possibleUrls = [
-                `https://data.fantasyonline2.com/sprites/items/${apiItem.sfn}`,
-                `https://data.fantasyonline2.com/images/items/${apiItem.sfn}`,
-                `https://fantasyonline2.com/sprites/items/${apiItem.sfn}`,
-                `https://fantasyonline2.com/images/items/${apiItem.sfn}`
-            ];
-            
-            // Use the first URL for now - we could add image validation later
-            spriteLink = possibleUrls[0];
+            // Use the correct FO2 art server URL pattern
+            spriteLink = `https://art.fantasyonline2.com/textures/icons/items/${apiItem.sfn}-icon.png`;
         }
+        
+        // Store the sprite filename for reference
+        const spriteFilename = apiItem.sfn || null;
         
         return {
             'Item ID': apiItem.id,
@@ -5395,6 +5395,7 @@ const FO2ApiService = {
             'Damage': damageString,
             'Atk Spd': stats.atks || 0,
             'Sprite-Link': spriteLink,
+            'Sprite-Filename': spriteFilename, // Store filename for fallback logic
             'sellPrice': apiItem.vsp || 0,
             'minDamage': stats.mnd || 0,
             'maxDamage': stats.mxd || 0
@@ -5403,101 +5404,177 @@ const FO2ApiService = {
     
     /**
      * Determine if an item is equipment (wearable/usable by build sandbox)
+     * Uses BOTH type and slot for accurate filtering
      */
     _isEquipmentItem(typeId, slotId, itemName = '') {
-        // Equipment types we care about
-        const equipmentTypes = [2, 3]; // Weapon, Armor/Accessory
+        // Define valid type+slot combinations for equipment based on actual FO2 data
+        const validCombinations = [
+            // TYPE 2 (Weapons) + weapon slots
+            [2, 1],  // 1h sword
+            [2, 2],  // 2h bow
+            [2, 3],  // 1h wand
+            [2, 4],  // 1h axe
+            [2, 5],  // 2h hammer
+            [2, 6],  // 2h staff
+            [2, 7],  // mining (pickaxe)
+            [2, 8],  // mining (lockpick)
+            [2, 9],  // 2h sword
+            [2, 10], // 2h axe
+            
+            // TYPE 3 (Equipment) + equipment slots
+            [3, 0],  // head
+            [3, 1],  // trinkets
+            [3, 2],  // face
+            [3, 4],  // back
+            [3, 6],  // shoulders
+            [3, 8],  // chest
+            [3, 10], // legs
+            [3, 12], // rings
+            [3, 13], // faction
+            [3, 15], // guild
+            [3, 17], // offhand
+        ];
         
-        // Equipment slots we care about  
-        const equipmentSlots = [0, 1, 2, 3, 6, 7, 8, 9, 10, 12, 13, 15, 17];
-        // Head, Main Hand, Ranged, Magic, Two-Handed, Mining, Body, Two-Hand Melee, 
-        // Legs, Ring, Trinket, Guild, Off-Hand
+        // Check if this type+slot combination is valid
+        const isValidCombination = validCombinations.some(([type, slot]) => 
+            type === typeId && slot === slotId
+        );
         
-        // Must be the right type AND slot
-        const basicCheck = equipmentTypes.includes(typeId) && equipmentSlots.includes(slotId);
+        if (!isValidCombination) {
+            return false;
+        }
         
-        // Additional name-based filtering to catch equipment with unusual type/slot combos
+        // Additional name-based filtering for edge cases
         const name = itemName.toLowerCase();
-        const isLikelyEquipment = name.includes('armor') || name.includes('helmet') || 
-                                 name.includes('sword') || name.includes('bow') || 
-                                 name.includes('ring') || name.includes('trinket') ||
-                                 name.includes('shield') || name.includes('staff') ||
-                                 name.includes('wand') || name.includes('axe') ||
-                                 name.includes('hammer') || name.includes('pickaxe');
         
-        return basicCheck || (equipmentTypes.includes(typeId) && isLikelyEquipment);
+        // Skip obvious non-equipment even if they have equipment-like slots
+        const nonEquipmentKeywords = [
+            'potion', 'scroll', 'book', 'ore', 'gem', 'crystal', 'material', 
+            'consumable', 'food', 'drink', 'bottle', 'vial', 'powder'
+        ];
+        
+        const isLikelyNonEquipment = nonEquipmentKeywords.some(keyword => 
+            name.includes(keyword)
+        );
+        
+        return !isLikelyNonEquipment;
     },
     
     /**
-     * Map API item slot to our format with more specific subtypes using advanced logic
+     * Map API item slot to our format using BOTH type and slot for accuracy
      */
-    _mapItemSlotAdvanced(slotId, itemName, stats) {
-        // Use the item name and stats to make better guesses
+    _mapItemSlotAdvanced(slotId, itemName, stats, typeId) {
         const name = itemName.toLowerCase();
         
-        // Weapon type detection with slot-based logic
-        if (slotId === 1) { // Main hand weapons
-            if (name.includes('sword') || name.includes('blade') || name.includes('katana')) {
-                return { type: 'weapon', subtype: 'sword' };
-            }
-            if (name.includes('axe')) return { type: 'weapon', subtype: 'axe' };
-            if (name.includes('hammer') || name.includes('mace') || name.includes('club')) {
-                return { type: 'weapon', subtype: 'hammer' };
-            }
-            if (name.includes('dagger') || name.includes('knife')) {
-                return { type: 'weapon', subtype: 'sword' };
-            }
-            // Default main hand to sword if unclear
-            return { type: 'weapon', subtype: 'sword' };
-        }
+        // Use BOTH type and slot to determine correct category
+        // Based on actual Fantasy Online 2 type+slot mappings
         
-        if (slotId === 2) return { type: 'weapon', subtype: 'bow' };
-        
-        if (slotId === 3) { // Magic weapons
-            return name.includes('staff') ? 
-                { type: 'weapon', subtype: 'staff' } : 
-                { type: 'weapon', subtype: 'wand' };
-        }
-        
-        if (slotId === 6) return { type: 'weapon', subtype: '2h sword' };
-        if (slotId === 7) return { type: 'weapon', subtype: 'pickaxe' };
-        if (slotId === 8) return { type: 'weapon', subtype: 'lockpick' }; // Assuming slot 8 lockpicks
-        if (slotId === 9) return { type: 'weapon', subtype: 'hammer' };
-        
-        // Equipment slots
-        if (slotId === 0) return { type: 'equipment', subtype: 'head' };
-        if (slotId === 10) return { type: 'equipment', subtype: 'legs' };
-        if (slotId === 12) return { type: 'equipment', subtype: 'ring' };
-        if (slotId === 13) return { type: 'equipment', subtype: 'trinket' };
-        if (slotId === 15) return { type: 'equipment', subtype: 'guild' };
-        if (slotId === 17) return { type: 'equipment', subtype: 'offhand' };
-        
-        // Handle chest armor (need to determine correct slot)
-        if (slotId === 8) {
-            // Check if it's actually armor based on name and stats
-            if (name.includes('armor') || name.includes('chest') || name.includes('shirt') || 
-                name.includes('robe') || stats.arm > 0) {
-                return { type: 'equipment', subtype: 'chest' };
-            } else {
-                return { type: 'weapon', subtype: 'lockpick' };
+        // TYPE 2 = Weapons
+        if (typeId === 2) {
+            switch (slotId) {
+                case 1: // 1h sword
+                    return { type: 'weapon', subtype: 'sword' };
+                
+                case 2: // 2h bow
+                    return { type: 'weapon', subtype: 'bow' };
+                
+                case 3: // 1h wand
+                    return { type: 'weapon', subtype: 'wand' };
+                
+                case 4: // 1h axe
+                    return { type: 'weapon', subtype: 'axe' };
+                
+                case 5: // 2h hammer
+                    return { type: 'weapon', subtype: 'hammer' };
+                
+                case 6: // 2h staff
+                    return { type: 'weapon', subtype: 'staff' };
+                
+                case 7: // mining (pickaxe)
+                    return { type: 'weapon', subtype: 'pickaxe' };
+                
+                case 8: // mining (lockpick)
+                    return { type: 'weapon', subtype: 'lockpick' };
+                
+                case 9: // 2h sword
+                    return { type: 'weapon', subtype: '2h sword' };
+                
+                case 10: // 2h axe
+                    return { type: 'weapon', subtype: 'axe' };
+                
+                default:
+                    console.log(`Unknown weapon slot: Type ${typeId}, Slot ${slotId}, Name: "${name}"`);
+                    return { type: 'weapon', subtype: 'sword' }; // Default fallback
             }
         }
         
-        // Try to detect missing slots from item names
-        if (name.includes('shoulder') || name.includes('pauldron')) {
-            return { type: 'equipment', subtype: 'shoulder' };
-        }
-        if (name.includes('face') || name.includes('mask') || name.includes('goggles')) {
-            return { type: 'equipment', subtype: 'face' };
-        }
-        if (name.includes('back') || name.includes('cape') || name.includes('cloak')) {
-            return { type: 'equipment', subtype: 'back' };
-        }
-        if (name.includes('faction')) {
-            return { type: 'equipment', subtype: 'faction' };
+        // TYPE 3 = Equipment/Armor/Accessories
+        if (typeId === 3) {
+            switch (slotId) {
+                case 0: // head
+                    return { type: 'equipment', subtype: 'head' };
+                
+                case 1: // trinkets (3,1)
+                    // Double-check if this is actually a faction item based on name
+                    if (name.includes('medallion') || name.includes('banner') || name.includes('crest') || 
+                        name.includes('faction') || name.includes('guild')) {
+                        console.log(`WARNING: Item "${name}" (3,1) looks like faction but is in trinket slot`);
+                    }
+                    return { type: 'equipment', subtype: 'trinket' };
+                
+                case 2: // face
+                    return { type: 'equipment', subtype: 'face' };
+                
+                case 4: // back
+                    return { type: 'equipment', subtype: 'back' };
+                
+                case 6: // shoulders
+                    return { type: 'equipment', subtype: 'shoulder' };
+                
+                case 8: // chest
+                    return { type: 'equipment', subtype: 'chest' };
+                
+                case 10: // legs
+                    return { type: 'equipment', subtype: 'legs' };
+                
+                case 12: // rings
+                    return { type: 'equipment', subtype: 'ring' };
+                
+                case 13: // faction (3,13)
+                    // Double-check if this is actually a faction item based on name
+                    if (name.includes('medallion') || name.includes('banner') || name.includes('crest')) {
+                        console.log(`CORRECT: Faction item "${name}" (3,13) properly categorized`);
+                    } else {
+                        console.log(`WARNING: Item "${name}" (3,13) in faction slot but doesn't look like faction`);
+                    }
+                    return { type: 'equipment', subtype: 'faction' };
+                
+                case 15: // guild
+                    return { type: 'equipment', subtype: 'guild' };
+                
+                case 17: // offhand
+                    return { type: 'equipment', subtype: 'offhand' };
+                
+                default:
+                    console.log(`Unknown equipment slot: Type ${typeId}, Slot ${slotId}, Name: "${name}"`);
+                    return { type: 'equipment', subtype: 'chest' }; // Default fallback
+            }
         }
         
-        return { type: 'other', subtype: 'other' };
+        // TYPE 6 = Outfit/Cosmetic - Skip these for build sandbox
+        if (typeId === 6) {
+            return null; // Skip cosmetics
+        }
+        
+        // Other types we don't want in build sandbox
+        if ([0, 1, 4, 5, 11, 12, 14].includes(typeId)) {
+            // Junk/Material, Bag, Consumable, Crafting Material, Battle Pass, Faction Badge, Teleport
+            return null; // Skip these
+        }
+        
+        // If we get here, it's an unknown type/slot combination
+        console.log(`Unknown type/slot combination: Type ${typeId}, Slot ${slotId}, Name: "${name}"`);
+        return null; // Skip unknown combinations
     },
     
     /**
@@ -5587,6 +5664,7 @@ const FO2ApiService = {
     }
 };
 
+// Update the DataService to use API data
 DataService.loadAllDataWithApi = async function() {
     try {
         DOMUtils.showNotification("Loading game data from API...", "info");
@@ -5789,14 +5867,201 @@ StateManager.initializeWithApi = async function() {
     }
 };
 
-// ------------------------------------------------------------------
-// app.js - Main application initialization
-// ------------------------------------------------------------------
+// Enhanced UIFactory methods for better icon fallbacks
+UIFactory.createItemGridIconWithFallback = function(item, clickHandler) {
+    const iconDiv = DOMUtils.createElement('div', {
+        className: 'grid-item-icon',
+        dataset: { itemId: item['Item ID'] },
+        onclick: () => clickHandler(item),
+        onmouseenter: (e) => UIFactory.showItemTooltip(e.currentTarget, item),
+        onmouseleave: () => UIFactory.hideTooltip('item-tooltip')
+    });
+    
+    // Try to use the sprite first
+    if (item['Sprite-Link']) {
+        const img = DOMUtils.createElement('img', {
+            src: item['Sprite-Link'],
+            alt: item.Name,
+            style: 'image-rendering: pixelated;',
+            onerror: () => {
+                // If image fails to load, replace with fallback
+                this.applyIconFallback(iconDiv, item);
+            }
+        });
+        
+        iconDiv.appendChild(img);
+    } else {
+        // No sprite link, use fallback immediately
+        this.applyIconFallback(iconDiv, item);
+    }
+    
+    return iconDiv;
+};
 
-/**
- * Main application entry point - the simplest module, responsible only for initializing
- * the application when the DOM is fully loaded.
- */
+UIFactory.applyIconFallback = function(iconDiv, item) {
+    // Clear existing content
+    DOMUtils.clearElement(iconDiv);
+    
+    // Create fallback based on item type/subtype
+    const fallbackIcon = this.generateFallbackIcon(item);
+    iconDiv.appendChild(fallbackIcon);
+    iconDiv.title = `${item.Name} (No image available)`;
+};
+
+UIFactory.generateFallbackIcon = function(item) {
+    const type = item.Type;
+    const subtype = item.Subtype;
+    
+    // Create a colored div with an emoji or text based on item type
+    const fallbackDiv = DOMUtils.createElement('div', {
+        className: 'fallback-icon',
+        style: `
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 24px;
+            background: linear-gradient(45deg, #444, #666);
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+        `
+    });
+    
+    // Choose emoji/text based on item type
+    let fallbackContent = '?';
+    let bgColor = '#666';
+    
+    if (type === 'weapon') {
+        switch (subtype) {
+            case 'sword': fallbackContent = '⚔️'; bgColor = '#8B4513'; break;
+            case 'bow': fallbackContent = '🏹'; bgColor = '#654321'; break;
+            case 'wand': fallbackContent = '🪄'; bgColor = '#4B0082'; break;
+            case 'staff': fallbackContent = '🔮'; bgColor = '#483D8B'; break;
+            case 'hammer': fallbackContent = '🔨'; bgColor = '#696969'; break;
+            case 'axe': fallbackContent = '🪓'; bgColor = '#A0522D'; break;
+            case 'pickaxe': fallbackContent = '⛏️'; bgColor = '#708090'; break;
+            case 'lockpick': fallbackContent = '🗝️'; bgColor = '#DAA520'; break;
+            case '2h sword': fallbackContent = '⚔️'; bgColor = '#B22222'; break;
+            default: fallbackContent = '⚔️'; bgColor = '#666'; break;
+        }
+    } else if (type === 'equipment') {
+        switch (subtype) {
+            case 'head': fallbackContent = '🎩'; bgColor = '#4682B4'; break;
+            case 'chest': fallbackContent = '🛡️'; bgColor = '#2F4F4F'; break;
+            case 'legs': fallbackContent = '👖'; bgColor = '#556B2F'; break;
+            case 'ring': fallbackContent = '💍'; bgColor = '#FFD700'; break;
+            case 'trinket': fallbackContent = '📿'; bgColor = '#20B2AA'; break;
+            case 'guild': fallbackContent = '🏛️'; bgColor = '#8A2BE2'; break;
+            case 'faction': fallbackContent = '🎖️'; bgColor = '#DC143C'; break;
+            case 'offhand': fallbackContent = '🛡️'; bgColor = '#8B4513'; break;
+            case 'shoulder': fallbackContent = '🦾'; bgColor = '#4682B4'; break;
+            case 'face': fallbackContent = '🎭'; bgColor = '#9370DB'; break;
+            case 'back': fallbackContent = '🎒'; bgColor = '#8B4513'; break;
+            default: fallbackContent = '🛡️'; bgColor = '#666'; break;
+        }
+    }
+    
+    fallbackDiv.style.background = `linear-gradient(45deg, ${bgColor}, ${bgColor}dd)`;
+    fallbackDiv.textContent = fallbackContent;
+    
+    return fallbackDiv;
+};
+
+// Update the UIController to use the enhanced icon creation
+UIController.populateItemDictionaryGridWithFallbacks = function() {
+    const itemDictionaryGrid = DOMUtils.getElement('item-dictionary-grid');
+    if (!itemDictionaryGrid) return;
+    
+    DOMUtils.clearElement(itemDictionaryGrid);
+    
+    if (!StateManager.state.data.itemsById || StateManager.state.data.itemsById.size === 0) {
+        itemDictionaryGrid.innerHTML = '<p class="empty-message">No item data loaded.</p>';
+        return;
+    }
+    
+    const filters = StateManager.state.ui.itemDictionary;
+    let filteredItems = Array.from(StateManager.state.data.itemsById.values());
+    
+    // Filter by Search Term
+    if (filters.search) {
+        filteredItems = filteredItems.filter(item => 
+            item.Name?.toLowerCase().includes(filters.search)
+        );
+    }
+    
+    // Filter by Category
+    if (filters.category !== 'all') {
+        const [typeFilter, subtypeFilter] = filters.category.split('-');
+        filteredItems = filteredItems.filter(item => {
+            const itemType = item.Type?.toLowerCase();
+            const itemSubtype = item.Subtype?.toLowerCase().replace(/\s+/g, '_');
+            if (itemType !== typeFilter) return false;
+            if (subtypeFilter !== 'all' && itemSubtype !== subtypeFilter) return false;
+            return true;
+        });
+    }
+    
+    // Sort Items (same as before)
+    filteredItems.sort((a, b) => {
+        const activeSorts = filters.activeSorts || [];
+        if (activeSorts.length === 0) {
+            return 0;
+        }
+        
+        for (const sort of activeSorts) {
+            let valA, valB, comparison = 0;
+            
+            switch (sort.criteria) {
+                case 'name':
+                    valA = a.Name?.toLowerCase() || '';
+                    valB = b.Name?.toLowerCase() || '';
+                    comparison = sort.ascending ? 
+                        valA.localeCompare(valB) : 
+                        valB.localeCompare(valA);
+                    break;
+                case 'STR':
+                case 'AGI':
+                case 'STA':
+                case 'INT':
+                    valA = parseInt(a[sort.criteria]) || 0;
+                    valB = parseInt(b[sort.criteria]) || 0;
+                    comparison = sort.ascending ? 
+                        valA - valB : 
+                        valB - valA;
+                    break;
+                case 'level':
+                default:
+                    valA = a.Level || 0;
+                    valB = b.Level || 0;
+                    comparison = sort.ascending ? 
+                        valA - valB : 
+                        valB - valA;
+                    break;
+            }
+            
+            if (comparison !== 0) {
+                return comparison;
+            }
+        }
+        
+        return 0;
+    });
+    
+    // Render Grid Items with fallback icons
+    if (filteredItems.length === 0) {
+        itemDictionaryGrid.innerHTML = '<p class="empty-message">No items match criteria.</p>';
+    } else {
+        filteredItems.forEach(item => {
+            const iconElement = UIFactory.createItemGridIconWithFallback(item, (selectedItem) => {
+                this.displayItemInViewer(selectedItem);
+            });
+            
+            itemDictionaryGrid.appendChild(iconElement);
+        });
+    }
+};
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOM Loaded. Starting initialization...");
     try {
