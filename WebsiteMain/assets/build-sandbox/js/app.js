@@ -5179,6 +5179,617 @@ const ItemEditor = {
 };
 
 // ------------------------------------------------------------------
+// api-service.js - Fantasy Online 2 API integration
+// ------------------------------------------------------------------
+
+const FO2ApiService = {
+    BASE_URL: 'https://data.fantasyonline2.com/api',
+    
+    // Cache to avoid repeated API calls during a session
+    _cache: {
+        items: null,
+        mobs: null,
+        lastUpdated: null
+    },
+    
+    // Rate limiting
+    _lastRequestTime: 0,
+    _minRequestInterval: 100, // 100ms between requests
+    
+    /**
+     * Rate-limited fetch wrapper
+     */
+    async _rateLimitedFetch(url, options = {}) {
+        const now = Date.now();
+        const timeSinceLastRequest = now - this._lastRequestTime;
+        
+        if (timeSinceLastRequest < this._minRequestInterval) {
+            await new Promise(resolve => 
+                setTimeout(resolve, this._minRequestInterval - timeSinceLastRequest)
+            );
+        }
+        
+        this._lastRequestTime = Date.now();
+        
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+        
+        return response;
+    },
+    
+    /**
+     * Fetch items from the API in batches
+     */
+    async fetchAllItems(maxItemId = 1500, batchSize = 100) {
+        console.log('Fetching items from Fantasy Online 2 API...');
+        
+        // Check cache first
+        if (this._cache.items && this._cache.lastUpdated) {
+            const cacheAge = Date.now() - this._cache.lastUpdated;
+            const maxCacheAge = 30 * 60 * 1000; // 30 minutes
+            
+            if (cacheAge < maxCacheAge) {
+                console.log('Using cached item data');
+                return this._cache.items;
+            }
+        }
+        
+        const allItems = [];
+        let processedCount = 0;
+        let equipmentCount = 0;
+        let skippedCount = 0;
+        
+        for (let startId = 1; startId <= maxItemId; startId += batchSize) {
+            const endId = Math.min(startId + batchSize - 1, maxItemId);
+            const itemIds = [];
+            
+            for (let i = startId; i <= endId; i++) {
+                itemIds.push(i);
+            }
+            
+            const idsParam = itemIds.join(',');
+            const url = `${this.BASE_URL}/items?ids=${idsParam}`;
+            
+            try {
+                const response = await this._rateLimitedFetch(url);
+                const itemData = await response.json();
+                
+                if (Array.isArray(itemData) && itemData.length > 0) {
+                    for (const item of itemData) {
+                        const processedItem = this._processApiItem(item);
+                        if (processedItem) {
+                            allItems.push(processedItem);
+                            equipmentCount++;
+                        } else {
+                            skippedCount++;
+                        }
+                        processedCount++;
+                    }
+                    
+                    // Update progress
+                    if (processedCount % 200 === 0) {
+                        console.log(`Processed ${processedCount} items (${equipmentCount} equipment, ${skippedCount} skipped)...`);
+                    }
+                }
+            } catch (error) {
+                console.warn(`Failed to fetch batch ${startId}-${endId}:`, error);
+                // Continue with other batches even if one fails
+            }
+        }
+        
+        console.log(`API fetch complete: ${allItems.length} equipment items from ${processedCount} total items`);
+        console.log(`Equipment breakdown: ${equipmentCount} kept, ${skippedCount} non-equipment skipped`);
+        
+        // Cache the results
+        this._cache.items = allItems;
+        this._cache.lastUpdated = Date.now();
+        
+        return allItems;
+    },
+    
+    /**
+     * Process a raw API item into our expected format
+     */
+    _processApiItem(apiItem) {
+        // Extract basic info
+        const name = apiItem.t?.en?.n || `Item ${apiItem.id}`;
+        const description = apiItem.t?.en?.d || '';
+        
+        // Parse stats object
+        let stats = {};
+        if (apiItem.sta) {
+            if (typeof apiItem.sta === 'string') {
+                try {
+                    stats = JSON.parse(apiItem.sta);
+                } catch (e) {
+                    stats = {};
+                }
+            } else if (typeof apiItem.sta === 'object') {
+                stats = apiItem.sta;
+            }
+        }
+        
+        // Parse requirements object
+        let reqs = {};
+        if (apiItem.sr) {
+            if (typeof apiItem.sr === 'string') {
+                try {
+                    reqs = JSON.parse(apiItem.sr);
+                } catch (e) {
+                    reqs = {};
+                }
+            } else if (typeof apiItem.sr === 'object') {
+                reqs = apiItem.sr;
+            }
+        }
+        
+        // Skip non-equipment items EARLY
+        if (!this._isEquipmentItem(apiItem.ty, apiItem.st, name)) {
+            // Debug: log a few skipped items to understand what we're filtering out
+            if (Math.random() < 0.01) { // Log ~1% of skipped items
+                console.log(`Skipped non-equipment: "${name}" (Type: ${apiItem.ty}, Slot: ${apiItem.st})`);
+            }
+            return null;
+        }
+        
+        // Debug: log a few kept items to understand what we're keeping
+        if (Math.random() < 0.05) { // Log ~5% of kept items
+            console.log(`Kept equipment: "${name}" (Type: ${apiItem.ty}, Slot: ${apiItem.st})`);
+        }
+        
+        // Map item types and slots using the advanced method
+        const itemType = this._mapItemSlotAdvanced(apiItem.st, name, stats);
+        
+        // Build damage string if applicable
+        let damageString = '';
+        if (stats.mnd !== undefined && stats.mxd !== undefined) {
+            if (stats.mnd === stats.mxd) {
+                damageString = stats.mnd.toString();
+            } else {
+                damageString = `${stats.mnd}-${stats.mxd}`;
+            }
+        }
+        
+        // Create sprite link - try multiple URL patterns
+        let spriteLink = null;
+        if (apiItem.sfn) {
+            // Try different possible sprite URL patterns
+            const possibleUrls = [
+                `https://data.fantasyonline2.com/sprites/items/${apiItem.sfn}`,
+                `https://data.fantasyonline2.com/images/items/${apiItem.sfn}`,
+                `https://fantasyonline2.com/sprites/items/${apiItem.sfn}`,
+                `https://fantasyonline2.com/images/items/${apiItem.sfn}`
+            ];
+            
+            // Use the first URL for now - we could add image validation later
+            spriteLink = possibleUrls[0];
+        }
+        
+        return {
+            'Item ID': apiItem.id,
+            'Name': name,
+            'Level': apiItem.lr || 0,
+            'Type': itemType.type,
+            'Subtype': itemType.subtype,
+            'STA': stats.sta || 0,
+            'STR': stats.str || 0,
+            'INT': stats.int || 0,
+            'AGI': stats.agi || 0,
+            'Req STA': reqs.sta || 0,
+            'Req STR': reqs.str || 0,
+            'Req INT': reqs.int || 0,
+            'Req AGI': reqs.agi || 0,
+            'Armor': stats.arm || 0,
+            'Direct Crit': stats.crit || 0,
+            'Direct ATK Power': stats.atkp || 0,
+            'Damage': damageString,
+            'Atk Spd': stats.atks || 0,
+            'Sprite-Link': spriteLink,
+            'sellPrice': apiItem.vsp || 0,
+            'minDamage': stats.mnd || 0,
+            'maxDamage': stats.mxd || 0
+        };
+    },
+    
+    /**
+     * Determine if an item is equipment (wearable/usable by build sandbox)
+     */
+    _isEquipmentItem(typeId, slotId, itemName = '') {
+        // Equipment types we care about
+        const equipmentTypes = [2, 3]; // Weapon, Armor/Accessory
+        
+        // Equipment slots we care about  
+        const equipmentSlots = [0, 1, 2, 3, 6, 7, 8, 9, 10, 12, 13, 15, 17];
+        // Head, Main Hand, Ranged, Magic, Two-Handed, Mining, Body, Two-Hand Melee, 
+        // Legs, Ring, Trinket, Guild, Off-Hand
+        
+        // Must be the right type AND slot
+        const basicCheck = equipmentTypes.includes(typeId) && equipmentSlots.includes(slotId);
+        
+        // Additional name-based filtering to catch equipment with unusual type/slot combos
+        const name = itemName.toLowerCase();
+        const isLikelyEquipment = name.includes('armor') || name.includes('helmet') || 
+                                 name.includes('sword') || name.includes('bow') || 
+                                 name.includes('ring') || name.includes('trinket') ||
+                                 name.includes('shield') || name.includes('staff') ||
+                                 name.includes('wand') || name.includes('axe') ||
+                                 name.includes('hammer') || name.includes('pickaxe');
+        
+        return basicCheck || (equipmentTypes.includes(typeId) && isLikelyEquipment);
+    },
+    
+    /**
+     * Map API item slot to our format with more specific subtypes using advanced logic
+     */
+    _mapItemSlotAdvanced(slotId, itemName, stats) {
+        // Use the item name and stats to make better guesses
+        const name = itemName.toLowerCase();
+        
+        // Weapon type detection with slot-based logic
+        if (slotId === 1) { // Main hand weapons
+            if (name.includes('sword') || name.includes('blade') || name.includes('katana')) {
+                return { type: 'weapon', subtype: 'sword' };
+            }
+            if (name.includes('axe')) return { type: 'weapon', subtype: 'axe' };
+            if (name.includes('hammer') || name.includes('mace') || name.includes('club')) {
+                return { type: 'weapon', subtype: 'hammer' };
+            }
+            if (name.includes('dagger') || name.includes('knife')) {
+                return { type: 'weapon', subtype: 'sword' };
+            }
+            // Default main hand to sword if unclear
+            return { type: 'weapon', subtype: 'sword' };
+        }
+        
+        if (slotId === 2) return { type: 'weapon', subtype: 'bow' };
+        
+        if (slotId === 3) { // Magic weapons
+            return name.includes('staff') ? 
+                { type: 'weapon', subtype: 'staff' } : 
+                { type: 'weapon', subtype: 'wand' };
+        }
+        
+        if (slotId === 6) return { type: 'weapon', subtype: '2h sword' };
+        if (slotId === 7) return { type: 'weapon', subtype: 'pickaxe' };
+        if (slotId === 8) return { type: 'weapon', subtype: 'lockpick' }; // Assuming slot 8 lockpicks
+        if (slotId === 9) return { type: 'weapon', subtype: 'hammer' };
+        
+        // Equipment slots
+        if (slotId === 0) return { type: 'equipment', subtype: 'head' };
+        if (slotId === 10) return { type: 'equipment', subtype: 'legs' };
+        if (slotId === 12) return { type: 'equipment', subtype: 'ring' };
+        if (slotId === 13) return { type: 'equipment', subtype: 'trinket' };
+        if (slotId === 15) return { type: 'equipment', subtype: 'guild' };
+        if (slotId === 17) return { type: 'equipment', subtype: 'offhand' };
+        
+        // Handle chest armor (need to determine correct slot)
+        if (slotId === 8) {
+            // Check if it's actually armor based on name and stats
+            if (name.includes('armor') || name.includes('chest') || name.includes('shirt') || 
+                name.includes('robe') || stats.arm > 0) {
+                return { type: 'equipment', subtype: 'chest' };
+            } else {
+                return { type: 'weapon', subtype: 'lockpick' };
+            }
+        }
+        
+        // Try to detect missing slots from item names
+        if (name.includes('shoulder') || name.includes('pauldron')) {
+            return { type: 'equipment', subtype: 'shoulder' };
+        }
+        if (name.includes('face') || name.includes('mask') || name.includes('goggles')) {
+            return { type: 'equipment', subtype: 'face' };
+        }
+        if (name.includes('back') || name.includes('cape') || name.includes('cloak')) {
+            return { type: 'equipment', subtype: 'back' };
+        }
+        if (name.includes('faction')) {
+            return { type: 'equipment', subtype: 'faction' };
+        }
+        
+        return { type: 'other', subtype: 'other' };
+    },
+    
+    /**
+     * More sophisticated slot mapping based on item analysis
+     */
+    _mapItemSlotAdvanced(slotId, itemName, stats) {
+        // Use the item name and stats to make better guesses
+        const name = itemName.toLowerCase();
+        
+        // Weapon type detection
+        if (slotId === 1 || slotId === 6 || slotId === 9) { // Main hand or two-handed
+            if (name.includes('sword') || name.includes('blade')) {
+                return slotId === 6 ? { type: 'weapon', subtype: '2h sword' } : { type: 'weapon', subtype: 'sword' };
+            }
+            if (name.includes('axe')) return { type: 'weapon', subtype: 'axe' };
+            if (name.includes('hammer') || name.includes('mace')) return { type: 'weapon', subtype: 'hammer' };
+            if (name.includes('staff')) return { type: 'weapon', subtype: 'staff' };
+            if (name.includes('dagger') || name.includes('knife')) return { type: 'weapon', subtype: 'sword' };
+        }
+        
+        if (slotId === 2) return { type: 'weapon', subtype: 'bow' };
+        if (slotId === 3) {
+            return name.includes('staff') ? 
+                { type: 'weapon', subtype: 'staff' } : 
+                { type: 'weapon', subtype: 'wand' };
+        }
+        if (slotId === 7) return { type: 'weapon', subtype: 'pickaxe' };
+        
+        // Equipment detection
+        if (slotId === 0) return { type: 'equipment', subtype: 'head' };
+        if (slotId === 8) return { type: 'equipment', subtype: 'chest' };
+        if (slotId === 10) return { type: 'equipment', subtype: 'legs' };
+        if (slotId === 12) return { type: 'equipment', subtype: 'ring' };
+        if (slotId === 13) return { type: 'equipment', subtype: 'trinket' };
+        if (slotId === 15) return { type: 'equipment', subtype: 'guild' };
+        if (slotId === 17) return { type: 'equipment', subtype: 'offhand' };
+        
+        // Try to detect missing slots from item names
+        if (name.includes('shoulder') || name.includes('pauldron')) {
+            return { type: 'equipment', subtype: 'shoulder' };
+        }
+        if (name.includes('face') || name.includes('mask') || name.includes('goggles')) {
+            return { type: 'equipment', subtype: 'face' };
+        }
+        if (name.includes('back') || name.includes('cape') || name.includes('cloak')) {
+            return { type: 'equipment', subtype: 'back' };
+        }
+        if (name.includes('faction')) {
+            return { type: 'equipment', subtype: 'faction' };
+        }
+        
+        return { type: 'other', subtype: 'other' };
+    },
+    
+    /**
+     * Fetch mob data (if available from API)
+     */
+    async fetchMobData() {
+        // This would depend on if the API has mob endpoints
+        // For now, return empty array and continue using static data
+        return [];
+    },
+    
+    /**
+     * Clear the cache (useful for forced refresh)
+     */
+    clearCache() {
+        this._cache = {
+            items: null,
+            mobs: null,
+            lastUpdated: null
+        };
+        console.log('API cache cleared');
+    },
+    
+    /**
+     * Get cache status
+     */
+    getCacheStatus() {
+        return {
+            hasItems: !!this._cache.items,
+            itemCount: this._cache.items ? this._cache.items.length : 0,
+            lastUpdated: this._cache.lastUpdated,
+            ageMinutes: this._cache.lastUpdated ? 
+                Math.round((Date.now() - this._cache.lastUpdated) / 60000) : null
+        };
+    }
+};
+
+DataService.loadAllDataWithApi = async function() {
+    try {
+        DOMUtils.showNotification("Loading game data from API...", "info");
+        
+        // Fetch items from API
+        const apiItems = await FO2ApiService.fetchAllItems();
+        const validItems = apiItems.filter(item => item !== null);
+        
+        // Process the API items
+        const itemData = this.processItemData(validItems);
+        
+        // Load other data from static files (buffs, mobs, sets, spells)
+        const [mobsResponse, buffsResponse, spellsResponse, setsResponse] = await Promise.all([
+            fetch('assets/build-sandbox/data/mobs.json').catch(() => ({ ok: false })),
+            fetch('assets/build-sandbox/data/buffs.json').catch(() => ({ ok: false })),
+            fetch('assets/build-sandbox/data/spells.json').catch(() => ({ ok: false })),
+            fetch('assets/build-sandbox/data/sets.json').catch(() => ({ ok: false }))
+        ]);
+        
+        const mobsData = mobsResponse.ok ? 
+            this.processMobsData(await mobsResponse.json(), itemData.itemsById) : 
+            { mobs: [], mobsMaxLevel: 1 };
+            
+        const buffsData = buffsResponse.ok ? 
+            this.processBuffsData(await buffsResponse.json()) : 
+            { "Buff": [], "Morph": [] };
+            
+        const spellsData = spellsResponse.ok ? 
+            this.processSpellsData(await spellsResponse.json()) : 
+            [];
+            
+        const setsData = setsResponse.ok ? 
+            this.processSetsData(await setsResponse.json()) : 
+            { sets: [], setsByName: new Map() };
+        
+        // Assign set information
+        this.assignSetInformation(itemData.itemsById, setsData.setsByName);
+        
+        DOMUtils.showNotification(
+            `Loaded ${validItems.length} items from API + static game data!`, 
+            "success"
+        );
+        
+        return {
+            items: itemData.items,
+            itemsById: itemData.itemsById,
+            mobs: mobsData.mobs,
+            mobsMaxLevel: mobsData.mobsMaxLevel,
+            buffs: buffsData,
+            spells: spellsData,
+            sets: setsData.sets,
+            setsByName: setsData.setsByName
+        };
+    } catch (error) {
+        console.error("Error loading data with API:", error);
+        DOMUtils.showNotification(`Failed to load from API: ${error.message}`, "error");
+        
+        // Fallback to static data
+        console.log("Falling back to static data files...");
+        return await this.loadAllData();
+    }
+};
+
+// Add UI controls for API data management
+const ApiDataControls = {
+    /**
+     * Add API controls to the UI
+     */
+    addApiControls() {
+        // Add to item dictionary page filters
+        const filtersPanel = document.querySelector('#item-dictionary-page .item-filters-panel');
+        if (!filtersPanel) return;
+        
+        const apiSection = DOMUtils.createElement('div', {
+            className: 'filter-section api-controls-section'
+        });
+        
+        const title = DOMUtils.createElement('h3', {
+            textContent: 'API Data',
+            style: { marginBottom: '10px' }
+        });
+        
+        const refreshButton = DOMUtils.createElement('button', {
+            textContent: 'Refresh from API',
+            className: 'action-button positive',
+            style: { width: '100%', marginBottom: '5px' },
+            onclick: this.refreshFromApi
+        });
+        
+        const cacheButton = DOMUtils.createElement('button', {
+            textContent: 'Clear Cache',
+            className: 'action-button',
+            style: { width: '100%', marginBottom: '5px' },
+            onclick: this.clearCache
+        });
+        
+        const statusDiv = DOMUtils.createElement('div', {
+            id: 'api-cache-status',
+            className: 'api-status',
+            style: { fontSize: '0.8em', color: '#aaa' }
+        });
+        
+        apiSection.appendChild(title);
+        apiSection.appendChild(refreshButton);
+        apiSection.appendChild(cacheButton);
+        apiSection.appendChild(statusDiv);
+        
+        filtersPanel.appendChild(apiSection);
+        
+        // Update status initially
+        this.updateCacheStatus();
+    },
+    
+    /**
+     * Refresh data from API
+     */
+    async refreshFromApi() {
+        try {
+            DOMUtils.showNotification("Refreshing data from API...", "info");
+            
+            // Clear cache first
+            FO2ApiService.clearCache();
+            
+            // Reload data
+            const newData = await DataService.loadAllDataWithApi();
+            
+            // Update state
+            StateManager.state.data = newData;
+            
+            // Refresh UI
+            UIController.populateItemDictionaryGrid();
+            UIController.populateItemCategoryFilter();
+            
+            // Recalculate current build stats
+            StateManager.triggerRecalculationAndUpdateUI();
+            
+            ApiDataControls.updateCacheStatus();
+            
+            DOMUtils.showNotification("Data refreshed successfully!", "success");
+        } catch (error) {
+            console.error("API refresh failed:", error);
+            DOMUtils.showNotification(`API refresh failed: ${error.message}`, "error");
+        }
+    },
+    
+    /**
+     * Clear API cache
+     */
+    clearCache() {
+        FO2ApiService.clearCache();
+        this.updateCacheStatus();
+        DOMUtils.showNotification("API cache cleared", "info");
+    },
+    
+    /**
+     * Update cache status display
+     */
+    updateCacheStatus() {
+        const statusDiv = document.getElementById('api-cache-status');
+        if (!statusDiv) return;
+        
+        const status = FO2ApiService.getCacheStatus();
+        
+        if (status.hasItems) {
+            statusDiv.innerHTML = `
+                <div>Items: ${status.itemCount}</div>
+                <div>Updated: ${status.ageMinutes}m ago</div>
+            `;
+        } else {
+            statusDiv.textContent = 'No cached data';
+        }
+    }
+};
+
+// Update StateManager initialization to use API
+StateManager.initializeWithApi = async function() {
+    try {
+        // Load data from API
+        this.state.data = await DataService.loadAllDataWithApi();
+        
+        // Load saved builds
+        this.loadSavedBuildsList();
+        
+        // Load current state
+        const stateLoaded = this.loadCurrentStateFromLocalStorage();
+        
+        // Calculate initial stats
+        this.recalculatePoints();
+        
+        // If state wasn't loaded, trigger initial calculation
+        if (!stateLoaded) {
+            this.triggerRecalculationAndUpdateUI();
+        }
+        
+        console.log('State manager initialized successfully with API data.');
+        return true;
+    } catch (error) {
+        console.error('Failed to initialize state manager with API:', error);
+        throw error;
+    }
+};
+
+// ------------------------------------------------------------------
 // app.js - Main application initialization
 // ------------------------------------------------------------------
 
@@ -5192,14 +5803,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Show loading notification
         DOMUtils.showNotification("Loading game data...", "info");
         
-        // Initialize State Manager first (loads data and saved state)
-        await StateManager.initialize();
+        // Check if user wants to use API data (you can add a setting for this)
+        const useApiData = localStorage.getItem('fo2-use-api-data') !== 'false'; // Default to true
+        
+        if (useApiData) {
+            // Try API first, fallback to static
+            try {
+                await StateManager.initializeWithApi();
+            } catch (apiError) {
+                console.warn("API initialization failed, falling back to static data:", apiError);
+                DOMUtils.showNotification("API failed, using static data...", "info");
+                await StateManager.initialize();
+            }
+        } else {
+            // Use static data
+            await StateManager.initialize();
+        }
         
         // Initialize UI Controller (sets up event listeners and initial UI state)
         UIController.initialize();
         
         // Final UI setup after loading
         UIController.populateItemCategoryFilter();
+        
+        // Add API controls if they don't exist
+        setTimeout(() => {
+            if (!document.querySelector('.api-controls-section')) {
+                ApiDataControls.addApiControls();
+            }
+        }, 1000);
         
         console.log("Application initialized successfully.");
         DOMUtils.showNotification("Application loaded successfully!", "success");
