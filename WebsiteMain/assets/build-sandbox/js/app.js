@@ -12,7 +12,7 @@ const FO2Config = {
     // UI Constants
     UI: {
         MAX_BUILD_DESCRIPTION_LENGTH: 100,
-        NOTIFICATION_DURATION: 3000,
+        NOTIFICATION_DURATION: 2000,
         MAX_ACTIVE_BUFFS: 5,
         
         // Move MODE inside the UI object
@@ -325,12 +325,13 @@ const DOMUtils = {
      * @param {string} pageSelector - Selector for tab pages
      */
     setupTabbedNavigation(buttonSelector, pageSelector) {
-        const buttons = document.querySelectorAll(buttonSelector);
-        const pages = document.querySelectorAll(pageSelector);
+        const buttons = document.querySelectorAll('.nav-button');
+        const pages = document.querySelectorAll('.page');
         
         buttons.forEach(button => {
             button.addEventListener('click', () => {
                 const target = button.dataset.page;
+                console.log('Tab clicked:', target);
                 const targetPage = document.getElementById(`${target}-page`);
                 
                 // Update active button
@@ -341,8 +342,9 @@ const DOMUtils = {
                 pages.forEach(page => page.classList.remove('active'));
                 if (targetPage) targetPage.classList.add('active');
                 
-                // Trigger page changed event
-                EventSystem.publish('page-changed', { page: target });
+                // Save the current page to state
+                StateManager.setCurrentPage(target);
+                console.log('setCurrentPage called with:', target);
             });
         });
     }
@@ -532,6 +534,113 @@ const UIFactory = {
         }
         
         return buffDiv;
+    },
+
+    /**
+     * Creates a spell slot element
+     */
+    createSpellSlot(spell, clickHandler) {
+        const spellSlot = DOMUtils.createElement('div', {
+            className: 'spell-slot',
+            onclick: (e) => {
+                if (!e.target.classList.contains('spell-clear')) {
+                    clickHandler(e);
+                }
+            }
+        });
+        
+        this.updateSpellSlotContent(spellSlot, spell);
+        return spellSlot;
+    },
+    
+    /**
+     * Updates spell slot content
+     */
+    updateSpellSlotContent(spellSlot, spell) {
+        DOMUtils.clearElement(spellSlot);
+        
+        if (spell) {
+            const spellIconName = spell.Name.toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-z0-9-]/g, '');
+            
+            const iconFileName = `assets/build-sandbox/icons/${spellIconName}-icon.png`;
+            
+            const img = DOMUtils.createElement('img', {
+                src: iconFileName,
+                alt: spell.Name,
+                onerror: function() {
+                    this.style.display = 'none';
+                    const fallback = DOMUtils.createElement('div', {
+                        className: 'spell-slot-fallback',
+                        textContent: '⚡'
+                    });
+                    this.parentNode.appendChild(fallback);
+                }
+            });
+            
+            spellSlot.appendChild(img);
+            
+            const clearButton = DOMUtils.createElement('div', {
+                className: 'spell-clear',
+                textContent: '×',
+                title: 'Remove spell'
+            });
+            
+            clearButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                StateManager.setSelectedSpell(null);
+                UIController.updateSpellDisplay();
+            });
+            
+            spellSlot.appendChild(clearButton);
+        } else {
+            const defaultIcon = DOMUtils.createElement('div', {
+                className: 'spell-slot-fallback',
+                textContent: '⚡'
+            });
+            
+            spellSlot.appendChild(defaultIcon);
+        }
+    },
+    
+    /**
+     * Creates spell search result
+     */
+    createSpellSearchResult(spell, selectHandler) {
+        const spellElement = DOMUtils.createElement('div', {
+            className: 'spell-search-item',
+            textContent: `${spell.Name} ${spell.tier}`,
+            onclick: () => selectHandler(spell)
+        });
+        
+        return spellElement;
+    },
+    
+    /**
+     * Generates spell tooltip content
+     */
+    generateSpellTooltipContent(spell) {
+        const calculatedStats = StateManager.state.currentBuild.calculatedStats;
+        const critPercent = calculatedStats?.finalCrit || 0;
+        const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(spell, critPercent);
+        
+        let content = `<div class="tooltip-title">${spell.Name} (Tier ${spell.tier})</div>`;
+        content += `<div class="tooltip-level">Level ${spell.levelRequired} Spell</div>`;
+        
+        const statsHtml = [];
+        statsHtml.push(`<div>Damage: ${spell.minDamage}-${spell.maxDamage}</div>`);
+        statsHtml.push(`<div>Cast Time: ${spell.castTime}s</div>`);
+        statsHtml.push(`<div>Energy Cost: ${spell.energyCost}</div>`);
+        if (spell.cooldown > 0) {
+            statsHtml.push(`<div>Cooldown: ${spell.cooldown}s</div>`);
+        }
+        statsHtml.push(`<div class="effect-positive">DPS: ${dpsWithCrit}</div>`);
+        statsHtml.push(`<div class="effect-negative">Energy/sec: ${spell.energyPerSecond}</div>`);
+        
+        content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
+        
+        return content;
     },
     
     /**
@@ -1150,70 +1259,6 @@ const UIFactory = {
     },
 };
 
-UIFactory.createItemDetailViewWithEdit = function(item) {
-    const container = document.createElement('div');
-    
-    if (!item) {
-        container.innerHTML = '<p class="empty-message">Select an item.</p>';
-        return container;
-    }
-
-    let isEditing = false;
-
-    const renderView = () => {
-        DOMUtils.clearElement(container);
-        
-        if (isEditing) {
-            const editor = ItemEditor.createItemEditor(
-                item,
-                (updatedItem) => {
-                    // Update the item in the data store
-                    StateManager.state.data.itemsById.set(updatedItem['Item ID'], updatedItem);
-                    
-                    // Reprocess items to update categories
-                    const allItems = Array.from(StateManager.state.data.itemsById.values());
-                    const processedData = DataService.processItemData(allItems);
-                    StateManager.state.data.items = processedData.items;
-                    
-                    // Update the item reference and switch back to view mode
-                    Object.assign(item, updatedItem);
-                    isEditing = false;
-                    renderView();
-                    
-                    // Refresh the grid
-                    UIController.populateItemDictionaryGrid();
-                    
-                    DOMUtils.showNotification(`${updatedItem.Name} updated successfully!`, 'success');
-                },
-                () => {
-                    isEditing = false;
-                    renderView();
-                }
-            );
-            container.appendChild(editor);
-        } else {
-            // Regular view with edit button
-            const viewContent = UIFactory.createItemDetailView(item);
-            
-            const editButton = DOMUtils.createElement('button', {
-                textContent: 'Edit Item',
-                className: 'action-button positive',
-                style: { marginTop: '10px' },
-                onclick: () => {
-                    isEditing = true;
-                    renderView();
-                }
-            });
-            
-            container.appendChild(viewContent);
-            container.appendChild(editButton);
-        }
-    };
-
-    renderView();
-    return container;
-};
-
 const ItemDictionaryEnhancements = {
     addExportImportButtons() {
         const filtersPanel = DOMUtils.getElement('item-dictionary-page')?.querySelector('.item-filters-panel');
@@ -1248,107 +1293,6 @@ const ItemDictionaryEnhancements = {
         
         filtersPanel.appendChild(exportImportSection);
     }
-};
-
-// Add spell-related methods to UIFactory as properties after the object definition
-UIFactory.createSpellSlot = function(spell, clickHandler) {
-    const spellSlot = DOMUtils.createElement('div', {
-        className: 'spell-slot',
-        onclick: (e) => {
-            // Only handle clicks on the slot itself, not on clear button
-            if (!e.target.classList.contains('spell-clear')) {
-                clickHandler(e);
-            }
-        }
-    });
-    
-    UIFactory.updateSpellSlotContent(spellSlot, spell);
-    return spellSlot;
-};
-
-UIFactory.updateSpellSlotContent = function(spellSlot, spell) {
-    DOMUtils.clearElement(spellSlot);
-    
-    if (spell) {
-        // Spell equipped - show spell icon or fallback
-        const spellIconName = spell.Name.toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, '');
-        
-        const iconFileName = `assets/build-sandbox/icons/${spellIconName}-icon.png`;
-        
-        const img = DOMUtils.createElement('img', {
-            src: iconFileName,
-            alt: spell.Name,
-            onerror: function() {
-                this.style.display = 'none';
-                const fallback = DOMUtils.createElement('div', {
-                    className: 'spell-slot-fallback',
-                    textContent: '⚡'
-                });
-                this.parentNode.appendChild(fallback);
-            }
-        });
-        
-        spellSlot.appendChild(img);
-        
-        // Add clear button
-        const clearButton = DOMUtils.createElement('div', {
-            className: 'spell-clear',
-            textContent: '×',
-            title: 'Remove spell'
-        });
-        
-        clearButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            StateManager.setSelectedSpell(null);
-            UIController.updateSpellDisplay();
-        });
-        
-        spellSlot.appendChild(clearButton);
-    } else {
-        // No spell - show default icon
-        const defaultIcon = DOMUtils.createElement('div', {
-            className: 'spell-slot-fallback',
-            textContent: '⚡'
-        });
-        
-        spellSlot.appendChild(defaultIcon);
-    }
-};
-
-UIFactory.createSpellSearchResult = function(spell, selectHandler) {
-    const spellElement = DOMUtils.createElement('div', {
-        className: 'spell-search-item',
-        textContent: `${spell.Name} ${spell.tier}`,
-        onclick: () => selectHandler(spell)
-    });
-    
-    return spellElement;
-};
-
-UIFactory.generateSpellTooltipContent = function(spell) {
-    // Get current crit % from calculated stats
-    const calculatedStats = StateManager.state.currentBuild.calculatedStats;
-    const critPercent = calculatedStats?.finalCrit || 0;
-    const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(spell, critPercent);
-    
-    let content = `<div class="tooltip-title">${spell.Name} (Tier ${spell.tier})</div>`;
-    content += `<div class="tooltip-level">Level ${spell.levelRequired} Spell</div>`;
-    
-    const statsHtml = [];
-    statsHtml.push(`<div>Damage: ${spell.minDamage}-${spell.maxDamage}</div>`);
-    statsHtml.push(`<div>Cast Time: ${spell.castTime}s</div>`);
-    statsHtml.push(`<div>Energy Cost: ${spell.energyCost}</div>`);
-    if (spell.cooldown > 0) {
-        statsHtml.push(`<div>Cooldown: ${spell.cooldown}s</div>`);
-    }
-    statsHtml.push(`<div class="effect-positive">DPS: ${dpsWithCrit}</div>`);
-    statsHtml.push(`<div class="effect-negative">Energy/sec: ${spell.energyPerSecond}</div>`);
-    
-    content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
-    
-    return content;
 };
 
 // ------------------------------------------------------------------
@@ -2592,6 +2536,7 @@ const StateManager = {
         
         // UI State
         ui: {
+            currentPage: 'build-editor',
             performance: {
                 sortColumn: 'name',
                 sortAscending: true,
@@ -2677,6 +2622,14 @@ const StateManager = {
         this.triggerRecalculationAndUpdateUI();
         
         return newLevel;
+    },
+
+    setCurrentPage(pageName) {
+        console.log('setCurrentPage called:', pageName);
+        this.state.ui.currentPage = pageName;
+        this.saveCurrentStateToLocalStorage();
+        console.log('Page saved to state:', this.state.ui.currentPage);
+        EventSystem.publish('page-changed', { page: pageName });
     },
     
     /**
@@ -2804,42 +2757,42 @@ const StateManager = {
     }
     
     // In restricted mode, check if requirements are met AT THE TIME OF EQUIPPING
-    if (this.state.ui.mode === FO2Config.UI.MODE.RESTRICTED) {
-        // Create a temporary state to see what the stats would be if the item was already equipped
-        // This allows item swapping as long as the combined effect would meet requirements
-        const tempState = FO2Utils.deepClone(this.state.currentBuild);
-        
-        // If replacing an item in the same slot, remove its stats first
-        if (tempState.equipment[slot]) {
-            // Remove the old item's contribution to stats
-            tempState.equipment[slot] = null;
+        if (this.state.ui.mode === FO2Config.UI.MODE.RESTRICTED) {
+            // Create a temporary state to see what the stats would be if the item was already equipped
+            // This allows item swapping as long as the combined effect would meet requirements
+            const tempState = FO2Utils.deepClone(this.state.currentBuild);
+            
+            // If replacing an item in the same slot, remove its stats first
+            if (tempState.equipment[slot]) {
+                // Remove the old item's contribution to stats
+                tempState.equipment[slot] = null;
+            }
+            
+            // Temporarily equip the new item
+            tempState.equipment[slot] = itemObject;
+            
+            // Calculate stats with the new item in place
+            const tempStats = StatsCalculator.performFullStatCalculation(tempState, FO2Config);
+            
+            // Check if requirements would be met AFTER equipping
+            const finalStats = tempStats.finalStats;
+            
+            if (
+                (itemObject['Req STR'] && finalStats.str < itemObject['Req STR']) ||
+                (itemObject['Req INT'] && finalStats.int < itemObject['Req INT']) ||
+                (itemObject['Req AGI'] && finalStats.agi < itemObject['Req AGI']) ||
+                (itemObject['Req STA'] && finalStats.sta < itemObject['Req STA'])
+            ) {
+                // Requirements not met even after equipping
+                return false;
+            }
         }
         
-        // Temporarily equip the new item
-        tempState.equipment[slot] = itemObject;
-        
-        // Calculate stats with the new item in place
-        const tempStats = StatsCalculator.performFullStatCalculation(tempState, FO2Config);
-        
-        // Check if requirements would be met AFTER equipping
-        const finalStats = tempStats.finalStats;
-        
-        if (
-            (itemObject['Req STR'] && finalStats.str < itemObject['Req STR']) ||
-            (itemObject['Req INT'] && finalStats.int < itemObject['Req INT']) ||
-            (itemObject['Req AGI'] && finalStats.agi < itemObject['Req AGI']) ||
-            (itemObject['Req STA'] && finalStats.sta < itemObject['Req STA'])
-        ) {
-            // Requirements not met even after equipping
-            return false;
-        }
-    }
-    
-    // Requirements met or sandbox mode, equip the item
-    this.state.currentBuild.equipment[slot] = itemObject;
-    this.triggerRecalculationAndUpdateUI();
-    return true;
-},
+        // Requirements met or sandbox mode, equip the item
+        this.state.currentBuild.equipment[slot] = itemObject;
+        this.triggerRecalculationAndUpdateUI();
+        return true;
+    },
     
     /**
      * Reset all equipment
@@ -2866,6 +2819,7 @@ const StateManager = {
         
         return false;
     },
+
     /**
      * Remove a buff by name
      * @param {string} buffName - Name of buff to remove
@@ -2889,6 +2843,22 @@ const StateManager = {
     resetBuffs() {
         this.state.currentBuild.activeBuffs = [];
         this.triggerRecalculationAndUpdateUI();
+    },
+
+    /**
+     * Set selected spell
+     */
+    setSelectedSpell(spellObject) {
+        this.state.currentBuild.selectedSpell = spellObject;
+        this.saveCurrentStateToLocalStorage();
+        EventSystem.publish('spell-updated', spellObject);
+    },
+    
+    /**
+     * Reset spell
+     */
+    resetSpell() {
+        this.setSelectedSpell(null);
     },
     
     /**
@@ -2988,8 +2958,10 @@ const StateManager = {
             stats: this.state.currentBuild.statPoints,
             equipment: {},
             activeBuffNames: this.state.currentBuild.activeBuffs.map(buff => buff.Name),
+            selectedSpellName: this.state.currentBuild.selectedSpell ? this.state.currentBuild.selectedSpell.Name : null,
             uiPerformance: this.state.ui.performance,
-            uiMode: this.state.ui.mode
+            uiMode: this.state.ui.mode,
+            currentPage: this.state.ui.currentPage
         };
         
         // Store item IDs for equipment
@@ -3045,9 +3017,18 @@ const StateManager = {
             this.state.ui.mode = savedData.uiMode;
         }
 
-        // Reset equipment & buffs before loading
+        // Load current page
+        if (savedData.currentPage) {
+            this.state.ui.currentPage = savedData.currentPage;
+            console.log('Loaded currentPage from localStorage:', savedData.currentPage);
+        } else {
+            console.log('No currentPage found in savedData');
+        }
+
+        // Reset equipment, buffs, and spell before loading
         this.state.currentBuild.equipment = {};
         this.state.currentBuild.activeBuffs = [];
+        this.state.currentBuild.selectedSpell = null; // ADD: spell support
 
         // Load equipment
         if (savedData.equipment && this.state.data.itemsById.size > 0) {
@@ -3082,6 +3063,16 @@ const StateManager = {
             });
         }
 
+        // Load selected spell
+        if (savedData.selectedSpellName && this.state.data.spells && this.state.data.spells.length > 0) {
+            const spellToSelect = this.state.data.spells.find(s => s.Name === savedData.selectedSpellName);
+            if (spellToSelect) {
+                this.state.currentBuild.selectedSpell = spellToSelect;
+            } else {
+                console.warn(`Spell data missing for ${savedData.selectedSpellName} during load.`);
+            }
+        }
+
         // Load UI state (performance filters)
         if (savedData.uiPerformance) {
             Object.assign(this.state.ui.performance, savedData.uiPerformance);
@@ -3101,6 +3092,7 @@ const StateManager = {
             );
         }
 
+        // ADD: Load UI item dictionary state
         if (savedData.uiItemDictionary) {
             // Migrate old single-sort format to new multi-sort format
             if (!savedData.uiItemDictionary.activeSorts && savedData.uiItemDictionary.sortCriteria) {
@@ -3377,161 +3369,6 @@ validateEquipmentRequirements() {
 
 };
 
-// Add spell-related methods to StateManager after its definition
-StateManager.setSelectedSpell = function(spellObject) {
-    this.state.currentBuild.selectedSpell = spellObject;
-    this.saveCurrentStateToLocalStorage();
-    EventSystem.publish('spell-updated', spellObject);
-};
-
-StateManager.resetSpell = function() {
-    this.setSelectedSpell(null);
-};
-
-// Update StateManager save/load methods to handle spells:
-StateManager.saveCurrentStateToLocalStorageOriginal = StateManager.saveCurrentStateToLocalStorage;
-StateManager.saveCurrentStateToLocalStorage = function() {
-    const saveData = {
-        level: this.state.currentBuild.level,
-        rebirth: this.state.currentBuild.rebirth,
-        stats: this.state.currentBuild.statPoints,
-        equipment: {},
-        activeBuffNames: this.state.currentBuild.activeBuffs.map(buff => buff.Name),
-        selectedSpellName: this.state.currentBuild.selectedSpell ? this.state.currentBuild.selectedSpell.Name : null,
-        uiPerformance: this.state.ui.performance,
-        uiMode: this.state.ui.mode
-    };
-    
-    // Store item IDs for equipment
-    for (const slot in this.state.currentBuild.equipment) {
-        if (this.state.currentBuild.equipment[slot]) {
-            const itemId = this.state.currentBuild.equipment[slot]['Item ID'];
-            if (itemId !== undefined) {
-                saveData.equipment[slot] = itemId;
-            }
-        }
-    }
-    
-    try {
-        localStorage.setItem(FO2Config.STORAGE.CURRENT_STATE_KEY, JSON.stringify(saveData));
-    } catch (e) {
-        console.error("Failed to save state:", e);
-        DOMUtils.showNotification("Could not save current build state.", "error");
-    }
-};
-
-StateManager.loadCurrentStateFromLocalStorageOriginal = StateManager.loadCurrentStateFromLocalStorage;
-StateManager.loadCurrentStateFromLocalStorage = function() {
-    const savedDataString = localStorage.getItem(FO2Config.STORAGE.CURRENT_STATE_KEY);
-    if (!savedDataString) {
-        console.log("No saved build state found in localStorage. Using defaults.");
-        return false;
-    }
-
-    try {
-        const savedData = FO2Utils.safeJSONParse(savedDataString);
-        if (!savedData) {
-            console.error("Invalid saved state data.");
-            return false;
-        }
-
-        console.log("Loading build state from localStorage:", savedData);
-
-        // Apply saved data to currentBuild
-        this.state.currentBuild.level = savedData.level || 1;
-        this.state.currentBuild.rebirth = savedData.rebirth || false;
-        this.state.currentBuild.statPoints = savedData.stats || {
-            agi: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
-            str: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
-            int: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
-            sta: FO2Config.GAME.LEVEL.BASE_STAT_POINTS
-        };
-
-        // Load UI mode if present
-        if (savedData.uiMode) {
-            this.state.ui.mode = savedData.uiMode;
-        }
-
-        // Reset equipment, buffs, and spell before loading
-        this.state.currentBuild.equipment = {};
-        this.state.currentBuild.activeBuffs = [];
-        this.state.currentBuild.selectedSpell = null;
-
-        // Load equipment
-        if (savedData.equipment && this.state.data.itemsById.size > 0) {
-            for (const slot in savedData.equipment) {
-                const itemIdToLoad = savedData.equipment[slot];
-                const itemToEquip = this.state.data.itemsById.get(itemIdToLoad);
-                if (itemToEquip) {
-                    this.state.currentBuild.equipment[slot] = itemToEquip;
-                } else {
-                    console.warn(`Could not find item ID ${itemIdToLoad} for slot ${slot} during load.`);
-                }
-            }
-        }
-
-        // Load active buffs
-        if (savedData.activeBuffNames && 
-           (this.state.data.buffs.Buff.length > 0 || this.state.data.buffs.Morph.length > 0)) {
-            savedData.activeBuffNames.forEach(buffNameToLoad => {
-                let buffToActivate = null;
-                for (const category in this.state.data.buffs) {
-                    if (Array.isArray(this.state.data.buffs[category])) {
-                        buffToActivate = this.state.data.buffs[category].find(b => b.Name === buffNameToLoad);
-                        if (buffToActivate) break;
-                    }
-                }
-                
-                if (buffToActivate) {
-                    this.state.currentBuild.activeBuffs.push(buffToActivate);
-                } else {
-                    console.warn(`Buff data missing for ${buffNameToLoad} during load.`);
-                }
-            });
-        }
-
-        // Load selected spell
-        if (savedData.selectedSpellName && this.state.data.spells && this.state.data.spells.length > 0) {
-            const spellToSelect = this.state.data.spells.find(s => s.Name === savedData.selectedSpellName);
-            if (spellToSelect) {
-                this.state.currentBuild.selectedSpell = spellToSelect;
-            } else {
-                console.warn(`Spell data missing for ${savedData.selectedSpellName} during load.`);
-            }
-        }
-
-        // Load UI state (performance filters)
-        if (savedData.uiPerformance) {
-            Object.assign(this.state.ui.performance, savedData.uiPerformance);
-            
-            // Clamp loaded levels
-            this.state.ui.performance.minLevel = Math.max(1, Math.min(
-                parseInt(this.state.ui.performance.minLevel) || 1,
-                this.state.data.mobsMaxLevel
-            ));
-            
-            this.state.ui.performance.maxLevel = Math.max(
-                this.state.ui.performance.minLevel,
-                Math.min(
-                    parseInt(this.state.ui.performance.maxLevel) || this.state.data.mobsMaxLevel,
-                    this.state.data.mobsMaxLevel
-                )
-            );
-        }
-
-        console.log("Successfully loaded state from localStorage.");
-        this.recalculatePoints();
-        this.triggerRecalculationAndUpdateUI();
-        
-        return true;
-    } catch (e) {
-        console.error("Failed to load or parse saved state:", e);
-        localStorage.removeItem(FO2Config.STORAGE.CURRENT_STATE_KEY);
-        return false;
-    }
-};
-
-
 // ------------------------------------------------------------------
 // ui-controller.js - UI update and event handling
 // ------------------------------------------------------------------
@@ -3546,8 +3383,9 @@ const UIController = {
         this.populateSetsList();
         this.updateDisplayFromState();
         this.setupEventListeners();
-        this.addPerformanceTableSortListeners(); // Make sure this is called
+     //   this.addPerformanceTableSortListeners(); //
         this.registerSlotItemRemovedListener();
+        this.restoreSavedPage();
     },
     
     /**
@@ -3934,7 +3772,7 @@ const UIController = {
             }
         });
 
-        const spellSlot = DOMUtils.getElement('spell-slot');
+    const spellSlot = DOMUtils.getElement('spell-slot');
     if (spellSlot) {
         spellSlot.addEventListener('click', (event) => {
             if (!event.target.classList.contains('spell-clear')) {
@@ -4584,6 +4422,150 @@ handleEquipSet(setData) {
         if (success) {
             buffElements.forEach(el => el.classList.toggle('active', !isActive));
             this.updateBuffCount();
+        }
+    },
+
+    /**
+     * Update spell display
+     */
+    updateSpellDisplay() {
+        const spellSlot = DOMUtils.getElement('spell-slot');
+        const spellInfo = DOMUtils.getElement('spell-info');
+        
+        if (!spellSlot || !spellInfo) return;
+        
+        const selectedSpell = StateManager.state.currentBuild.selectedSpell;
+        
+        UIFactory.updateSpellSlotContent(spellSlot, selectedSpell);
+        
+        DOMUtils.clearElement(spellInfo);
+        
+        if (selectedSpell) {
+            const calculatedStats = StateManager.state.currentBuild.calculatedStats;
+            const critPercent = calculatedStats?.finalCrit || 0;
+            const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(selectedSpell, critPercent);
+            
+            const nameDiv = DOMUtils.createElement('div', {
+                className: 'spell-name',
+                textContent: `${selectedSpell.Name} (Tier ${selectedSpell.tier})`
+            });
+            
+            const statsDiv = DOMUtils.createElement('div', {
+                className: 'spell-stats'
+            });
+            
+            const dpsDiv = DOMUtils.createElement('div', {
+                innerHTML: `DPS: <span class="spell-dps">${dpsWithCrit}</span> (Base: ${selectedSpell.baseDps})`
+            });
+            
+            const costDiv = DOMUtils.createElement('div', {
+                innerHTML: `Cost: <span class="spell-cost">${selectedSpell.energyPerSecond.toFixed(1)} energy/sec</span>`
+            });
+            
+            statsDiv.appendChild(dpsDiv);
+            statsDiv.appendChild(costDiv);
+            
+            spellInfo.appendChild(nameDiv);
+            spellInfo.appendChild(statsDiv);
+        } else {
+            const placeholderDiv = DOMUtils.createElement('div', {
+                style: 'color: #666; font-style: italic;',
+                textContent: 'Click to select a spell'
+            });
+            
+            spellInfo.appendChild(placeholderDiv);
+        }
+    },
+    
+    /**
+     * Open spell search
+     */
+    openSpellSearch() {
+        const searchModal = DOMUtils.getElement('item-search-modal');
+        const searchTitle = document.getElementById('search-title');
+        const searchInput = DOMUtils.getElement('item-search-input');
+        
+        if (!searchModal) return;
+        
+        StateManager.setCurrentItemSearchSlot('spell');
+        
+        if (searchTitle) {
+            searchTitle.textContent = 'Select Spell';
+        }
+        
+        searchModal.style.display = 'flex';
+        searchModal.style.top = '50%';
+        searchModal.style.left = '50%';
+        searchModal.style.transform = 'translate(-50%, -50%)';
+        
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.focus();
+        }
+        
+        this.populateSpellSearchResults();
+    },
+    
+    /**
+     * Populate spell search results
+     */
+    populateSpellSearchResults(query = '') {
+        const searchResults = DOMUtils.getElement('search-results');
+        if (!searchResults) return;
+        
+        DOMUtils.clearElement(searchResults);
+        
+        const spells = StateManager.state.data.spells || [];
+        
+        let filteredSpells = spells;
+        if (query) {
+            const lowerQuery = query.toLowerCase();
+            filteredSpells = spells.filter(spell => 
+                spell.Name.toLowerCase().includes(lowerQuery) ||
+                spell.tier.toString().includes(lowerQuery)
+            );
+        }
+        
+        filteredSpells.sort((a, b) => {
+            const nameComparison = a.Name.localeCompare(b.Name);
+            if (nameComparison !== 0) {
+                return nameComparison;
+            }
+            return a.tier - b.tier;
+        });
+        
+        if (filteredSpells.length === 0) {
+            searchResults.innerHTML = '<div class="search-item">No matching spells found.</div>';
+        } else {
+            filteredSpells.forEach(spell => {
+                const spellElement = UIFactory.createSpellSearchResult(spell, (selectedSpell) => {
+                    StateManager.setSelectedSpell(selectedSpell);
+                    this.updateSpellDisplay();
+                    this.closeItemSearch();
+                    DOMUtils.showNotification(`Selected ${selectedSpell.Name}`, 'success');
+                });
+                
+                searchResults.appendChild(spellElement);
+            });
+        }
+    },
+    
+    /**
+     * Restore saved page
+     */
+    restoreSavedPage() {
+        const savedPage = StateManager.state.ui.currentPage;
+        const targetButton = document.querySelector(`.nav-button[data-page="${savedPage}"]`);
+        const targetPageElement = document.getElementById(`${savedPage}-page`);
+        
+        if (targetButton && targetPageElement) {
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            targetButton.classList.add('active');
+            
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            targetPageElement.classList.add('active');
+            
+            EventSystem.publish('page-changed', { page: savedPage });
         }
     },
     
@@ -5408,135 +5390,6 @@ handleEquipSet(setData) {
         });
     },
 
-};
-// Add spell-related methods to UIController after its definition
-UIController.updateSpellDisplay = function() {
-    const spellSlot = DOMUtils.getElement('spell-slot');
-    const spellInfo = DOMUtils.getElement('spell-info');
-    
-    if (!spellSlot || !spellInfo) return;
-    
-    const selectedSpell = StateManager.state.currentBuild.selectedSpell;
-    
-    // Update spell slot
-    UIFactory.updateSpellSlotContent(spellSlot, selectedSpell);
-    
-    // Update spell info
-    DOMUtils.clearElement(spellInfo);
-    
-    if (selectedSpell) {
-        // Get current crit % from calculated stats
-        const calculatedStats = StateManager.state.currentBuild.calculatedStats;
-        const critPercent = calculatedStats?.finalCrit || 0;
-        
-        // Calculate DPS with crit
-        const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(selectedSpell, critPercent);
-        
-        const nameDiv = DOMUtils.createElement('div', {
-            className: 'spell-name',
-            textContent: `${selectedSpell.Name} (Tier ${selectedSpell.tier})`
-        });
-        
-        const statsDiv = DOMUtils.createElement('div', {
-            className: 'spell-stats'
-        });
-        
-        const dpsDiv = DOMUtils.createElement('div', {
-            innerHTML: `DPS: <span class="spell-dps">${dpsWithCrit}</span> (Base: ${selectedSpell.baseDps})`
-        });
-        
-        const costDiv = DOMUtils.createElement('div', {
-            innerHTML: `Cost: <span class="spell-cost">${selectedSpell.energyPerSecond.toFixed(1)} energy/sec</span>`
-        });
-        
-        statsDiv.appendChild(dpsDiv);
-        statsDiv.appendChild(costDiv);
-        
-        spellInfo.appendChild(nameDiv);
-        spellInfo.appendChild(statsDiv);
-    } else {
-        const placeholderDiv = DOMUtils.createElement('div', {
-            style: 'color: #666; font-style: italic;',
-            textContent: 'Click to select a spell'
-        });
-        
-        spellInfo.appendChild(placeholderDiv);
-    }
-};
-
-UIController.openSpellSearch = function() {
-    const searchModal = DOMUtils.getElement('item-search-modal');
-    const searchTitle = document.getElementById('search-title');
-    const searchInput = DOMUtils.getElement('item-search-input');
-    
-    if (!searchModal) return;
-    
-    // Set search mode to spells
-    StateManager.setCurrentItemSearchSlot('spell');
-    
-    // Update Title
-    if (searchTitle) {
-        searchTitle.textContent = 'Select Spell';
-    }
-    
-    // Show and position modal
-    searchModal.style.display = 'flex';
-    searchModal.style.top = '50%';
-    searchModal.style.left = '50%';
-    searchModal.style.transform = 'translate(-50%, -50%)';
-    
-    if (searchInput) {
-        searchInput.value = '';
-        searchInput.focus();
-    }
-    
-    this.populateSpellSearchResults();
-};
-
-UIController.populateSpellSearchResults = function(query = '') {
-    const searchResults = DOMUtils.getElement('search-results');
-    if (!searchResults) return;
-    
-    DOMUtils.clearElement(searchResults);
-    
-    const spells = StateManager.state.data.spells || [];
-    
-    // Filter by query
-    let filteredSpells = spells;
-    if (query) {
-        const lowerQuery = query.toLowerCase();
-        filteredSpells = spells.filter(spell => 
-            spell.Name.toLowerCase().includes(lowerQuery) ||
-            spell.tier.toString().includes(lowerQuery)
-        );
-    }
-    
-    // Sort alphabetically by name first, then by tier
-    filteredSpells.sort((a, b) => {
-        // First sort by spell name (alphabetical)
-        const nameComparison = a.Name.localeCompare(b.Name);
-        if (nameComparison !== 0) {
-            return nameComparison;
-        }
-        // If names are the same, sort by tier (ascending)
-        return a.tier - b.tier;
-    });
-    
-    // Display results
-    if (filteredSpells.length === 0) {
-        searchResults.innerHTML = '<div class="search-item">No matching spells found.</div>';
-    } else {
-        filteredSpells.forEach(spell => {
-            const spellElement = UIFactory.createSpellSearchResult(spell, (selectedSpell) => {
-                StateManager.setSelectedSpell(selectedSpell);
-                this.updateSpellDisplay();
-                this.closeItemSearch();
-                DOMUtils.showNotification(`Selected ${selectedSpell.Name}`, 'success');
-            });
-            
-            searchResults.appendChild(spellElement);
-        });
-    }
 };
 
 const ItemEditor = {
