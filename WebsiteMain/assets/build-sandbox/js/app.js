@@ -92,11 +92,11 @@ const FO2Config = {
         }
     },
 
-    SETS: {
-        // Set bonus categories
-        CATEGORIES: {
-            CRAFTED: 'crafted'
-        }
+    API: {
+        BASE_URL: 'https://data.fantasyonline2.com/api/items',
+        SPRITE_BASE_URL: 'https://art.fantasyonline2.com/textures/icons/items/',
+        TIMEOUT: 30000, // 30 seconds
+        RETRY_ATTEMPTS: 3
     },
     
     // Lists of boss mobs
@@ -1434,73 +1434,349 @@ const DataService = {
     },
 
     /**
-     * Process and normalize sets data
-     * @param {Array} setsArray - Raw sets data
-     * @returns {Object} Processed sets data
+ * Fetch all items from the FO2 API
+ * @returns {Object} Processed items data
+ */
+async fetchItemsFromAPI() {
+    try {
+        console.log("Fetching items from FO2 API...");
+        
+        // Generate ID list for all items (1-2000 to be safe)
+        const maxId = 2000;
+        const idList = Array.from({length: maxId}, (_, i) => i + 1).join(',');
+        
+        const response = await fetch(`https://data.fantasyonline2.com/api/items?ids=${idList}`);
+        
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status}`);
+        }
+        
+        const apiData = await response.json();
+        
+        // Filter out null/undefined items and only keep items we can categorize
+        const validItems = Object.entries(apiData)
+            .filter(([id, itemData]) => itemData && this.canCategorizeItem(itemData))
+            .reduce((obj, [id, itemData]) => {
+                obj[id] = itemData;
+                return obj;
+            }, {});
+        
+        console.log(`Found ${Object.keys(validItems).length} valid items out of ${Object.keys(apiData).length} total`);
+        
+        // Convert API format to our internal format
+        const convertedItems = this.convertAPIItemsToInternalFormat(validItems);
+        
+        // Process the converted items
+        const processedData = this.processAPIItemData(convertedItems);
+        
+        console.log(`Loaded ${processedData.itemsById.size} items from API`);
+        return processedData;
+        
+    } catch (error) {
+        console.error("Error fetching items from API:", error);
+        throw new Error(`Failed to fetch items from API: ${error.message}`);
+    }
+},
+
+/**
+ * Check if an item can be categorized
+ * @param {Object} itemData - API item data
+ * @returns {boolean} Whether item can be categorized
+ */
+canCategorizeItem(itemData) {
+    const typeKey = `${itemData.ty},${itemData.st}`;
+    const typeMapping = {
+        // Equipment (Type 3)
+        '3,0': true,  // Head
+        '3,1': true,  // Trinkets
+        '3,2': true,  // Face
+        '3,4': true,  // Back
+        '3,6': true,  // Shoulders  
+        '3,8': true,  // Chest
+        '3,10': true, // Legs
+        '3,12': true, // Rings
+        '3,13': true, // Faction
+        '3,15': true, // Guild
+        '3,17': true, // Offhand
+        
+        // Weapons (Type 2)
+        '2,1': true,  // 1h Sword
+        '2,2': true,  // 2h Bow
+        '2,3': true,  // 1h Wand
+        '2,4': true,  // 1h Axe
+        '2,5': true,  // 2h Hammer
+        '2,6': true,  // 2h Staff
+        '2,9': true,  // 2h Sword
+        '2,10': true  // 2h Axe
+    };
+    
+    return typeMapping.hasOwnProperty(typeKey);
+},
+
+/**
+ * Convert API item format to our internal format
+ * @param {Object} apiData - Raw API response
+ * @returns {Array} Array of items in our format
+ */
+convertAPIItemsToInternalFormat(apiData) {
+    const items = [];
+    
+    // Map API ty,st combinations to our categories
+    const typeMapping = {
+        // Equipment (Type 3)
+        '3,0': { Type: 'equipment', Subtype: 'head' },
+        '3,1': { Type: 'equipment', Subtype: 'trinket' },
+        '3,2': { Type: 'equipment', Subtype: 'face' },
+        '3,4': { Type: 'equipment', Subtype: 'back' },
+        '3,6': { Type: 'equipment', Subtype: 'shoulder' },
+        '3,8': { Type: 'equipment', Subtype: 'chest' },
+        '3,10': { Type: 'equipment', Subtype: 'legs' },
+        '3,12': { Type: 'equipment', Subtype: 'ring' },
+        '3,13': { Type: 'equipment', Subtype: 'faction' },
+        '3,15': { Type: 'equipment', Subtype: 'guild' },
+        '3,17': { Type: 'equipment', Subtype: 'offhand' },
+        
+        // Weapons (Type 2)
+        '2,1': { Type: 'weapon', Subtype: 'sword' },
+        '2,2': { Type: 'weapon', Subtype: 'bow' },
+        '2,3': { Type: 'weapon', Subtype: 'wand' },
+        '2,4': { Type: 'weapon', Subtype: 'axe' },
+        '2,5': { Type: 'weapon', Subtype: 'hammer' },
+        '2,6': { Type: 'weapon', Subtype: 'staff' },
+        '2,9': { Type: 'weapon', Subtype: '2h sword' },
+        '2,10': { Type: 'weapon', Subtype: 'axe' } // Note: 2h axe, might want to distinguish
+    };
+    
+    // Process each item in the API response
+    for (const [itemId, itemData] of Object.entries(apiData)) {
+        const typeKey = `${itemData.ty},${itemData.st}`;
+        const typeInfo = typeMapping[typeKey];
+        
+        // Skip items we don't have mappings for
+        if (!typeInfo) {
+            continue;
+        }
+        
+        // Convert API format to our internal format
+        const convertedItem = {
+            'Item ID': itemId,
+            'Name': itemData.t?.en?.n || `Item ${itemId}`, // Fixed: Name is nested under t.en.n
+            'Level': itemData.lr || 0,
+            'Type': typeInfo.Type,
+            'Subtype': typeInfo.Subtype,
+            
+            // Stats from API - handle missing values as 0
+            'STA': this.getStatValue(itemData.sta, 'sta') || 0,
+            'STR': this.getStatValue(itemData.sta, 'str') || 0,
+            'INT': this.getStatValue(itemData.sta, 'int') || 0,
+            'AGI': this.getStatValue(itemData.sta, 'agi') || 0,
+            
+            // Requirements from API - handle missing values as 0
+            'Req STA': this.getStatValue(itemData.sr, 'sta') || 0,
+            'Req STR': this.getStatValue(itemData.sr, 'str') || 0,
+            'Req INT': this.getStatValue(itemData.sr, 'int') || 0,
+            'Req AGI': this.getStatValue(itemData.sr, 'agi') || 0,
+            
+            // Other properties - handle missing values as 0
+            'Armor': itemData.sta?.arm || 0,
+            'Direct Crit': itemData.sta?.crit || 0,
+            'Direct ATK Power': itemData.sta?.atkr || 0,
+            'Atk Spd': itemData.sta?.atks || 0,
+            
+            // Damage from weapon example
+            'Damage': this.formatDamageFromAPI(itemData),
+            
+            // Sprite URL
+            'Sprite-Link': itemData.sfn ? `https://art.fantasyonline2.com/textures/icons/items/${itemData.sfn}-icon.png` : null,
+            
+            // Set information (if available)
+            'setName': itemData.s?.sn || null,
+            'setData': itemData.s || null
+        };
+        
+        items.push(convertedItem);
+    }
+    
+    return items;
+},
+
+/**
+ * Helper to extract stat values from API stat objects
+ * @param {Object} statObj - API stat object
+ * @param {string} statName - Name of the stat
+ * @returns {number} Stat value
+ */
+getStatValue(statObj, statName) {
+    if (!statObj || typeof statObj !== 'object') return 0;
+    return parseInt(statObj[statName]) || 0;  // Ensure integer conversion
+},
+
+/**
+ * Format damage information from API
+ * @param {Object} itemData - API item data  
+ * @returns {string} Formatted damage string
+ */
+formatDamageFromAPI(itemData) {
+    // From weapon example: mnd = min damage, mxd = max damage
+    const minDmg = itemData.sta?.mnd || 0;
+    const maxDmg = itemData.sta?.mxd || 0;
+    
+    if (minDmg > 0 && maxDmg > 0) {
+        if (minDmg === maxDmg) {
+            return minDmg.toString();
+        }
+        return `${minDmg}-${maxDmg}`;
+    }
+    return '';
+},
+
+    /**
+     * Process API item data (similar to existing processItemData but for API format)
+     * @param {Array} itemArray - Converted items array
+     * @returns {Object} Processed items data
      */
-    processSetsData(setsArray) {
+    processAPIItemData(itemArray) {
         try {
-            if (!setsArray || !Array.isArray(setsArray)) {
-                console.error("Invalid sets data provided.");
-                return { sets: [], setsByName: new Map() };
+            if (!itemArray || !Array.isArray(itemArray) || itemArray.length === 0) {
+                DOMUtils.showNotification("No item data loaded from API.", "error");
+                return {
+                    items: {
+                        weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
+                        equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
+                    },
+                    itemsById: new Map(),
+                    sets: [],
+                    setsByName: new Map()
+                };
             }
             
+            const categorizedItems = {
+                weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
+                equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
+            };
+            
+            const itemsById = new Map();
             const setsByName = new Map();
             
-            // Process each set
-            setsArray.forEach(setData => {
-                // Normalize bonus values
-                Object.keys(setData.bonuses).forEach(pieceCount => {
-                    const bonus = setData.bonuses[pieceCount];
-                    // Ensure numeric values
-                    ['CRIT', 'AGI', 'STR', 'INT', 'STA', 'ATKP', 'ARMOR'].forEach(stat => {
-                        if (bonus[stat] !== undefined) {
-                            bonus[stat] = parseFloat(bonus[stat]) || 0;
-                        }
-                    });
+            itemArray.forEach(item => {
+                // Process numeric fields (same as existing logic)
+                if (item.Level !== undefined) item.Level = parseInt(item.Level) || 0;
+                if (item.Armor !== undefined && item.Armor !== "") item.Armor = parseInt(item.Armor) || 0; else item.Armor = 0;
+                if (item["Atk Spd"] !== undefined && item["Atk Spd"] !== "") item["Atk Spd"] = parseInt(item["Atk Spd"]) || 0; else item["Atk Spd"] = 0;
+                
+                // Process new fields
+                if (item["Direct Crit"] !== undefined && item["Direct Crit"] !== "") {
+                    item["Direct Crit"] = parseFloat(item["Direct Crit"]) || 0;
+                } else {
+                    item["Direct Crit"] = 0;
+                }
+                
+                if (item["Direct ATK Power"] !== undefined && item["Direct ATK Power"] !== "") {
+                    item["Direct ATK Power"] = parseInt(item["Direct ATK Power"]) || 0;
+                } else {
+                    item["Direct ATK Power"] = 0;
+                }
+                
+                ["STA", "STR", "INT", "AGI", "Req STA", "Req STR", "Req INT", "Req AGI"].forEach(stat => {
+                    item[stat] = parseInt(item[stat]) || 0;
                 });
                 
-                setsByName.set(setData.setName, setData);
+                // Process damage string
+                const damageValues = FO2Utils.parseDamageString(item.Damage);
+                item.minDamage = damageValues.minDamage;
+                item.maxDamage = damageValues.maxDamage;
+                
+                // Categorize items
+                if (item.Type && item.Subtype) {
+                    const type = item.Type.toLowerCase();
+                    const subtype = item.Subtype.toLowerCase();
+                    
+                    if (categorizedItems[type] && categorizedItems[type].hasOwnProperty(subtype)) {
+                        categorizedItems[type][subtype].push(item);
+                    } else {
+                        console.warn(`Unknown item type/subtype combination: ${type}/${subtype} for item ${item.Name}`);
+                    }
+                }
+                
+                // Populate ID map
+                if (item.hasOwnProperty('Item ID') && item['Item ID'] !== undefined) {
+                    itemsById.set(item['Item ID'], item);
+                }
+                
+                // Process set information from API
+                if (item.setName && item.setData) {
+                    if (!setsByName.has(item.setName)) {
+                        // Convert API set format to our internal format
+                        const setData = {
+                            setName: item.setName,
+                            bonuses: this.convertAPISetBonuses(item.setData),
+                            itemIds: []
+                        };
+                        setsByName.set(item.setName, setData);
+                    }
+                    
+                    // Add this item to the set's item list
+                    const setData = setsByName.get(item.setName);
+                    setData.itemIds.push(item['Item ID']);
+                }
             });
             
-            console.log(`Processed ${setsArray.length} equipment sets.`);
-            return { sets: setsArray, setsByName };
+            // Sort items within each subtype by level
+            for (const type in categorizedItems) {
+                for (const subtype in categorizedItems[type]) {
+                    categorizedItems[type][subtype].sort((a, b) => (a.Level || 0) - (b.Level || 0));
+                }
+            }
+            
+            console.log(`API item data processed. ${itemsById.size} items mapped by ID.`);
+            DOMUtils.showNotification(`Successfully processed ${itemArray.length} items from API.`, 'success');
+            
+            return { 
+                items: categorizedItems, 
+                itemsById,
+                sets: Array.from(setsByName.values()),
+                setsByName
+            };
         } catch (error) {
-            console.error("Error processing sets data:", error);
-            return { sets: [], setsByName: new Map() };
+            console.error("Error processing API item data:", error);
+            DOMUtils.showNotification("Error processing API item data. Check console.", "error");
+            
+            return {
+                items: {
+                    weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
+                    equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
+                },
+                itemsById: new Map(),
+                sets: [],
+                setsByName: new Map()
+            };
         }
     },
-    
+
     /**
-     * Assign set information to items based on item IDs in sets data
-     * @param {Map} itemsById - Map of items by ID
-     * @param {Map} setsByName - Map of sets by name
+     * Convert API set bonus format to our internal format
+     * @param {Object} apiSetData - API set data
+     * @returns {Object} Converted set bonuses
      */
-    assignSetInformation(itemsById, setsByName) {
-        // Create a map from item ID to set data for quick lookup
-        const itemIdToSetMap = new Map();
+    convertAPISetBonuses(apiSetData) {
+        const bonuses = {};
         
-        setsByName.forEach((setData, setName) => {
-            if (setData.itemIds && Array.isArray(setData.itemIds)) {
-                setData.itemIds.forEach(itemId => {
-                    itemIdToSetMap.set(itemId, {
-                        setName: setName,
-                        setData: setData
-                    });
-                });
+        // Based on your API structure, adjust this as needed
+        if (apiSetData.sb) {
+            for (const [pieceCount, bonus] of Object.entries(apiSetData.sb)) {
+                bonuses[pieceCount] = {
+                    CRIT: bonus.crit || 0,
+                    AGI: bonus.agi || 0,
+                    STR: bonus.str || 0,
+                    INT: bonus.int || 0,
+                    STA: bonus.sta || 0,
+                    ATKP: bonus.atkr || 0,  // Attack power from API
+                    ARMOR: bonus.arm || 0
+                };
             }
-        });
+        }
         
-        // Assign set information to items
-        itemsById.forEach((item, itemId) => {
-            const setInfo = itemIdToSetMap.get(itemId);
-            if (setInfo) {
-                item.setName = setInfo.setName;
-                item.setData = setInfo.setData;
-            }
-        });
-        
-        console.log(`Assigned set information to ${itemIdToSetMap.size} items across ${setsByName.size} sets.`);
+        return bonuses;
     },
     /**
      * Process and normalize mobs data
@@ -1671,14 +1947,13 @@ const DataService = {
      */
     async loadAllData() {
         try {
-            DOMUtils.showNotification("Loading game data...", "info");
+            DOMUtils.showNotification("Loading game data from API...", "info");
             
-            // Add sets to the fetch calls
-            const [itemsResponse, mobsResponse, buffsResponse, spellsResponse, setsResponse] = await Promise.all([
-                fetch('assets/build-sandbox/data/items.json').catch(e => {
-                    console.error("Fetch items failed:", e);
-                    return { ok: false, json: () => null };
-                }),
+            // Fetch items from API
+            const itemsData = await this.fetchItemsFromAPI();
+            
+            // Still fetch other data from local files (mobs, buffs, spells for now)
+            const [mobsResponse, buffsResponse, spellsResponse] = await Promise.all([
                 fetch('assets/build-sandbox/data/mobs.json').catch(e => {
                     console.error("Fetch mobs failed:", e);
                     return { ok: false, json: () => null };
@@ -1690,48 +1965,33 @@ const DataService = {
                 fetch('assets/build-sandbox/data/spells.json').catch(e => {
                     console.error("Fetch spells failed:", e);
                     return { ok: false, json: () => null };
-                }),
-                fetch('assets/build-sandbox/data/sets.json').catch(e => {
-                    console.error("Fetch sets failed:", e);
-                    return { ok: false, json: () => null };
                 })
             ]);
             
-            if (!itemsResponse.ok || !mobsResponse.ok || !buffsResponse.ok || !spellsResponse.ok || !setsResponse.ok) {
+            if (!mobsResponse.ok || !buffsResponse.ok || !spellsResponse.ok) {
                 throw new Error("One or more data files failed to load. Check network or file paths.");
             }
             
-            const rawItemsArray = await itemsResponse.json();
             const rawMobsData = await mobsResponse.json();
             const rawBuffsArray = await buffsResponse.json();
             const rawSpellsArray = await spellsResponse.json();
-            const rawSetsArray = await setsResponse.json();
             
-            if (rawItemsArray === null || rawMobsData === null || rawBuffsArray === null || rawSpellsArray === null || rawSetsArray === null) {
-                throw new Error("One or more data files parsed to null.");
-            }
-            
-            console.log("Data fetched successfully.");
-            
-            // Process each data type in correct order
-            const itemData = this.processItemData(rawItemsArray);
+            // Process data
             const buffsData = this.processBuffsData(rawBuffsArray);
             const spellsData = this.processSpellsData(rawSpellsArray);
-            const setsData = this.processSetsData(rawSetsArray); // Add this line
-            const mobsData = this.processMobsData(rawMobsData, itemData.itemsById);
-            this.assignSetInformation(itemData.itemsById, setsData.setsByName);
+            const mobsData = this.processMobsData(rawMobsData, itemsData.itemsById);
             
             DOMUtils.showNotification("Game data loaded successfully!", "success");
             
             return {
-                items: itemData.items,
-                itemsById: itemData.itemsById,
+                items: itemsData.items,
+                itemsById: itemsData.itemsById,
                 mobs: mobsData.mobs,
                 mobsMaxLevel: mobsData.mobsMaxLevel,
                 buffs: buffsData,
                 spells: spellsData,
-                sets: setsData.sets, // Add this line
-                setsByName: setsData.setsByName // Add this line
+                sets: itemsData.sets,
+                setsByName: itemsData.setsByName
             };
         } catch (error) {
             console.error("Error loading data:", error);
@@ -5177,926 +5437,20 @@ const ItemEditor = {
         input.click();
     }
 };
-
-// ------------------------------------------------------------------
-// api-service.js - Fantasy Online 2 API integration
-// ------------------------------------------------------------------
-
-const FO2ApiService = {
-    BASE_URL: 'https://data.fantasyonline2.com/api',
-    
-    // Cache to avoid repeated API calls during a session
-    _cache: {
-        items: null,
-        mobs: null,
-        lastUpdated: null
-    },
-    
-    // Rate limiting
-    _lastRequestTime: 0,
-    _minRequestInterval: 100, // 100ms between requests
-    
-    /**
-     * Rate-limited fetch wrapper
-     */
-    async _rateLimitedFetch(url, options = {}) {
-        const now = Date.now();
-        const timeSinceLastRequest = now - this._lastRequestTime;
-        
-        if (timeSinceLastRequest < this._minRequestInterval) {
-            await new Promise(resolve => 
-                setTimeout(resolve, this._minRequestInterval - timeSinceLastRequest)
-            );
-        }
-        
-        this._lastRequestTime = Date.now();
-        
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-        }
-        
-        return response;
-    },
-    
-    /**
-     * Fetch items from the API in batches
-     */
-    async fetchAllItems(maxItemId = 1500, batchSize = 100) {
-        console.log('Fetching items from Fantasy Online 2 API...');
-        
-        // Check cache first
-        if (this._cache.items && this._cache.lastUpdated) {
-            const cacheAge = Date.now() - this._cache.lastUpdated;
-            const maxCacheAge = 30 * 60 * 1000; // 30 minutes
-            
-            if (cacheAge < maxCacheAge) {
-                console.log('Using cached item data');
-                return this._cache.items;
-            }
-        }
-        
-        const allItems = [];
-        let processedCount = 0;
-        let equipmentCount = 0;
-        let skippedCount = 0;
-        
-        for (let startId = 1; startId <= maxItemId; startId += batchSize) {
-            const endId = Math.min(startId + batchSize - 1, maxItemId);
-            const itemIds = [];
-            
-            for (let i = startId; i <= endId; i++) {
-                itemIds.push(i);
-            }
-            
-            const idsParam = itemIds.join(',');
-            const url = `${this.BASE_URL}/items?ids=${idsParam}`;
-            
-            try {
-                const response = await this._rateLimitedFetch(url);
-                const itemData = await response.json();
-                
-                if (Array.isArray(itemData) && itemData.length > 0) {
-                    for (const item of itemData) {
-                        const processedItem = this._processApiItem(item);
-                        if (processedItem) {
-                            allItems.push(processedItem);
-                            equipmentCount++;
-                        } else {
-                            skippedCount++;
-                        }
-                        processedCount++;
-                    }
-                    
-                    // Update progress
-                    if (processedCount % 200 === 0) {
-                        console.log(`Processed ${processedCount} items (${equipmentCount} equipment, ${skippedCount} skipped)...`);
-                    }
-                }
-            } catch (error) {
-                console.warn(`Failed to fetch batch ${startId}-${endId}:`, error);
-                // Continue with other batches even if one fails
-            }
-        }
-        
-        console.log(`API fetch complete: ${allItems.length} equipment items from ${processedCount} total items`);
-        console.log(`Equipment breakdown: ${equipmentCount} kept, ${skippedCount} non-equipment skipped`);
-        
-        // Cache the results
-        this._cache.items = allItems;
-        this._cache.lastUpdated = Date.now();
-        
-        return allItems;
-    },
-    
-    /**
-     * Process a raw API item into our expected format
-     */
-    _processApiItem(apiItem) {
-        // Extract basic info
-        const name = apiItem.t?.en?.n || `Item ${apiItem.id}`;
-        const description = apiItem.t?.en?.d || '';
-        
-        // Parse stats object
-        let stats = {};
-        if (apiItem.sta) {
-            if (typeof apiItem.sta === 'string') {
-                try {
-                    stats = JSON.parse(apiItem.sta);
-                } catch (e) {
-                    stats = {};
-                }
-            } else if (typeof apiItem.sta === 'object') {
-                stats = apiItem.sta;
-            }
-        }
-        
-        // Parse requirements object
-        let reqs = {};
-        if (apiItem.sr) {
-            if (typeof apiItem.sr === 'string') {
-                try {
-                    reqs = JSON.parse(apiItem.sr);
-                } catch (e) {
-                    reqs = {};
-                }
-            } else if (typeof apiItem.sr === 'object') {
-                reqs = apiItem.sr;
-            }
-        }
-        
-        // Skip non-equipment items EARLY using both type and slot
-        if (!this._isEquipmentItem(apiItem.ty, apiItem.st, name)) {
-            // Debug: log a few skipped items to understand what we're filtering out
-            if (Math.random() < 0.01) { // Log ~1% of skipped items
-                console.log(`Skipped non-equipment: "${name}" (Type: ${apiItem.ty}, Slot: ${apiItem.st})`);
-            }
-            return null;
-        }
-        
-        // Map item types and slots using the advanced method with type ID
-        const itemType = this._mapItemSlotAdvanced(apiItem.st, name, stats, apiItem.ty);
-        
-        // If mapping returned null, skip this item
-        if (!itemType) {
-            return null;
-        }
-        
-        // Debug: log all items to see what we're actually getting
-        if (Math.random() < 0.1) { // Log ~10% of kept items
-            console.log(`Processing: "${name}" (Type: ${apiItem.ty}, Slot: ${apiItem.st}) -> ${itemType.type}/${itemType.subtype}`);
-        }
-        
-        // Build damage string if applicable
-        let damageString = '';
-        if (stats.mnd !== undefined && stats.mxd !== undefined) {
-            if (stats.mnd === stats.mxd) {
-                damageString = stats.mnd.toString();
-            } else {
-                damageString = `${stats.mnd}-${stats.mxd}`;
-            }
-        }
-        
-        // Create sprite link using the correct FO2 art server URL
-        let spriteLink = null;
-        if (apiItem.sfn) {
-            // Use the correct FO2 art server URL pattern
-            spriteLink = `https://art.fantasyonline2.com/textures/icons/items/${apiItem.sfn}-icon.png`;
-        }
-        
-        // Store the sprite filename for reference
-        const spriteFilename = apiItem.sfn || null;
-        
-        return {
-            'Item ID': apiItem.id,
-            'Name': name,
-            'Level': apiItem.lr || 0,
-            'Type': itemType.type,
-            'Subtype': itemType.subtype,
-            'STA': stats.sta || 0,
-            'STR': stats.str || 0,
-            'INT': stats.int || 0,
-            'AGI': stats.agi || 0,
-            'Req STA': reqs.sta || 0,
-            'Req STR': reqs.str || 0,
-            'Req INT': reqs.int || 0,
-            'Req AGI': reqs.agi || 0,
-            'Armor': stats.arm || 0,
-            'Direct Crit': stats.crit || 0,
-            'Direct ATK Power': stats.atkp || 0,
-            'Damage': damageString,
-            'Atk Spd': stats.atks || 0,
-            'Sprite-Link': spriteLink,
-            'Sprite-Filename': spriteFilename, // Store filename for fallback logic
-            'sellPrice': apiItem.vsp || 0,
-            'minDamage': stats.mnd || 0,
-            'maxDamage': stats.mxd || 0
-        };
-    },
-    
-    /**
-     * Determine if an item is equipment (wearable/usable by build sandbox)
-     * Uses BOTH type and slot for accurate filtering
-     */
-    _isEquipmentItem(typeId, slotId, itemName = '') {
-        // Define valid type+slot combinations for equipment based on actual FO2 data
-        const validCombinations = [
-            // TYPE 2 (Weapons) + weapon slots
-            [2, 1],  // 1h sword
-            [2, 2],  // 2h bow
-            [2, 3],  // 1h wand
-            [2, 4],  // 1h axe
-            [2, 5],  // 2h hammer
-            [2, 6],  // 2h staff
-            [2, 7],  // mining (pickaxe)
-            [2, 8],  // mining (lockpick)
-            [2, 9],  // 2h sword
-            [2, 10], // 2h axe
-            
-            // TYPE 3 (Equipment) + equipment slots
-            [3, 0],  // head
-            [3, 1],  // trinkets
-            [3, 2],  // face
-            [3, 4],  // back
-            [3, 6],  // shoulders
-            [3, 8],  // chest
-            [3, 10], // legs
-            [3, 12], // rings
-            [3, 13], // faction
-            [3, 15], // guild
-            [3, 17], // offhand
-        ];
-        
-        // Check if this type+slot combination is valid
-        const isValidCombination = validCombinations.some(([type, slot]) => 
-            type === typeId && slot === slotId
-        );
-        
-        if (!isValidCombination) {
-            return false;
-        }
-        
-        // Additional name-based filtering for edge cases
-        const name = itemName.toLowerCase();
-        
-        // Skip obvious non-equipment even if they have equipment-like slots
-        const nonEquipmentKeywords = [
-            'potion', 'scroll', 'book', 'ore', 'gem', 'crystal', 'material', 
-            'consumable', 'food', 'drink', 'bottle', 'vial', 'powder'
-        ];
-        
-        const isLikelyNonEquipment = nonEquipmentKeywords.some(keyword => 
-            name.includes(keyword)
-        );
-        
-        return !isLikelyNonEquipment;
-    },
-    
-    /**
-     * Map API item slot to our format using BOTH type and slot for accuracy
-     */
-    _mapItemSlotAdvanced(slotId, itemName, stats, typeId) {
-        const name = itemName.toLowerCase();
-        
-        // Use BOTH type and slot to determine correct category
-        // Based on actual Fantasy Online 2 type+slot mappings
-        
-        // TYPE 2 = Weapons
-        if (typeId === 2) {
-            switch (slotId) {
-                case 1: // 1h sword
-                    return { type: 'weapon', subtype: 'sword' };
-                
-                case 2: // 2h bow
-                    return { type: 'weapon', subtype: 'bow' };
-                
-                case 3: // 1h wand
-                    return { type: 'weapon', subtype: 'wand' };
-                
-                case 4: // 1h axe
-                    return { type: 'weapon', subtype: 'axe' };
-                
-                case 5: // 2h hammer
-                    return { type: 'weapon', subtype: 'hammer' };
-                
-                case 6: // 2h staff
-                    return { type: 'weapon', subtype: 'staff' };
-                
-                case 7: // mining (pickaxe)
-                    return { type: 'weapon', subtype: 'pickaxe' };
-                
-                case 8: // mining (lockpick)
-                    return { type: 'weapon', subtype: 'lockpick' };
-                
-                case 9: // 2h sword
-                    return { type: 'weapon', subtype: '2h sword' };
-                
-                case 10: // 2h axe
-                    return { type: 'weapon', subtype: 'axe' };
-                
-                default:
-                    console.log(`Unknown weapon slot: Type ${typeId}, Slot ${slotId}, Name: "${name}"`);
-                    return { type: 'weapon', subtype: 'sword' }; // Default fallback
-            }
-        }
-        
-        // TYPE 3 = Equipment/Armor/Accessories
-        if (typeId === 3) {
-            switch (slotId) {
-                case 0: // head
-                    return { type: 'equipment', subtype: 'head' };
-                
-                case 1: // trinkets (3,1)
-                    // Double-check if this is actually a faction item based on name
-                    if (name.includes('medallion') || name.includes('banner') || name.includes('crest') || 
-                        name.includes('faction') || name.includes('guild')) {
-                        console.log(`WARNING: Item "${name}" (3,1) looks like faction but is in trinket slot`);
-                    }
-                    return { type: 'equipment', subtype: 'trinket' };
-                
-                case 2: // face
-                    return { type: 'equipment', subtype: 'face' };
-                
-                case 4: // back
-                    return { type: 'equipment', subtype: 'back' };
-                
-                case 6: // shoulders
-                    return { type: 'equipment', subtype: 'shoulder' };
-                
-                case 8: // chest
-                    return { type: 'equipment', subtype: 'chest' };
-                
-                case 10: // legs
-                    return { type: 'equipment', subtype: 'legs' };
-                
-                case 12: // rings
-                    return { type: 'equipment', subtype: 'ring' };
-                
-                case 13: // faction (3,13)
-                    // Double-check if this is actually a faction item based on name
-                    if (name.includes('medallion') || name.includes('banner') || name.includes('crest')) {
-                        console.log(`CORRECT: Faction item "${name}" (3,13) properly categorized`);
-                    } else {
-                        console.log(`WARNING: Item "${name}" (3,13) in faction slot but doesn't look like faction`);
-                    }
-                    return { type: 'equipment', subtype: 'faction' };
-                
-                case 15: // guild
-                    return { type: 'equipment', subtype: 'guild' };
-                
-                case 17: // offhand
-                    return { type: 'equipment', subtype: 'offhand' };
-                
-                default:
-                    console.log(`Unknown equipment slot: Type ${typeId}, Slot ${slotId}, Name: "${name}"`);
-                    return { type: 'equipment', subtype: 'chest' }; // Default fallback
-            }
-        }
-        
-        // TYPE 6 = Outfit/Cosmetic - Skip these for build sandbox
-        if (typeId === 6) {
-            return null; // Skip cosmetics
-        }
-        
-        // Other types we don't want in build sandbox
-        if ([0, 1, 4, 5, 11, 12, 14].includes(typeId)) {
-            // Junk/Material, Bag, Consumable, Crafting Material, Battle Pass, Faction Badge, Teleport
-            return null; // Skip these
-        }
-        
-        // If we get here, it's an unknown type/slot combination
-        console.log(`Unknown type/slot combination: Type ${typeId}, Slot ${slotId}, Name: "${name}"`);
-        return null; // Skip unknown combinations
-    },
-    
-    /**
-     * More sophisticated slot mapping based on item analysis
-     */
-    _mapItemSlotAdvanced(slotId, itemName, stats) {
-        // Use the item name and stats to make better guesses
-        const name = itemName.toLowerCase();
-        
-        // Weapon type detection
-        if (slotId === 1 || slotId === 6 || slotId === 9) { // Main hand or two-handed
-            if (name.includes('sword') || name.includes('blade')) {
-                return slotId === 6 ? { type: 'weapon', subtype: '2h sword' } : { type: 'weapon', subtype: 'sword' };
-            }
-            if (name.includes('axe')) return { type: 'weapon', subtype: 'axe' };
-            if (name.includes('hammer') || name.includes('mace')) return { type: 'weapon', subtype: 'hammer' };
-            if (name.includes('staff')) return { type: 'weapon', subtype: 'staff' };
-            if (name.includes('dagger') || name.includes('knife')) return { type: 'weapon', subtype: 'sword' };
-        }
-        
-        if (slotId === 2) return { type: 'weapon', subtype: 'bow' };
-        if (slotId === 3) {
-            return name.includes('staff') ? 
-                { type: 'weapon', subtype: 'staff' } : 
-                { type: 'weapon', subtype: 'wand' };
-        }
-        if (slotId === 7) return { type: 'weapon', subtype: 'pickaxe' };
-        
-        // Equipment detection
-        if (slotId === 0) return { type: 'equipment', subtype: 'head' };
-        if (slotId === 8) return { type: 'equipment', subtype: 'chest' };
-        if (slotId === 10) return { type: 'equipment', subtype: 'legs' };
-        if (slotId === 12) return { type: 'equipment', subtype: 'ring' };
-        if (slotId === 13) return { type: 'equipment', subtype: 'trinket' };
-        if (slotId === 15) return { type: 'equipment', subtype: 'guild' };
-        if (slotId === 17) return { type: 'equipment', subtype: 'offhand' };
-        
-        // Try to detect missing slots from item names
-        if (name.includes('shoulder') || name.includes('pauldron')) {
-            return { type: 'equipment', subtype: 'shoulder' };
-        }
-        if (name.includes('face') || name.includes('mask') || name.includes('goggles')) {
-            return { type: 'equipment', subtype: 'face' };
-        }
-        if (name.includes('back') || name.includes('cape') || name.includes('cloak')) {
-            return { type: 'equipment', subtype: 'back' };
-        }
-        if (name.includes('faction')) {
-            return { type: 'equipment', subtype: 'faction' };
-        }
-        
-        return { type: 'other', subtype: 'other' };
-    },
-    
-    /**
-     * Fetch mob data (if available from API)
-     */
-    async fetchMobData() {
-        // This would depend on if the API has mob endpoints
-        // For now, return empty array and continue using static data
-        return [];
-    },
-    
-    /**
-     * Clear the cache (useful for forced refresh)
-     */
-    clearCache() {
-        this._cache = {
-            items: null,
-            mobs: null,
-            lastUpdated: null
-        };
-        console.log('API cache cleared');
-    },
-    
-    /**
-     * Get cache status
-     */
-    getCacheStatus() {
-        return {
-            hasItems: !!this._cache.items,
-            itemCount: this._cache.items ? this._cache.items.length : 0,
-            lastUpdated: this._cache.lastUpdated,
-            ageMinutes: this._cache.lastUpdated ? 
-                Math.round((Date.now() - this._cache.lastUpdated) / 60000) : null
-        };
-    }
-};
-
-// Update the DataService to use API data
-DataService.loadAllDataWithApi = async function() {
-    try {
-        DOMUtils.showNotification("Loading game data from API...", "info");
-        
-        // Fetch items from API
-        const apiItems = await FO2ApiService.fetchAllItems();
-        const validItems = apiItems.filter(item => item !== null);
-        
-        // Process the API items
-        const itemData = this.processItemData(validItems);
-        
-        // Load other data from static files (buffs, mobs, sets, spells)
-        const [mobsResponse, buffsResponse, spellsResponse, setsResponse] = await Promise.all([
-            fetch('assets/build-sandbox/data/mobs.json').catch(() => ({ ok: false })),
-            fetch('assets/build-sandbox/data/buffs.json').catch(() => ({ ok: false })),
-            fetch('assets/build-sandbox/data/spells.json').catch(() => ({ ok: false })),
-            fetch('assets/build-sandbox/data/sets.json').catch(() => ({ ok: false }))
-        ]);
-        
-        const mobsData = mobsResponse.ok ? 
-            this.processMobsData(await mobsResponse.json(), itemData.itemsById) : 
-            { mobs: [], mobsMaxLevel: 1 };
-            
-        const buffsData = buffsResponse.ok ? 
-            this.processBuffsData(await buffsResponse.json()) : 
-            { "Buff": [], "Morph": [] };
-            
-        const spellsData = spellsResponse.ok ? 
-            this.processSpellsData(await spellsResponse.json()) : 
-            [];
-            
-        const setsData = setsResponse.ok ? 
-            this.processSetsData(await setsResponse.json()) : 
-            { sets: [], setsByName: new Map() };
-        
-        // Assign set information
-        this.assignSetInformation(itemData.itemsById, setsData.setsByName);
-        
-        DOMUtils.showNotification(
-            `Loaded ${validItems.length} items from API + static game data!`, 
-            "success"
-        );
-        
-        return {
-            items: itemData.items,
-            itemsById: itemData.itemsById,
-            mobs: mobsData.mobs,
-            mobsMaxLevel: mobsData.mobsMaxLevel,
-            buffs: buffsData,
-            spells: spellsData,
-            sets: setsData.sets,
-            setsByName: setsData.setsByName
-        };
-    } catch (error) {
-        console.error("Error loading data with API:", error);
-        DOMUtils.showNotification(`Failed to load from API: ${error.message}`, "error");
-        
-        // Fallback to static data
-        console.log("Falling back to static data files...");
-        return await this.loadAllData();
-    }
-};
-
-// Add UI controls for API data management
-const ApiDataControls = {
-    /**
-     * Add API controls to the UI
-     */
-    addApiControls() {
-        // Add to item dictionary page filters
-        const filtersPanel = document.querySelector('#item-dictionary-page .item-filters-panel');
-        if (!filtersPanel) return;
-        
-        const apiSection = DOMUtils.createElement('div', {
-            className: 'filter-section api-controls-section'
-        });
-        
-        const title = DOMUtils.createElement('h3', {
-            textContent: 'API Data',
-            style: { marginBottom: '10px' }
-        });
-        
-        const refreshButton = DOMUtils.createElement('button', {
-            textContent: 'Refresh from API',
-            className: 'action-button positive',
-            style: { width: '100%', marginBottom: '5px' },
-            onclick: this.refreshFromApi
-        });
-        
-        const cacheButton = DOMUtils.createElement('button', {
-            textContent: 'Clear Cache',
-            className: 'action-button',
-            style: { width: '100%', marginBottom: '5px' },
-            onclick: this.clearCache
-        });
-        
-        const statusDiv = DOMUtils.createElement('div', {
-            id: 'api-cache-status',
-            className: 'api-status',
-            style: { fontSize: '0.8em', color: '#aaa' }
-        });
-        
-        apiSection.appendChild(title);
-        apiSection.appendChild(refreshButton);
-        apiSection.appendChild(cacheButton);
-        apiSection.appendChild(statusDiv);
-        
-        filtersPanel.appendChild(apiSection);
-        
-        // Update status initially
-        this.updateCacheStatus();
-    },
-    
-    /**
-     * Refresh data from API
-     */
-    async refreshFromApi() {
-        try {
-            DOMUtils.showNotification("Refreshing data from API...", "info");
-            
-            // Clear cache first
-            FO2ApiService.clearCache();
-            
-            // Reload data
-            const newData = await DataService.loadAllDataWithApi();
-            
-            // Update state
-            StateManager.state.data = newData;
-            
-            // Refresh UI
-            UIController.populateItemDictionaryGrid();
-            UIController.populateItemCategoryFilter();
-            
-            // Recalculate current build stats
-            StateManager.triggerRecalculationAndUpdateUI();
-            
-            ApiDataControls.updateCacheStatus();
-            
-            DOMUtils.showNotification("Data refreshed successfully!", "success");
-        } catch (error) {
-            console.error("API refresh failed:", error);
-            DOMUtils.showNotification(`API refresh failed: ${error.message}`, "error");
-        }
-    },
-    
-    /**
-     * Clear API cache
-     */
-    clearCache() {
-        FO2ApiService.clearCache();
-        this.updateCacheStatus();
-        DOMUtils.showNotification("API cache cleared", "info");
-    },
-    
-    /**
-     * Update cache status display
-     */
-    updateCacheStatus() {
-        const statusDiv = document.getElementById('api-cache-status');
-        if (!statusDiv) return;
-        
-        const status = FO2ApiService.getCacheStatus();
-        
-        if (status.hasItems) {
-            statusDiv.innerHTML = `
-                <div>Items: ${status.itemCount}</div>
-                <div>Updated: ${status.ageMinutes}m ago</div>
-            `;
-        } else {
-            statusDiv.textContent = 'No cached data';
-        }
-    }
-};
-
-// Update StateManager initialization to use API
-StateManager.initializeWithApi = async function() {
-    try {
-        // Load data from API
-        this.state.data = await DataService.loadAllDataWithApi();
-        
-        // Load saved builds
-        this.loadSavedBuildsList();
-        
-        // Load current state
-        const stateLoaded = this.loadCurrentStateFromLocalStorage();
-        
-        // Calculate initial stats
-        this.recalculatePoints();
-        
-        // If state wasn't loaded, trigger initial calculation
-        if (!stateLoaded) {
-            this.triggerRecalculationAndUpdateUI();
-        }
-        
-        console.log('State manager initialized successfully with API data.');
-        return true;
-    } catch (error) {
-        console.error('Failed to initialize state manager with API:', error);
-        throw error;
-    }
-};
-
-// Enhanced UIFactory methods for better icon fallbacks
-UIFactory.createItemGridIconWithFallback = function(item, clickHandler) {
-    const iconDiv = DOMUtils.createElement('div', {
-        className: 'grid-item-icon',
-        dataset: { itemId: item['Item ID'] },
-        onclick: () => clickHandler(item),
-        onmouseenter: (e) => UIFactory.showItemTooltip(e.currentTarget, item),
-        onmouseleave: () => UIFactory.hideTooltip('item-tooltip')
-    });
-    
-    // Try to use the sprite first
-    if (item['Sprite-Link']) {
-        const img = DOMUtils.createElement('img', {
-            src: item['Sprite-Link'],
-            alt: item.Name,
-            style: 'image-rendering: pixelated;',
-            onerror: () => {
-                // If image fails to load, replace with fallback
-                this.applyIconFallback(iconDiv, item);
-            }
-        });
-        
-        iconDiv.appendChild(img);
-    } else {
-        // No sprite link, use fallback immediately
-        this.applyIconFallback(iconDiv, item);
-    }
-    
-    return iconDiv;
-};
-
-UIFactory.applyIconFallback = function(iconDiv, item) {
-    // Clear existing content
-    DOMUtils.clearElement(iconDiv);
-    
-    // Create fallback based on item type/subtype
-    const fallbackIcon = this.generateFallbackIcon(item);
-    iconDiv.appendChild(fallbackIcon);
-    iconDiv.title = `${item.Name} (No image available)`;
-};
-
-UIFactory.generateFallbackIcon = function(item) {
-    const type = item.Type;
-    const subtype = item.Subtype;
-    
-    // Create a colored div with an emoji or text based on item type
-    const fallbackDiv = DOMUtils.createElement('div', {
-        className: 'fallback-icon',
-        style: `
-            width: 100%; 
-            height: 100%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 24px;
-            background: linear-gradient(45deg, #444, #666);
-            border-radius: 4px;
-            color: white;
-            font-weight: bold;
-        `
-    });
-    
-    // Choose emoji/text based on item type
-    let fallbackContent = '?';
-    let bgColor = '#666';
-    
-    if (type === 'weapon') {
-        switch (subtype) {
-            case 'sword': fallbackContent = '⚔️'; bgColor = '#8B4513'; break;
-            case 'bow': fallbackContent = '🏹'; bgColor = '#654321'; break;
-            case 'wand': fallbackContent = '🪄'; bgColor = '#4B0082'; break;
-            case 'staff': fallbackContent = '🔮'; bgColor = '#483D8B'; break;
-            case 'hammer': fallbackContent = '🔨'; bgColor = '#696969'; break;
-            case 'axe': fallbackContent = '🪓'; bgColor = '#A0522D'; break;
-            case 'pickaxe': fallbackContent = '⛏️'; bgColor = '#708090'; break;
-            case 'lockpick': fallbackContent = '🗝️'; bgColor = '#DAA520'; break;
-            case '2h sword': fallbackContent = '⚔️'; bgColor = '#B22222'; break;
-            default: fallbackContent = '⚔️'; bgColor = '#666'; break;
-        }
-    } else if (type === 'equipment') {
-        switch (subtype) {
-            case 'head': fallbackContent = '🎩'; bgColor = '#4682B4'; break;
-            case 'chest': fallbackContent = '🛡️'; bgColor = '#2F4F4F'; break;
-            case 'legs': fallbackContent = '👖'; bgColor = '#556B2F'; break;
-            case 'ring': fallbackContent = '💍'; bgColor = '#FFD700'; break;
-            case 'trinket': fallbackContent = '📿'; bgColor = '#20B2AA'; break;
-            case 'guild': fallbackContent = '🏛️'; bgColor = '#8A2BE2'; break;
-            case 'faction': fallbackContent = '🎖️'; bgColor = '#DC143C'; break;
-            case 'offhand': fallbackContent = '🛡️'; bgColor = '#8B4513'; break;
-            case 'shoulder': fallbackContent = '🦾'; bgColor = '#4682B4'; break;
-            case 'face': fallbackContent = '🎭'; bgColor = '#9370DB'; break;
-            case 'back': fallbackContent = '🎒'; bgColor = '#8B4513'; break;
-            default: fallbackContent = '🛡️'; bgColor = '#666'; break;
-        }
-    }
-    
-    fallbackDiv.style.background = `linear-gradient(45deg, ${bgColor}, ${bgColor}dd)`;
-    fallbackDiv.textContent = fallbackContent;
-    
-    return fallbackDiv;
-};
-
-// Update the UIController to use the enhanced icon creation
-UIController.populateItemDictionaryGridWithFallbacks = function() {
-    const itemDictionaryGrid = DOMUtils.getElement('item-dictionary-grid');
-    if (!itemDictionaryGrid) return;
-    
-    DOMUtils.clearElement(itemDictionaryGrid);
-    
-    if (!StateManager.state.data.itemsById || StateManager.state.data.itemsById.size === 0) {
-        itemDictionaryGrid.innerHTML = '<p class="empty-message">No item data loaded.</p>';
-        return;
-    }
-    
-    const filters = StateManager.state.ui.itemDictionary;
-    let filteredItems = Array.from(StateManager.state.data.itemsById.values());
-    
-    // Filter by Search Term
-    if (filters.search) {
-        filteredItems = filteredItems.filter(item => 
-            item.Name?.toLowerCase().includes(filters.search)
-        );
-    }
-    
-    // Filter by Category
-    if (filters.category !== 'all') {
-        const [typeFilter, subtypeFilter] = filters.category.split('-');
-        filteredItems = filteredItems.filter(item => {
-            const itemType = item.Type?.toLowerCase();
-            const itemSubtype = item.Subtype?.toLowerCase().replace(/\s+/g, '_');
-            if (itemType !== typeFilter) return false;
-            if (subtypeFilter !== 'all' && itemSubtype !== subtypeFilter) return false;
-            return true;
-        });
-    }
-    
-    // Sort Items (same as before)
-    filteredItems.sort((a, b) => {
-        const activeSorts = filters.activeSorts || [];
-        if (activeSorts.length === 0) {
-            return 0;
-        }
-        
-        for (const sort of activeSorts) {
-            let valA, valB, comparison = 0;
-            
-            switch (sort.criteria) {
-                case 'name':
-                    valA = a.Name?.toLowerCase() || '';
-                    valB = b.Name?.toLowerCase() || '';
-                    comparison = sort.ascending ? 
-                        valA.localeCompare(valB) : 
-                        valB.localeCompare(valA);
-                    break;
-                case 'STR':
-                case 'AGI':
-                case 'STA':
-                case 'INT':
-                    valA = parseInt(a[sort.criteria]) || 0;
-                    valB = parseInt(b[sort.criteria]) || 0;
-                    comparison = sort.ascending ? 
-                        valA - valB : 
-                        valB - valA;
-                    break;
-                case 'level':
-                default:
-                    valA = a.Level || 0;
-                    valB = b.Level || 0;
-                    comparison = sort.ascending ? 
-                        valA - valB : 
-                        valB - valA;
-                    break;
-            }
-            
-            if (comparison !== 0) {
-                return comparison;
-            }
-        }
-        
-        return 0;
-    });
-    
-    // Render Grid Items with fallback icons
-    if (filteredItems.length === 0) {
-        itemDictionaryGrid.innerHTML = '<p class="empty-message">No items match criteria.</p>';
-    } else {
-        filteredItems.forEach(item => {
-            const iconElement = UIFactory.createItemGridIconWithFallback(item, (selectedItem) => {
-                this.displayItemInViewer(selectedItem);
-            });
-            
-            itemDictionaryGrid.appendChild(iconElement);
-        });
-    }
-};
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOM Loaded. Starting initialization...");
     try {
         // Show loading notification
         DOMUtils.showNotification("Loading game data...", "info");
         
-        // Check if user wants to use API data (you can add a setting for this)
-        const useApiData = localStorage.getItem('fo2-use-api-data') !== 'false'; // Default to true
-        
-        if (useApiData) {
-            // Try API first, fallback to static
-            try {
-                await StateManager.initializeWithApi();
-            } catch (apiError) {
-                console.warn("API initialization failed, falling back to static data:", apiError);
-                DOMUtils.showNotification("API failed, using static data...", "info");
-                await StateManager.initialize();
-            }
-        } else {
-            // Use static data
-            await StateManager.initialize();
-        }
+        // Initialize State Manager first (loads data and saved state)
+        await StateManager.initialize();
         
         // Initialize UI Controller (sets up event listeners and initial UI state)
         UIController.initialize();
         
         // Final UI setup after loading
         UIController.populateItemCategoryFilter();
-        
-        // Add API controls if they don't exist
-        setTimeout(() => {
-            if (!document.querySelector('.api-controls-section')) {
-                ApiDataControls.addApiControls();
-            }
-        }, 1000);
         
         console.log("Application initialized successfully.");
         DOMUtils.showNotification("Application loaded successfully!", "success");
