@@ -48,7 +48,7 @@
 						<div class="inner">
 							<div id="app-container">   
 								<div class="top-nav">
-									<button class="nav-button active" data-page="build-editor">Editor</button>
+									<button class="nav-button" data-page="build-editor">Editor</button>
 									<button class="nav-button" data-page="build-management">Saved Builds</button>
 									<button class="nav-button" data-page="item-dictionary">Item Dictionary</button>
 								</div>
@@ -124,12 +124,6 @@
 													<div class="buff-section">
 														<h3>Active Buffs <span id="active-buffs-count">(0/5)</span></h3>
 														<div class="buff-grid" id="buff-grid">
-														</div>
-													</div>
-													<div class="sets-section">
-														<h3>Set Bonuses</h3>
-														<div id="active-set-bonuses" class="active-sets-container">
-															<div class="no-sets">No set bonuses active</div>
 														</div>
 													</div>
 												</div>
@@ -211,39 +205,58 @@
 													<div id="energy-regen-display">0.0</div>
 												</div>
 							
-												<div class="performance-section">
-													<div class="performance-header"> <h3>Performance Against Mobs</h3>
-														<div class="performance-header-controls">
-															<input type="checkbox" id="hide-bosses-checkbox" style="cursor: pointer;">
-															<label for="hide-bosses-checkbox" style="cursor: pointer; font-size: 0.9em;">Hide Bosses</label>
+												    <!-- MOVED: Available Sets Section -->
+													<div class="sets-section">
+														<h3>Available Sets <span id="available-sets-count">(0)</span></h3>
+														<div class="sets-list" id="sets-list">
+															<!-- Sets will be populated here -->
 														</div>
 													</div>
-													<div class="level-filter-section">
-														<div class="slider-container">
-															<span>Min: <span id="min-level-display">1</span></span>
-															<input type="range" id="mob-level-min-slider" min="1" max="110" value="1">
-														</div>
-														<div class="slider-container">
-															<span>Max: <span id="max-level-display">100</span></span>
-															<input type="range" id="mob-level-max-slider" min="1" max="110" value="100">
+
+													<!-- MOVED: Active Set Bonuses Section -->
+													<div class="sets-section">
+														<h3>Set Bonuses</h3>
+														<div id="active-set-bonuses" class="active-sets-container">
+															<div class="no-sets">No set bonuses active</div>
 														</div>
 													</div>
-													<div class="performance-table-container">
-														<table class="performance-table">
-															<thead>
-																<tr>
-																	<th data-sort="name">Mob Name <span class="sort-indicator"></span></th>
-																	<th data-sort="level">Level <span class="sort-indicator"></span></th>
-																	<th data-sort="ttk">Kill In <span class="sort-indicator"></span></th>
-																	<th data-sort="gph">Gold/hr <span class="sort-indicator"></span></th>
-																	<th data-sort="xph">XP/hr <span class="sort-indicator"></span></th>
-																</tr>
-															</thead>
-															<tbody id="performance-tbody">
-															</tbody>
-														</table>
+
+													<!-- COMMENTED OUT: Performance Section -->
+													<!-- 
+													<div class="performance-section">
+														<div class="performance-header"> <h3>Performance Against Mobs</h3>
+															<div class="performance-header-controls">
+																<input type="checkbox" id="hide-bosses-checkbox" style="cursor: pointer;">
+																<label for="hide-bosses-checkbox" style="cursor: pointer; font-size: 0.9em;">Hide Bosses</label>
+															</div>
+														</div>
+														<div class="level-filter-section">
+															<div class="slider-container">
+																<span>Min: <span id="min-level-display">1</span></span>
+																<input type="range" id="mob-level-min-slider" min="1" max="110" value="1">
+															</div>
+															<div class="slider-container">
+																<span>Max: <span id="max-level-display">100</span></span>
+																<input type="range" id="mob-level-max-slider" min="1" max="110" value="100">
+															</div>
+														</div>
+														<div class="performance-table-container">
+															<table class="performance-table">
+																<thead>
+																	<tr>
+																		<th data-sort="name">Mob Name <span class="sort-indicator"></span></th>
+																		<th data-sort="level">Level <span class="sort-indicator"></span></th>
+																		<th data-sort="ttk">Kill In <span class="sort-indicator"></span></th>
+																		<th data-sort="gph">Gold/hr <span class="sort-indicator"></span></th>
+																		<th data-sort="xph">XP/hr <span class="sort-indicator"></span></th>
+																	</tr>
+																</thead>
+																<tbody id="performance-tbody">
+																</tbody>
+															</table>
+														</div>
 													</div>
-												</div>
+													-->
 											</div>
 										</div>
 									</div>

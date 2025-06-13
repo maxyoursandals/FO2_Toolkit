@@ -12,7 +12,7 @@ const FO2Config = {
     // UI Constants
     UI: {
         MAX_BUILD_DESCRIPTION_LENGTH: 100,
-        NOTIFICATION_DURATION: 3000,
+        NOTIFICATION_DURATION: 2000,
         MAX_ACTIVE_BUFFS: 5,
         
         // Move MODE inside the UI object
@@ -92,11 +92,11 @@ const FO2Config = {
         }
     },
 
-    SETS: {
-        // Set bonus categories
-        CATEGORIES: {
-            CRAFTED: 'crafted'
-        }
+    API: {
+        BASE_URL: 'https://data.fantasyonline2.com/api/items',
+        SPRITE_BASE_URL: 'https://art.fantasyonline2.com/textures/icons/items/',
+        TIMEOUT: 30000, // 30 seconds
+        RETRY_ATTEMPTS: 3
     },
     
     // Lists of boss mobs
@@ -325,12 +325,13 @@ const DOMUtils = {
      * @param {string} pageSelector - Selector for tab pages
      */
     setupTabbedNavigation(buttonSelector, pageSelector) {
-        const buttons = document.querySelectorAll(buttonSelector);
-        const pages = document.querySelectorAll(pageSelector);
+        const buttons = document.querySelectorAll('.nav-button');
+        const pages = document.querySelectorAll('.page');
         
         buttons.forEach(button => {
             button.addEventListener('click', () => {
                 const target = button.dataset.page;
+                console.log('Tab clicked:', target);
                 const targetPage = document.getElementById(`${target}-page`);
                 
                 // Update active button
@@ -341,8 +342,9 @@ const DOMUtils = {
                 pages.forEach(page => page.classList.remove('active'));
                 if (targetPage) targetPage.classList.add('active');
                 
-                // Trigger page changed event
-                EventSystem.publish('page-changed', { page: target });
+                // Save the current page to state
+                StateManager.setCurrentPage(target);
+                console.log('setCurrentPage called with:', target);
             });
         });
     }
@@ -532,6 +534,113 @@ const UIFactory = {
         }
         
         return buffDiv;
+    },
+
+    /**
+     * Creates a spell slot element
+     */
+    createSpellSlot(spell, clickHandler) {
+        const spellSlot = DOMUtils.createElement('div', {
+            className: 'spell-slot',
+            onclick: (e) => {
+                if (!e.target.classList.contains('spell-clear')) {
+                    clickHandler(e);
+                }
+            }
+        });
+        
+        this.updateSpellSlotContent(spellSlot, spell);
+        return spellSlot;
+    },
+    
+    /**
+     * Updates spell slot content
+     */
+    updateSpellSlotContent(spellSlot, spell) {
+        DOMUtils.clearElement(spellSlot);
+        
+        if (spell) {
+            const spellIconName = spell.Name.toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-z0-9-]/g, '');
+            
+            const iconFileName = `assets/build-sandbox/icons/${spellIconName}-icon.png`;
+            
+            const img = DOMUtils.createElement('img', {
+                src: iconFileName,
+                alt: spell.Name,
+                onerror: function() {
+                    this.style.display = 'none';
+                    const fallback = DOMUtils.createElement('div', {
+                        className: 'spell-slot-fallback',
+                        textContent: '⚡'
+                    });
+                    this.parentNode.appendChild(fallback);
+                }
+            });
+            
+            spellSlot.appendChild(img);
+            
+            const clearButton = DOMUtils.createElement('div', {
+                className: 'spell-clear',
+                textContent: '×',
+                title: 'Remove spell'
+            });
+            
+            clearButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                StateManager.setSelectedSpell(null);
+                UIController.updateSpellDisplay();
+            });
+            
+            spellSlot.appendChild(clearButton);
+        } else {
+            const defaultIcon = DOMUtils.createElement('div', {
+                className: 'spell-slot-fallback',
+                textContent: '⚡'
+            });
+            
+            spellSlot.appendChild(defaultIcon);
+        }
+    },
+    
+    /**
+     * Creates spell search result
+     */
+    createSpellSearchResult(spell, selectHandler) {
+        const spellElement = DOMUtils.createElement('div', {
+            className: 'spell-search-item',
+            textContent: `${spell.Name} ${spell.tier}`,
+            onclick: () => selectHandler(spell)
+        });
+        
+        return spellElement;
+    },
+    
+    /**
+     * Generates spell tooltip content
+     */
+    generateSpellTooltipContent(spell) {
+        const calculatedStats = StateManager.state.currentBuild.calculatedStats;
+        const critPercent = calculatedStats?.finalCrit || 0;
+        const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(spell, critPercent);
+        
+        let content = `<div class="tooltip-title">${spell.Name} (Tier ${spell.tier})</div>`;
+        content += `<div class="tooltip-level">Level ${spell.levelRequired} Spell</div>`;
+        
+        const statsHtml = [];
+        statsHtml.push(`<div>Damage: ${spell.minDamage}-${spell.maxDamage}</div>`);
+        statsHtml.push(`<div>Cast Time: ${spell.castTime}s</div>`);
+        statsHtml.push(`<div>Energy Cost: ${spell.energyCost}</div>`);
+        if (spell.cooldown > 0) {
+            statsHtml.push(`<div>Cooldown: ${spell.cooldown}s</div>`);
+        }
+        statsHtml.push(`<div class="effect-positive">DPS: ${dpsWithCrit}</div>`);
+        statsHtml.push(`<div class="effect-negative">Energy/sec: ${spell.energyPerSecond}</div>`);
+        
+        content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
+        
+        return content;
     },
     
     /**
@@ -1072,6 +1181,23 @@ const UIFactory = {
     },
 
     /**
+     * Creates a simple set button
+     * @param {Object} setData - Set data
+     * @param {Function} equipHandler - Function to call when equipping set
+     * @returns {HTMLElement} Set button element
+     */
+    createSetItem(setData, equipHandler) {
+        const setButton = DOMUtils.createElement('button', {
+            className: 'set-button action-button',
+            textContent: setData.setName,
+            title: `Click to equip ${setData.setName} set (${setData.items.length} pieces)`,
+            onclick: () => equipHandler(setData)
+        });
+        
+        return setButton;
+    },
+
+    /**
      * Creates a set bonus display element - FIXED to only show active bonuses
      * @param {string} setName - Name of the set
      * @param {number} equippedCount - Number of equipped pieces
@@ -1133,70 +1259,6 @@ const UIFactory = {
     },
 };
 
-UIFactory.createItemDetailViewWithEdit = function(item) {
-    const container = document.createElement('div');
-    
-    if (!item) {
-        container.innerHTML = '<p class="empty-message">Select an item.</p>';
-        return container;
-    }
-
-    let isEditing = false;
-
-    const renderView = () => {
-        DOMUtils.clearElement(container);
-        
-        if (isEditing) {
-            const editor = ItemEditor.createItemEditor(
-                item,
-                (updatedItem) => {
-                    // Update the item in the data store
-                    StateManager.state.data.itemsById.set(updatedItem['Item ID'], updatedItem);
-                    
-                    // Reprocess items to update categories
-                    const allItems = Array.from(StateManager.state.data.itemsById.values());
-                    const processedData = DataService.processItemData(allItems);
-                    StateManager.state.data.items = processedData.items;
-                    
-                    // Update the item reference and switch back to view mode
-                    Object.assign(item, updatedItem);
-                    isEditing = false;
-                    renderView();
-                    
-                    // Refresh the grid
-                    UIController.populateItemDictionaryGrid();
-                    
-                    DOMUtils.showNotification(`${updatedItem.Name} updated successfully!`, 'success');
-                },
-                () => {
-                    isEditing = false;
-                    renderView();
-                }
-            );
-            container.appendChild(editor);
-        } else {
-            // Regular view with edit button
-            const viewContent = UIFactory.createItemDetailView(item);
-            
-            const editButton = DOMUtils.createElement('button', {
-                textContent: 'Edit Item',
-                className: 'action-button positive',
-                style: { marginTop: '10px' },
-                onclick: () => {
-                    isEditing = true;
-                    renderView();
-                }
-            });
-            
-            container.appendChild(viewContent);
-            container.appendChild(editButton);
-        }
-    };
-
-    renderView();
-    return container;
-};
-
 const ItemDictionaryEnhancements = {
     addExportImportButtons() {
         const filtersPanel = DOMUtils.getElement('item-dictionary-page')?.querySelector('.item-filters-panel');
@@ -1231,107 +1293,6 @@ const ItemDictionaryEnhancements = {
         
         filtersPanel.appendChild(exportImportSection);
     }
-};
-
-// Add spell-related methods to UIFactory as properties after the object definition
-UIFactory.createSpellSlot = function(spell, clickHandler) {
-    const spellSlot = DOMUtils.createElement('div', {
-        className: 'spell-slot',
-        onclick: (e) => {
-            // Only handle clicks on the slot itself, not on clear button
-            if (!e.target.classList.contains('spell-clear')) {
-                clickHandler(e);
-            }
-        }
-    });
-    
-    UIFactory.updateSpellSlotContent(spellSlot, spell);
-    return spellSlot;
-};
-
-UIFactory.updateSpellSlotContent = function(spellSlot, spell) {
-    DOMUtils.clearElement(spellSlot);
-    
-    if (spell) {
-        // Spell equipped - show spell icon or fallback
-        const spellIconName = spell.Name.toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, '');
-        
-        const iconFileName = `assets/build-sandbox/icons/${spellIconName}-icon.png`;
-        
-        const img = DOMUtils.createElement('img', {
-            src: iconFileName,
-            alt: spell.Name,
-            onerror: function() {
-                this.style.display = 'none';
-                const fallback = DOMUtils.createElement('div', {
-                    className: 'spell-slot-fallback',
-                    textContent: '⚡'
-                });
-                this.parentNode.appendChild(fallback);
-            }
-        });
-        
-        spellSlot.appendChild(img);
-        
-        // Add clear button
-        const clearButton = DOMUtils.createElement('div', {
-            className: 'spell-clear',
-            textContent: '×',
-            title: 'Remove spell'
-        });
-        
-        clearButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            StateManager.setSelectedSpell(null);
-            UIController.updateSpellDisplay();
-        });
-        
-        spellSlot.appendChild(clearButton);
-    } else {
-        // No spell - show default icon
-        const defaultIcon = DOMUtils.createElement('div', {
-            className: 'spell-slot-fallback',
-            textContent: '⚡'
-        });
-        
-        spellSlot.appendChild(defaultIcon);
-    }
-};
-
-UIFactory.createSpellSearchResult = function(spell, selectHandler) {
-    const spellElement = DOMUtils.createElement('div', {
-        className: 'spell-search-item',
-        textContent: `${spell.Name} ${spell.tier}`,
-        onclick: () => selectHandler(spell)
-    });
-    
-    return spellElement;
-};
-
-UIFactory.generateSpellTooltipContent = function(spell) {
-    // Get current crit % from calculated stats
-    const calculatedStats = StateManager.state.currentBuild.calculatedStats;
-    const critPercent = calculatedStats?.finalCrit || 0;
-    const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(spell, critPercent);
-    
-    let content = `<div class="tooltip-title">${spell.Name} (Tier ${spell.tier})</div>`;
-    content += `<div class="tooltip-level">Level ${spell.levelRequired} Spell</div>`;
-    
-    const statsHtml = [];
-    statsHtml.push(`<div>Damage: ${spell.minDamage}-${spell.maxDamage}</div>`);
-    statsHtml.push(`<div>Cast Time: ${spell.castTime}s</div>`);
-    statsHtml.push(`<div>Energy Cost: ${spell.energyCost}</div>`);
-    if (spell.cooldown > 0) {
-        statsHtml.push(`<div>Cooldown: ${spell.cooldown}s</div>`);
-    }
-    statsHtml.push(`<div class="effect-positive">DPS: ${dpsWithCrit}</div>`);
-    statsHtml.push(`<div class="effect-negative">Energy/sec: ${spell.energyPerSecond}</div>`);
-    
-    content += `<div class="tooltip-stats">${statsHtml.join('')}</div>`;
-    
-    return content;
 };
 
 // ------------------------------------------------------------------
@@ -1434,73 +1395,367 @@ const DataService = {
     },
 
     /**
-     * Process and normalize sets data
-     * @param {Array} setsArray - Raw sets data
-     * @returns {Object} Processed sets data
+ * Fetch all items from the FO2 API
+ * @returns {Object} Processed items data
+ */
+async fetchItemsFromAPI() {
+    try {
+        console.log("Fetching items from FO2 API...");
+        
+        // Generate ID list for all items (1-2000 to be safe)
+        const maxId = 2000;
+        const idList = Array.from({length: maxId}, (_, i) => i + 1).join(',');
+        
+        const response = await fetch(`https://data.fantasyonline2.com/api/items?ids=${idList}`);
+        
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status}`);
+        }
+        
+        const apiData = await response.json();
+        
+        // Filter out null/undefined items and only keep items we can categorize
+        const validItems = Object.entries(apiData)
+            .filter(([id, itemData]) => itemData && this.canCategorizeItem(itemData))
+            .reduce((obj, [id, itemData]) => {
+                obj[id] = itemData;
+                return obj;
+            }, {});
+        
+        console.log(`Found ${Object.keys(validItems).length} valid items out of ${Object.keys(apiData).length} total`);
+        
+        // Convert API format to our internal format
+        const convertedItems = this.convertAPIItemsToInternalFormat(validItems);
+        
+        // Process the converted items
+        const processedData = this.processAPIItemData(convertedItems);
+        
+        console.log(`Loaded ${processedData.itemsById.size} items from API`);
+        return processedData;
+        
+    } catch (error) {
+        console.error("Error fetching items from API:", error);
+        throw new Error(`Failed to fetch items from API: ${error.message}`);
+    }
+},
+
+/**
+ * Check if an item can be categorized
+ * @param {Object} itemData - API item data
+ * @returns {boolean} Whether item can be categorized
+ */
+canCategorizeItem(itemData) {
+    const typeKey = `${itemData.ty},${itemData.st}`;
+    const typeMapping = {
+        // Equipment (Type 3)
+        '3,0': true,  // Head
+        '3,1': true,  // Trinkets
+        '3,2': true,  // Face
+        '3,4': true,  // Back
+        '3,6': true,  // Shoulders  
+        '3,8': true,  // Chest
+        '3,10': true, // Legs
+        '3,12': true, // Rings
+        '3,13': true, // Faction
+        '3,15': true, // Guild
+        '3,17': true, // Offhand
+        
+        // Weapons (Type 2)
+        '2,1': true,  // 1h Sword
+        '2,2': true,  // 2h Bow
+        '2,3': true,  // 1h Wand
+        '2,4': true,  // 1h Axe
+        '2,5': true,  // 2h Hammer
+        '2,6': true,  // 2h Staff
+        '2,9': true,  // 2h Sword
+        '2,10': true  // 2h Axe
+    };
+    
+    // Check if item type is valid
+    if (!typeMapping.hasOwnProperty(typeKey)) {
+        return false;
+    }
+    
+    // Check if item has a name and exclude UNUSED items
+    const itemName = itemData.t?.en?.n || '';
+    if (itemName.includes('(UNUSED)')) {
+        return false;
+    }
+    
+    return true;
+},
+
+/**
+ * Convert API item format to our internal format
+ * @param {Object} apiData - Raw API response
+ * @returns {Array} Array of items in our format
+ */
+convertAPIItemsToInternalFormat(apiData) {
+    const items = [];
+    
+    // Map API ty,st combinations to our categories
+    const typeMapping = {
+        // Equipment (Type 3)
+        '3,0': { Type: 'equipment', Subtype: 'head' },
+        '3,1': { Type: 'equipment', Subtype: 'trinket' },
+        '3,2': { Type: 'equipment', Subtype: 'face' },
+        '3,4': { Type: 'equipment', Subtype: 'back' },
+        '3,6': { Type: 'equipment', Subtype: 'shoulder' },
+        '3,8': { Type: 'equipment', Subtype: 'chest' },
+        '3,10': { Type: 'equipment', Subtype: 'legs' },
+        '3,12': { Type: 'equipment', Subtype: 'ring' },
+        '3,13': { Type: 'equipment', Subtype: 'faction' },
+        '3,15': { Type: 'equipment', Subtype: 'guild' },
+        '3,17': { Type: 'equipment', Subtype: 'offhand' },
+        
+        // Weapons (Type 2)
+        '2,1': { Type: 'weapon', Subtype: 'sword' },
+        '2,2': { Type: 'weapon', Subtype: 'bow' },
+        '2,3': { Type: 'weapon', Subtype: 'wand' },
+        '2,4': { Type: 'weapon', Subtype: 'axe' },
+        '2,5': { Type: 'weapon', Subtype: 'hammer' },
+        '2,6': { Type: 'weapon', Subtype: 'staff' },
+        '2,9': { Type: 'weapon', Subtype: '2h sword' },
+        '2,10': { Type: 'weapon', Subtype: 'axe' } // Note: 2h axe, might want to distinguish
+    };
+    
+    // Process each item in the API response
+    for (const [itemId, itemData] of Object.entries(apiData)) {
+        const typeKey = `${itemData.ty},${itemData.st}`;
+        const typeInfo = typeMapping[typeKey];
+        
+        // Skip items we don't have mappings for
+        if (!typeInfo) {
+            continue;
+        }
+        
+        // Convert API format to our internal format
+        const convertedItem = {
+        'Item ID': itemId,
+        'Name': itemData.t?.en?.n || `Item ${itemId}`,
+        'Level': itemData.lr || 0,
+        'Type': typeInfo.Type,
+        'Subtype': typeInfo.Subtype,
+            
+            // Stats from API - handle missing values as 0
+            'STA': this.getStatValue(itemData.sta, 'sta') || 0,
+            'STR': this.getStatValue(itemData.sta, 'str') || 0,
+            'INT': this.getStatValue(itemData.sta, 'int') || 0,
+            'AGI': this.getStatValue(itemData.sta, 'agi') || 0,
+            
+            // Requirements from API - handle missing values as 0
+            'Req STA': this.getStatValue(itemData.sr, 'sta') || 0,
+            'Req STR': this.getStatValue(itemData.sr, 'str') || 0,
+            'Req INT': this.getStatValue(itemData.sr, 'int') || 0,
+            'Req AGI': this.getStatValue(itemData.sr, 'agi') || 0,
+            
+            // Other properties - handle missing values as 0
+            'Armor': itemData.sta?.arm || 0,
+            'Direct Crit': itemData.sta?.crit || 0,
+            'Direct ATK Power': itemData.sta?.atkr || 0,
+            'Atk Spd': itemData.sta?.atks || 0,
+            
+            // Damage from weapon example
+            'Damage': this.formatDamageFromAPI(itemData),
+            
+            // Sprite URL
+            'Sprite-Link': itemData.sfn ? `https://art.fantasyonline2.com/textures/icons/items/${itemData.sfn}-icon.png` : null,
+            
+            // Set information (if available)
+            'setName': itemData.t?.en?.sn || null,
+            'setData': itemData.s || null,
+            'setId': itemData.s?.sid || null
+        };
+        
+        items.push(convertedItem);
+    }
+    
+    return items;
+},
+
+/**
+ * Helper to extract stat values from API stat objects
+ * @param {Object} statObj - API stat object
+ * @param {string} statName - Name of the stat
+ * @returns {number} Stat value
+ */
+getStatValue(statObj, statName) {
+    if (!statObj || typeof statObj !== 'object') return 0;
+    return parseInt(statObj[statName]) || 0;  // Ensure integer conversion
+},
+
+/**
+ * Format damage information from API
+ * @param {Object} itemData - API item data  
+ * @returns {string} Formatted damage string
+ */
+formatDamageFromAPI(itemData) {
+    // From weapon example: mnd = min damage, mxd = max damage
+    const minDmg = itemData.sta?.mnd || 0;
+    const maxDmg = itemData.sta?.mxd || 0;
+    
+    if (minDmg > 0 && maxDmg > 0) {
+        if (minDmg === maxDmg) {
+            return minDmg.toString();
+        }
+        return `${minDmg}-${maxDmg}`;
+    }
+    return '';
+},
+
+    /**
+     * Process API item data (similar to existing processItemData but for API format)
+     * @param {Array} itemArray - Converted items array
+     * @returns {Object} Processed items data
      */
-    processSetsData(setsArray) {
+    processAPIItemData(itemArray) {
         try {
-            if (!setsArray || !Array.isArray(setsArray)) {
-                console.error("Invalid sets data provided.");
-                return { sets: [], setsByName: new Map() };
+            if (!itemArray || !Array.isArray(itemArray) || itemArray.length === 0) {
+                DOMUtils.showNotification("No item data loaded from API.", "error");
+                return {
+                    items: {
+                        weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
+                        equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
+                    },
+                    itemsById: new Map(),
+                    sets: [],
+                    setsByName: new Map()
+                };
             }
             
+            const categorizedItems = {
+                weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
+                equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
+            };
+            
+            const itemsById = new Map();
             const setsByName = new Map();
             
-            // Process each set
-            setsArray.forEach(setData => {
-                // Normalize bonus values
-                Object.keys(setData.bonuses).forEach(pieceCount => {
-                    const bonus = setData.bonuses[pieceCount];
-                    // Ensure numeric values
-                    ['CRIT', 'AGI', 'STR', 'INT', 'STA', 'ATKP', 'ARMOR'].forEach(stat => {
-                        if (bonus[stat] !== undefined) {
-                            bonus[stat] = parseFloat(bonus[stat]) || 0;
-                        }
-                    });
+            itemArray.forEach(item => {
+                // Process numeric fields (same as existing logic)
+                if (item.Level !== undefined) item.Level = parseInt(item.Level) || 0;
+                if (item.Armor !== undefined && item.Armor !== "") item.Armor = parseInt(item.Armor) || 0; else item.Armor = 0;
+                if (item["Atk Spd"] !== undefined && item["Atk Spd"] !== "") item["Atk Spd"] = parseInt(item["Atk Spd"]) || 0; else item["Atk Spd"] = 0;
+                
+                // Process new fields
+                if (item["Direct Crit"] !== undefined && item["Direct Crit"] !== "") {
+                    item["Direct Crit"] = parseFloat(item["Direct Crit"]) || 0;
+                } else {
+                    item["Direct Crit"] = 0;
+                }
+                
+                if (item["Direct ATK Power"] !== undefined && item["Direct ATK Power"] !== "") {
+                    item["Direct ATK Power"] = parseInt(item["Direct ATK Power"]) || 0;
+                } else {
+                    item["Direct ATK Power"] = 0;
+                }
+                
+                ["STA", "STR", "INT", "AGI", "Req STA", "Req STR", "Req INT", "Req AGI"].forEach(stat => {
+                    item[stat] = parseInt(item[stat]) || 0;
                 });
                 
-                setsByName.set(setData.setName, setData);
+                // Process damage string
+                const damageValues = FO2Utils.parseDamageString(item.Damage);
+                item.minDamage = damageValues.minDamage;
+                item.maxDamage = damageValues.maxDamage;
+                
+                // Categorize items
+                if (item.Type && item.Subtype) {
+                    const type = item.Type.toLowerCase();
+                    const subtype = item.Subtype.toLowerCase();
+                    
+                    if (categorizedItems[type] && categorizedItems[type].hasOwnProperty(subtype)) {
+                        categorizedItems[type][subtype].push(item);
+                    } else {
+                        console.warn(`Unknown item type/subtype combination: ${type}/${subtype} for item ${item.Name}`);
+                    }
+                }
+                
+                // Populate ID map
+                if (item.hasOwnProperty('Item ID') && item['Item ID'] !== undefined) {
+                    itemsById.set(item['Item ID'], item);
+                }
+                
+                // Process set information from API
+                if (item.setName && item.setData) {
+                    if (!setsByName.has(item.setName)) {
+                        // Convert API set format to our internal format
+                        const setData = {
+                            setName: item.setName,
+                            description: item.setData.d || '', // Set description if available
+                            bonuses: this.convertAPISetBonuses(item.setData),
+                            itemIds: [],
+                            items: [] // Store actual item references for easy access
+                        };
+                        setsByName.set(item.setName, setData);
+                    }
+                    
+                    // Add this item to the set's item list
+                    const setData = setsByName.get(item.setName);
+                    setData.itemIds.push(item['Item ID']);
+                    setData.items.push(item); // Add item reference
+                }
             });
             
-            console.log(`Processed ${setsArray.length} equipment sets.`);
-            return { sets: setsArray, setsByName };
+            // Sort items within each subtype by level
+            for (const type in categorizedItems) {
+                for (const subtype in categorizedItems[type]) {
+                    categorizedItems[type][subtype].sort((a, b) => (a.Level || 0) - (b.Level || 0));
+                }
+            }
+            
+            console.log(`API item data processed. ${itemsById.size} items mapped by ID.`);
+            DOMUtils.showNotification(`Successfully processed ${itemArray.length} items from API.`, 'success');
+            
+            return { 
+                items: categorizedItems, 
+                itemsById,
+                sets: Array.from(setsByName.values()),
+                setsByName
+            };
         } catch (error) {
-            console.error("Error processing sets data:", error);
-            return { sets: [], setsByName: new Map() };
+            console.error("Error processing API item data:", error);
+            DOMUtils.showNotification("Error processing API item data. Check console.", "error");
+            
+            return {
+                items: {
+                    weapon: { sword: [], bow: [], wand: [], staff: [], hammer: [], axe: [], pickaxe: [], lockpick: [], "2h sword": [] },
+                    equipment: { head: [], face: [], shoulder: [], chest: [], legs: [], back: [], ring: [], trinket: [], offhand: [], guild: [], faction: [] }
+                },
+                itemsById: new Map(),
+                sets: [],
+                setsByName: new Map()
+            };
         }
     },
-    
+
     /**
-     * Assign set information to items based on item IDs in sets data
-     * @param {Map} itemsById - Map of items by ID
-     * @param {Map} setsByName - Map of sets by name
+     * Convert API set bonus format to our internal format
+     * @param {Object} apiSetData - API set data
+     * @returns {Object} Converted set bonuses
      */
-    assignSetInformation(itemsById, setsByName) {
-        // Create a map from item ID to set data for quick lookup
-        const itemIdToSetMap = new Map();
+    convertAPISetBonuses(apiSetData) {
+        console.log('Converting API set bonuses:', apiSetData);
         
-        setsByName.forEach((setData, setName) => {
-            if (setData.itemIds && Array.isArray(setData.itemIds)) {
-                setData.itemIds.forEach(itemId => {
-                    itemIdToSetMap.set(itemId, {
-                        setName: setName,
-                        setData: setData
-                    });
-                });
+        const bonuses = {};
+        
+        // Set bonuses are under sb object, with piece counts as keys
+        if (apiSetData && apiSetData.sb) {
+            for (const [pieceCount, bonus] of Object.entries(apiSetData.sb)) {
+                bonuses[pieceCount] = {
+                    CRIT: bonus.crit || 0,
+                    AGI: bonus.agi || 0,
+                    STR: bonus.str || 0,
+                    INT: bonus.int || 0,
+                    STA: bonus.sta || 0,
+                    ATKP: bonus.atkp || 0,
+                    ARMOR: bonus.arm || 0
+                };
             }
-        });
+        }
         
-        // Assign set information to items
-        itemsById.forEach((item, itemId) => {
-            const setInfo = itemIdToSetMap.get(itemId);
-            if (setInfo) {
-                item.setName = setInfo.setName;
-                item.setData = setInfo.setData;
-            }
-        });
-        
-        console.log(`Assigned set information to ${itemIdToSetMap.size} items across ${setsByName.size} sets.`);
+        console.log('Converted bonuses:', bonuses);
+        return bonuses;
     },
     /**
      * Process and normalize mobs data
@@ -1671,14 +1926,13 @@ const DataService = {
      */
     async loadAllData() {
         try {
-            DOMUtils.showNotification("Loading game data...", "info");
+            DOMUtils.showNotification("Loading game data from API...", "info");
             
-            // Add sets to the fetch calls
-            const [itemsResponse, mobsResponse, buffsResponse, spellsResponse, setsResponse] = await Promise.all([
-                fetch('assets/build-sandbox/data/items.json').catch(e => {
-                    console.error("Fetch items failed:", e);
-                    return { ok: false, json: () => null };
-                }),
+            // Fetch items from API
+            const itemsData = await this.fetchItemsFromAPI();
+            
+            // Still fetch other data from local files (mobs, buffs, spells for now)
+            const [mobsResponse, buffsResponse, spellsResponse] = await Promise.all([
                 fetch('assets/build-sandbox/data/mobs.json').catch(e => {
                     console.error("Fetch mobs failed:", e);
                     return { ok: false, json: () => null };
@@ -1690,48 +1944,33 @@ const DataService = {
                 fetch('assets/build-sandbox/data/spells.json').catch(e => {
                     console.error("Fetch spells failed:", e);
                     return { ok: false, json: () => null };
-                }),
-                fetch('assets/build-sandbox/data/sets.json').catch(e => {
-                    console.error("Fetch sets failed:", e);
-                    return { ok: false, json: () => null };
                 })
             ]);
             
-            if (!itemsResponse.ok || !mobsResponse.ok || !buffsResponse.ok || !spellsResponse.ok || !setsResponse.ok) {
+            if (!mobsResponse.ok || !buffsResponse.ok || !spellsResponse.ok) {
                 throw new Error("One or more data files failed to load. Check network or file paths.");
             }
             
-            const rawItemsArray = await itemsResponse.json();
             const rawMobsData = await mobsResponse.json();
             const rawBuffsArray = await buffsResponse.json();
             const rawSpellsArray = await spellsResponse.json();
-            const rawSetsArray = await setsResponse.json();
             
-            if (rawItemsArray === null || rawMobsData === null || rawBuffsArray === null || rawSpellsArray === null || rawSetsArray === null) {
-                throw new Error("One or more data files parsed to null.");
-            }
-            
-            console.log("Data fetched successfully.");
-            
-            // Process each data type in correct order
-            const itemData = this.processItemData(rawItemsArray);
+            // Process data
             const buffsData = this.processBuffsData(rawBuffsArray);
             const spellsData = this.processSpellsData(rawSpellsArray);
-            const setsData = this.processSetsData(rawSetsArray); // Add this line
-            const mobsData = this.processMobsData(rawMobsData, itemData.itemsById);
-            this.assignSetInformation(itemData.itemsById, setsData.setsByName);
+            const mobsData = this.processMobsData(rawMobsData, itemsData.itemsById);
             
             DOMUtils.showNotification("Game data loaded successfully!", "success");
             
             return {
-                items: itemData.items,
-                itemsById: itemData.itemsById,
+                items: itemsData.items,
+                itemsById: itemsData.itemsById,
                 mobs: mobsData.mobs,
                 mobsMaxLevel: mobsData.mobsMaxLevel,
                 buffs: buffsData,
                 spells: spellsData,
-                sets: setsData.sets, // Add this line
-                setsByName: setsData.setsByName // Add this line
+                sets: itemsData.sets,
+                setsByName: itemsData.setsByName
             };
         } catch (error) {
             console.error("Error loading data:", error);
@@ -2297,6 +2536,7 @@ const StateManager = {
         
         // UI State
         ui: {
+            currentPage: 'build-editor',
             performance: {
                 sortColumn: 'name',
                 sortAscending: true,
@@ -2343,6 +2583,9 @@ const StateManager = {
                 this.triggerRecalculationAndUpdateUI();
             }
             
+            // Publish that data is loaded - ADD THIS
+            EventSystem.publish('data-loaded');
+            
             console.log('State manager initialized successfully.');
             return true;
         } catch (error) {
@@ -2379,6 +2622,14 @@ const StateManager = {
         this.triggerRecalculationAndUpdateUI();
         
         return newLevel;
+    },
+
+    setCurrentPage(pageName) {
+        console.log('setCurrentPage called:', pageName);
+        this.state.ui.currentPage = pageName;
+        this.saveCurrentStateToLocalStorage();
+        console.log('Page saved to state:', this.state.ui.currentPage);
+        EventSystem.publish('page-changed', { page: pageName });
     },
     
     /**
@@ -2506,42 +2757,42 @@ const StateManager = {
     }
     
     // In restricted mode, check if requirements are met AT THE TIME OF EQUIPPING
-    if (this.state.ui.mode === FO2Config.UI.MODE.RESTRICTED) {
-        // Create a temporary state to see what the stats would be if the item was already equipped
-        // This allows item swapping as long as the combined effect would meet requirements
-        const tempState = FO2Utils.deepClone(this.state.currentBuild);
-        
-        // If replacing an item in the same slot, remove its stats first
-        if (tempState.equipment[slot]) {
-            // Remove the old item's contribution to stats
-            tempState.equipment[slot] = null;
+        if (this.state.ui.mode === FO2Config.UI.MODE.RESTRICTED) {
+            // Create a temporary state to see what the stats would be if the item was already equipped
+            // This allows item swapping as long as the combined effect would meet requirements
+            const tempState = FO2Utils.deepClone(this.state.currentBuild);
+            
+            // If replacing an item in the same slot, remove its stats first
+            if (tempState.equipment[slot]) {
+                // Remove the old item's contribution to stats
+                tempState.equipment[slot] = null;
+            }
+            
+            // Temporarily equip the new item
+            tempState.equipment[slot] = itemObject;
+            
+            // Calculate stats with the new item in place
+            const tempStats = StatsCalculator.performFullStatCalculation(tempState, FO2Config);
+            
+            // Check if requirements would be met AFTER equipping
+            const finalStats = tempStats.finalStats;
+            
+            if (
+                (itemObject['Req STR'] && finalStats.str < itemObject['Req STR']) ||
+                (itemObject['Req INT'] && finalStats.int < itemObject['Req INT']) ||
+                (itemObject['Req AGI'] && finalStats.agi < itemObject['Req AGI']) ||
+                (itemObject['Req STA'] && finalStats.sta < itemObject['Req STA'])
+            ) {
+                // Requirements not met even after equipping
+                return false;
+            }
         }
         
-        // Temporarily equip the new item
-        tempState.equipment[slot] = itemObject;
-        
-        // Calculate stats with the new item in place
-        const tempStats = StatsCalculator.performFullStatCalculation(tempState, FO2Config);
-        
-        // Check if requirements would be met AFTER equipping
-        const finalStats = tempStats.finalStats;
-        
-        if (
-            (itemObject['Req STR'] && finalStats.str < itemObject['Req STR']) ||
-            (itemObject['Req INT'] && finalStats.int < itemObject['Req INT']) ||
-            (itemObject['Req AGI'] && finalStats.agi < itemObject['Req AGI']) ||
-            (itemObject['Req STA'] && finalStats.sta < itemObject['Req STA'])
-        ) {
-            // Requirements not met even after equipping
-            return false;
-        }
-    }
-    
-    // Requirements met or sandbox mode, equip the item
-    this.state.currentBuild.equipment[slot] = itemObject;
-    this.triggerRecalculationAndUpdateUI();
-    return true;
-},
+        // Requirements met or sandbox mode, equip the item
+        this.state.currentBuild.equipment[slot] = itemObject;
+        this.triggerRecalculationAndUpdateUI();
+        return true;
+    },
     
     /**
      * Reset all equipment
@@ -2568,6 +2819,7 @@ const StateManager = {
         
         return false;
     },
+
     /**
      * Remove a buff by name
      * @param {string} buffName - Name of buff to remove
@@ -2591,6 +2843,22 @@ const StateManager = {
     resetBuffs() {
         this.state.currentBuild.activeBuffs = [];
         this.triggerRecalculationAndUpdateUI();
+    },
+
+    /**
+     * Set selected spell
+     */
+    setSelectedSpell(spellObject) {
+        this.state.currentBuild.selectedSpell = spellObject;
+        this.saveCurrentStateToLocalStorage();
+        EventSystem.publish('spell-updated', spellObject);
+    },
+    
+    /**
+     * Reset spell
+     */
+    resetSpell() {
+        this.setSelectedSpell(null);
     },
     
     /**
@@ -2690,8 +2958,10 @@ const StateManager = {
             stats: this.state.currentBuild.statPoints,
             equipment: {},
             activeBuffNames: this.state.currentBuild.activeBuffs.map(buff => buff.Name),
+            selectedSpellName: this.state.currentBuild.selectedSpell ? this.state.currentBuild.selectedSpell.Name : null,
             uiPerformance: this.state.ui.performance,
-            uiMode: this.state.ui.mode
+            uiMode: this.state.ui.mode,
+            currentPage: this.state.ui.currentPage
         };
         
         // Store item IDs for equipment
@@ -2747,9 +3017,18 @@ const StateManager = {
             this.state.ui.mode = savedData.uiMode;
         }
 
-        // Reset equipment & buffs before loading
+        // Load current page
+        if (savedData.currentPage) {
+            this.state.ui.currentPage = savedData.currentPage;
+            console.log('Loaded currentPage from localStorage:', savedData.currentPage);
+        } else {
+            console.log('No currentPage found in savedData');
+        }
+
+        // Reset equipment, buffs, and spell before loading
         this.state.currentBuild.equipment = {};
         this.state.currentBuild.activeBuffs = [];
+        this.state.currentBuild.selectedSpell = null; // ADD: spell support
 
         // Load equipment
         if (savedData.equipment && this.state.data.itemsById.size > 0) {
@@ -2784,6 +3063,16 @@ const StateManager = {
             });
         }
 
+        // Load selected spell
+        if (savedData.selectedSpellName && this.state.data.spells && this.state.data.spells.length > 0) {
+            const spellToSelect = this.state.data.spells.find(s => s.Name === savedData.selectedSpellName);
+            if (spellToSelect) {
+                this.state.currentBuild.selectedSpell = spellToSelect;
+            } else {
+                console.warn(`Spell data missing for ${savedData.selectedSpellName} during load.`);
+            }
+        }
+
         // Load UI state (performance filters)
         if (savedData.uiPerformance) {
             Object.assign(this.state.ui.performance, savedData.uiPerformance);
@@ -2803,6 +3092,7 @@ const StateManager = {
             );
         }
 
+        // ADD: Load UI item dictionary state
         if (savedData.uiItemDictionary) {
             // Migrate old single-sort format to new multi-sort format
             if (!savedData.uiItemDictionary.activeSorts && savedData.uiItemDictionary.sortCriteria) {
@@ -3079,161 +3369,6 @@ validateEquipmentRequirements() {
 
 };
 
-// Add spell-related methods to StateManager after its definition
-StateManager.setSelectedSpell = function(spellObject) {
-    this.state.currentBuild.selectedSpell = spellObject;
-    this.saveCurrentStateToLocalStorage();
-    EventSystem.publish('spell-updated', spellObject);
-};
-
-StateManager.resetSpell = function() {
-    this.setSelectedSpell(null);
-};
-
-// Update StateManager save/load methods to handle spells:
-StateManager.saveCurrentStateToLocalStorageOriginal = StateManager.saveCurrentStateToLocalStorage;
-StateManager.saveCurrentStateToLocalStorage = function() {
-    const saveData = {
-        level: this.state.currentBuild.level,
-        rebirth: this.state.currentBuild.rebirth,
-        stats: this.state.currentBuild.statPoints,
-        equipment: {},
-        activeBuffNames: this.state.currentBuild.activeBuffs.map(buff => buff.Name),
-        selectedSpellName: this.state.currentBuild.selectedSpell ? this.state.currentBuild.selectedSpell.Name : null,
-        uiPerformance: this.state.ui.performance,
-        uiMode: this.state.ui.mode
-    };
-    
-    // Store item IDs for equipment
-    for (const slot in this.state.currentBuild.equipment) {
-        if (this.state.currentBuild.equipment[slot]) {
-            const itemId = this.state.currentBuild.equipment[slot]['Item ID'];
-            if (itemId !== undefined) {
-                saveData.equipment[slot] = itemId;
-            }
-        }
-    }
-    
-    try {
-        localStorage.setItem(FO2Config.STORAGE.CURRENT_STATE_KEY, JSON.stringify(saveData));
-    } catch (e) {
-        console.error("Failed to save state:", e);
-        DOMUtils.showNotification("Could not save current build state.", "error");
-    }
-};
-
-StateManager.loadCurrentStateFromLocalStorageOriginal = StateManager.loadCurrentStateFromLocalStorage;
-StateManager.loadCurrentStateFromLocalStorage = function() {
-    const savedDataString = localStorage.getItem(FO2Config.STORAGE.CURRENT_STATE_KEY);
-    if (!savedDataString) {
-        console.log("No saved build state found in localStorage. Using defaults.");
-        return false;
-    }
-
-    try {
-        const savedData = FO2Utils.safeJSONParse(savedDataString);
-        if (!savedData) {
-            console.error("Invalid saved state data.");
-            return false;
-        }
-
-        console.log("Loading build state from localStorage:", savedData);
-
-        // Apply saved data to currentBuild
-        this.state.currentBuild.level = savedData.level || 1;
-        this.state.currentBuild.rebirth = savedData.rebirth || false;
-        this.state.currentBuild.statPoints = savedData.stats || {
-            agi: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
-            str: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
-            int: FO2Config.GAME.LEVEL.BASE_STAT_POINTS,
-            sta: FO2Config.GAME.LEVEL.BASE_STAT_POINTS
-        };
-
-        // Load UI mode if present
-        if (savedData.uiMode) {
-            this.state.ui.mode = savedData.uiMode;
-        }
-
-        // Reset equipment, buffs, and spell before loading
-        this.state.currentBuild.equipment = {};
-        this.state.currentBuild.activeBuffs = [];
-        this.state.currentBuild.selectedSpell = null;
-
-        // Load equipment
-        if (savedData.equipment && this.state.data.itemsById.size > 0) {
-            for (const slot in savedData.equipment) {
-                const itemIdToLoad = savedData.equipment[slot];
-                const itemToEquip = this.state.data.itemsById.get(itemIdToLoad);
-                if (itemToEquip) {
-                    this.state.currentBuild.equipment[slot] = itemToEquip;
-                } else {
-                    console.warn(`Could not find item ID ${itemIdToLoad} for slot ${slot} during load.`);
-                }
-            }
-        }
-
-        // Load active buffs
-        if (savedData.activeBuffNames && 
-           (this.state.data.buffs.Buff.length > 0 || this.state.data.buffs.Morph.length > 0)) {
-            savedData.activeBuffNames.forEach(buffNameToLoad => {
-                let buffToActivate = null;
-                for (const category in this.state.data.buffs) {
-                    if (Array.isArray(this.state.data.buffs[category])) {
-                        buffToActivate = this.state.data.buffs[category].find(b => b.Name === buffNameToLoad);
-                        if (buffToActivate) break;
-                    }
-                }
-                
-                if (buffToActivate) {
-                    this.state.currentBuild.activeBuffs.push(buffToActivate);
-                } else {
-                    console.warn(`Buff data missing for ${buffNameToLoad} during load.`);
-                }
-            });
-        }
-
-        // Load selected spell
-        if (savedData.selectedSpellName && this.state.data.spells && this.state.data.spells.length > 0) {
-            const spellToSelect = this.state.data.spells.find(s => s.Name === savedData.selectedSpellName);
-            if (spellToSelect) {
-                this.state.currentBuild.selectedSpell = spellToSelect;
-            } else {
-                console.warn(`Spell data missing for ${savedData.selectedSpellName} during load.`);
-            }
-        }
-
-        // Load UI state (performance filters)
-        if (savedData.uiPerformance) {
-            Object.assign(this.state.ui.performance, savedData.uiPerformance);
-            
-            // Clamp loaded levels
-            this.state.ui.performance.minLevel = Math.max(1, Math.min(
-                parseInt(this.state.ui.performance.minLevel) || 1,
-                this.state.data.mobsMaxLevel
-            ));
-            
-            this.state.ui.performance.maxLevel = Math.max(
-                this.state.ui.performance.minLevel,
-                Math.min(
-                    parseInt(this.state.ui.performance.maxLevel) || this.state.data.mobsMaxLevel,
-                    this.state.data.mobsMaxLevel
-                )
-            );
-        }
-
-        console.log("Successfully loaded state from localStorage.");
-        this.recalculatePoints();
-        this.triggerRecalculationAndUpdateUI();
-        
-        return true;
-    } catch (e) {
-        console.error("Failed to load or parse saved state:", e);
-        localStorage.removeItem(FO2Config.STORAGE.CURRENT_STATE_KEY);
-        return false;
-    }
-};
-
-
 // ------------------------------------------------------------------
 // ui-controller.js - UI update and event handling
 // ------------------------------------------------------------------
@@ -3245,10 +3380,12 @@ const UIController = {
     initialize() {
         this.setupTabbedNavigation();
         this.populateBuffGrid();
+        this.populateSetsList();
         this.updateDisplayFromState();
         this.setupEventListeners();
-        this.addPerformanceTableSortListeners(); // Make sure this is called
+     //   this.addPerformanceTableSortListeners(); //
         this.registerSlotItemRemovedListener();
+        this.restoreSavedPage();
     },
     
     /**
@@ -3418,6 +3555,7 @@ const UIController = {
             });
         }
         
+        /*
         // Performance table sorting
         document.querySelectorAll('.performance-table th[data-sort]').forEach(header => {
             header.addEventListener('click', () => {
@@ -3462,6 +3600,8 @@ const UIController = {
                 this.handleFilterSliderChange();
             });
         }
+
+        */
         
         // Save build button
         const saveBuildButton = DOMUtils.getElement('save-build-button');
@@ -3549,6 +3689,10 @@ const UIController = {
             this.updateDisplay(calculatedStats);
         });
         
+        EventSystem.subscribe('data-loaded', () => {
+            this.populateSetsList();
+        });
+
         EventSystem.subscribe('performance-updated', (data) => {
             this.updatePerformanceTable(data.data);
         });
@@ -3628,7 +3772,7 @@ const UIController = {
             }
         });
 
-        const spellSlot = DOMUtils.getElement('spell-slot');
+    const spellSlot = DOMUtils.getElement('spell-slot');
     if (spellSlot) {
         spellSlot.addEventListener('click', (event) => {
             if (!event.target.classList.contains('spell-clear')) {
@@ -3819,15 +3963,20 @@ registerSlotItemRemovedListener() {
         this.updateSortButtonsDisplay();
         
         // Performance Filters
+
+        /*
         const hideBossesCheckbox = DOMUtils.getElement('hide-bosses-checkbox');
         const minLevelSlider = DOMUtils.getElement('mob-level-min-slider');
         const maxLevelSlider = DOMUtils.getElement('mob-level-max-slider');
+        */
+
         const minLevelDisplay = DOMUtils.getElement('min-level-display');
         const maxLevelDisplay = DOMUtils.getElement('max-level-display');
         
-        if (hideBossesCheckbox) hideBossesCheckbox.checked = uiPerf.hideBosses;
+        /* if (hideBossesCheckbox) hideBossesCheckbox.checked = uiPerf.hideBosses; 
         if (minLevelSlider) minLevelSlider.value = uiPerf.minLevel;
         if (maxLevelSlider) maxLevelSlider.value = uiPerf.maxLevel;
+        */
         if (minLevelDisplay) minLevelDisplay.textContent = uiPerf.minLevel;
         if (maxLevelDisplay) maxLevelDisplay.textContent = uiPerf.maxLevel;
         
@@ -3957,6 +4106,273 @@ registerSlotItemRemovedListener() {
         this.updateBuffCount();
     },
     
+        /**
+         * Populate the sets list
+         */
+        populateSetsList() {
+        const setsList = DOMUtils.getElement('sets-list');
+        const setsCount = DOMUtils.getElement('available-sets-count');
+        
+        if (!setsList) return;
+        
+        DOMUtils.clearElement(setsList);
+        
+        const sets = StateManager.state.data.sets || [];
+        
+        if (setsCount) {
+            setsCount.textContent = `(${sets.length})`;
+        }
+        
+        if (sets.length === 0) {
+            setsList.innerHTML = '<div class="no-sets">No sets available</div>';
+            return;
+        }
+        
+        // Categorize sets by tier
+        const setCategories = {
+            dragon: [],
+            bastion: [],
+            knight: [],
+            mage: [],
+            misc: []
+        };
+        
+        sets.forEach(setData => {
+            const setName = setData.setName.toLowerCase();
+            
+            if (setName.includes('dragon')) {
+                setCategories.dragon.push(setData);
+            } else if (setName.includes('bastion')) {
+                setCategories.bastion.push(setData);
+            } else if (setName.includes('knight')) {
+                setCategories.knight.push(setData);
+            } else if (setName.includes('mage')) {
+                setCategories.mage.push(setData);
+            } else {
+                setCategories.misc.push(setData);
+            }
+        });
+        
+        // Sort each category by tier (extract numbers from set names)
+        Object.keys(setCategories).forEach(category => {
+            setCategories[category].sort((a, b) => {
+                const getTier = (name) => {
+                    const match = name.match(/(\d+)/);
+                    return match ? parseInt(match[1]) : 999; // Put non-numbered sets at end
+                };
+                return getTier(a.setName) - getTier(b.setName);
+            });
+        });
+        
+        // Create grid container
+        const gridContainer = DOMUtils.createElement('div', {
+            className: 'sets-grid-container'
+        });
+        
+        // Create columns in order: mage, knight, bastion, dragon, misc
+        const columnOrder = ['mage', 'knight', 'bastion', 'dragon', 'misc'];
+        
+        columnOrder.forEach(category => {
+            if (setCategories[category].length > 0) {
+                const column = DOMUtils.createElement('div', {
+                    className: 'sets-column'
+                });
+                
+                setCategories[category].forEach(setData => {
+                    const setButton = UIFactory.createSetItem(setData, (set) => {
+                        this.handleEquipSet(set);
+                    });
+                    column.appendChild(setButton);
+                });
+                
+                gridContainer.appendChild(column);
+            }
+        });
+        
+        setsList.appendChild(gridContainer);
+    },
+
+/**
+ * Handle equipping a complete set - duplicate ring/trinket to both slots
+ * @param {Object} setData - Set data to equip
+ */
+handleEquipSet(setData) {
+    console.log(`Equipping set: ${setData.setName}`);
+    console.log('Set items:', setData.items.map(item => `${item.Subtype}: ${item.Name}`));
+    
+    let equippedCount = 0;
+    let failedItems = [];
+    
+    // Direct slot assignment
+    const slotAssignments = {
+        'head': 'head',
+        'face': 'face', 
+        'shoulder': 'shoulder',
+        'chest': 'chest',
+        'legs': 'legs',
+        'back': 'back',
+        'offhand': 'offhand',
+        'guild': 'guild',
+        'faction': 'faction'
+    };
+    
+    // Separate items by type
+    const weapons = setData.items.filter(item => 
+        ['sword', 'bow', 'wand', 'staff', 'hammer', 'axe', '2h sword'].includes(item.Subtype)
+    );
+    
+    const rings = setData.items.filter(item => item.Subtype === 'ring');
+    const trinkets = setData.items.filter(item => item.Subtype === 'trinket');
+    const otherItems = setData.items.filter(item => 
+        !['sword', 'bow', 'wand', 'staff', 'hammer', 'axe', '2h sword', 'ring', 'trinket'].includes(item.Subtype)
+    );
+    
+    console.log('Weapons found:', weapons.map(w => `${w.Subtype}: ${w.Name}`));
+    console.log('Rings found:', rings.map(r => r.Name));
+    console.log('Trinkets found:', trinkets.map(t => t.Name));
+    console.log('Other items:', otherItems.map(item => `${item.Subtype}: ${item.Name}`));
+    
+    // BATCH EQUIP: Temporarily disable UI updates
+    const originalTriggerRecalc = StateManager.triggerRecalculationAndUpdateUI;
+    StateManager.triggerRecalculationAndUpdateUI = () => {}; // Temporarily disable
+    
+    // Equip one weapon (prefer 1h over 2h)
+    if (weapons.length > 0) {
+        const sortedWeapons = weapons.sort((a, b) => {
+            const aIs2h = a.Subtype.includes('2h') || a.Subtype === 'bow' || a.Subtype === 'staff';
+            const bIs2h = b.Subtype.includes('2h') || b.Subtype === 'bow' || b.Subtype === 'staff';
+            
+            if (aIs2h && !bIs2h) return -1;
+            if (!aIs2h && bIs2h) return 1;   // prefer 2h over 1h
+            return 0;
+        });
+        
+        const weaponToEquip = sortedWeapons[0];
+        console.log(`Equipping weapon: ${weaponToEquip.Name} (${weaponToEquip.Subtype})`);
+        StateManager.state.currentBuild.equipment.weapon = weaponToEquip;
+        equippedCount++;
+    }
+    
+    // Equip the SAME ring to BOTH ring slots
+    if (rings.length > 0) {
+        const ringToEquip = rings[0]; // Take the first (should be only one)
+        console.log(`Equipping ring to both slots: ${ringToEquip.Name}`);
+        StateManager.state.currentBuild.equipment.ring1 = ringToEquip;
+        StateManager.state.currentBuild.equipment.ring2 = ringToEquip;
+        equippedCount += 2; // Count as 2 since we equipped to 2 slots
+    }
+    
+    // Equip the SAME trinket to BOTH trinket slots
+    if (trinkets.length > 0) {
+        const trinketToEquip = trinkets[0]; // Take the first (should be only one)
+        console.log(`Equipping trinket to both slots: ${trinketToEquip.Name}`);
+        StateManager.state.currentBuild.equipment.trinket1 = trinketToEquip;
+        StateManager.state.currentBuild.equipment.trinket2 = trinketToEquip;
+        equippedCount += 2; // Count as 2 since we equipped to 2 slots
+    }
+    
+    // Equip other single-slot items
+    otherItems.forEach(item => {
+        const targetSlot = slotAssignments[item.Subtype];
+        
+        console.log(`Assigning ${item.Name} (${item.Subtype}) to slot: ${targetSlot}`);
+        
+        if (targetSlot) {
+            StateManager.state.currentBuild.equipment[targetSlot] = item;
+            equippedCount++;
+            console.log(`Equipped ${item.Name} to ${targetSlot}`);
+        } else {
+            failedItems.push(item.Name);
+            console.log(`Failed to find slot for: ${item.Name}`);
+        }
+    });
+    
+    // Restore the original function and trigger update once
+    StateManager.triggerRecalculationAndUpdateUI = originalTriggerRecalc;
+    StateManager.triggerRecalculationAndUpdateUI();
+    
+    // Update UI
+    this.updateEquipmentSlots();
+    
+    console.log(`Final equipped count: ${equippedCount}`);
+    console.log('Current equipment after set equip:', StateManager.state.currentBuild.equipment);
+    
+    // Expected total: other items + 1 weapon + 2 rings + 2 trinkets = 10 pieces for full sets
+    const expectedTotal = otherItems.length + (weapons.length > 0 ? 1 : 0) + (rings.length > 0 ? 2 : 0) + (trinkets.length > 0 ? 2 : 0);
+    
+    if (equippedCount > 0) {
+        if (failedItems.length > 0) {
+            DOMUtils.showNotification(
+                `Equipped ${equippedCount}/${expectedTotal} items from ${setData.setName}. Failed: ${failedItems.join(', ')}`, 
+                'info'
+            );
+        } else {
+            DOMUtils.showNotification(`Equipped complete ${setData.setName} set! (${equippedCount} pieces)`, 'success');
+        }
+    } else {
+        DOMUtils.showNotification(`Could not equip any items from ${setData.setName}`, 'error');
+    }
+},
+
+    /**
+     * Get the appropriate slot for an item
+     * @param {Object} item - Item to find slot for
+     * @returns {string|null} Slot name or null
+     */
+    getSlotForItem(item) {
+        const currentEquipment = StateManager.state.currentBuild.equipment;
+        
+        const slotMapping = {
+            'head': 'head',
+            'face': 'face',
+            'shoulder': 'shoulder',
+            'chest': 'chest',
+            'legs': 'legs',
+            'back': 'back',
+            'offhand': 'offhand',
+            'guild': 'guild',
+            'faction': 'faction',
+            'sword': 'weapon',
+            'bow': 'weapon',
+            'wand': 'weapon',
+            'staff': 'weapon',
+            'hammer': 'weapon',
+            'axe': 'weapon',
+            '2h sword': 'weapon'
+        };
+        
+        // Handle single-slot items
+        if (slotMapping[item.Subtype]) {
+            return slotMapping[item.Subtype];
+        }
+        
+        // Handle rings - try ring1 first, then ring2
+        if (item.Subtype === 'ring') {
+            if (!currentEquipment.ring1) {
+                return 'ring1';
+            } else if (!currentEquipment.ring2) {
+                return 'ring2';
+            } else {
+                // Both slots occupied, replace ring1
+                return 'ring1';
+            }
+        }
+        
+        // Handle trinkets - try trinket1 first, then trinket2
+        if (item.Subtype === 'trinket') {
+            if (!currentEquipment.trinket1) {
+                return 'trinket1';
+            } else if (!currentEquipment.trinket2) {
+                return 'trinket2';
+            } else {
+                // Both slots occupied, replace trinket1
+                return 'trinket1';
+            }
+        }
+        
+        return null;
+    },
+    
     /**
      * Update the buff grid based on current state
      */
@@ -4006,6 +4422,150 @@ registerSlotItemRemovedListener() {
         if (success) {
             buffElements.forEach(el => el.classList.toggle('active', !isActive));
             this.updateBuffCount();
+        }
+    },
+
+    /**
+     * Update spell display
+     */
+    updateSpellDisplay() {
+        const spellSlot = DOMUtils.getElement('spell-slot');
+        const spellInfo = DOMUtils.getElement('spell-info');
+        
+        if (!spellSlot || !spellInfo) return;
+        
+        const selectedSpell = StateManager.state.currentBuild.selectedSpell;
+        
+        UIFactory.updateSpellSlotContent(spellSlot, selectedSpell);
+        
+        DOMUtils.clearElement(spellInfo);
+        
+        if (selectedSpell) {
+            const calculatedStats = StateManager.state.currentBuild.calculatedStats;
+            const critPercent = calculatedStats?.finalCrit || 0;
+            const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(selectedSpell, critPercent);
+            
+            const nameDiv = DOMUtils.createElement('div', {
+                className: 'spell-name',
+                textContent: `${selectedSpell.Name} (Tier ${selectedSpell.tier})`
+            });
+            
+            const statsDiv = DOMUtils.createElement('div', {
+                className: 'spell-stats'
+            });
+            
+            const dpsDiv = DOMUtils.createElement('div', {
+                innerHTML: `DPS: <span class="spell-dps">${dpsWithCrit}</span> (Base: ${selectedSpell.baseDps})`
+            });
+            
+            const costDiv = DOMUtils.createElement('div', {
+                innerHTML: `Cost: <span class="spell-cost">${selectedSpell.energyPerSecond.toFixed(1)} energy/sec</span>`
+            });
+            
+            statsDiv.appendChild(dpsDiv);
+            statsDiv.appendChild(costDiv);
+            
+            spellInfo.appendChild(nameDiv);
+            spellInfo.appendChild(statsDiv);
+        } else {
+            const placeholderDiv = DOMUtils.createElement('div', {
+                style: 'color: #666; font-style: italic;',
+                textContent: 'Click to select a spell'
+            });
+            
+            spellInfo.appendChild(placeholderDiv);
+        }
+    },
+    
+    /**
+     * Open spell search
+     */
+    openSpellSearch() {
+        const searchModal = DOMUtils.getElement('item-search-modal');
+        const searchTitle = document.getElementById('search-title');
+        const searchInput = DOMUtils.getElement('item-search-input');
+        
+        if (!searchModal) return;
+        
+        StateManager.setCurrentItemSearchSlot('spell');
+        
+        if (searchTitle) {
+            searchTitle.textContent = 'Select Spell';
+        }
+        
+        searchModal.style.display = 'flex';
+        searchModal.style.top = '50%';
+        searchModal.style.left = '50%';
+        searchModal.style.transform = 'translate(-50%, -50%)';
+        
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.focus();
+        }
+        
+        this.populateSpellSearchResults();
+    },
+    
+    /**
+     * Populate spell search results
+     */
+    populateSpellSearchResults(query = '') {
+        const searchResults = DOMUtils.getElement('search-results');
+        if (!searchResults) return;
+        
+        DOMUtils.clearElement(searchResults);
+        
+        const spells = StateManager.state.data.spells || [];
+        
+        let filteredSpells = spells;
+        if (query) {
+            const lowerQuery = query.toLowerCase();
+            filteredSpells = spells.filter(spell => 
+                spell.Name.toLowerCase().includes(lowerQuery) ||
+                spell.tier.toString().includes(lowerQuery)
+            );
+        }
+        
+        filteredSpells.sort((a, b) => {
+            const nameComparison = a.Name.localeCompare(b.Name);
+            if (nameComparison !== 0) {
+                return nameComparison;
+            }
+            return a.tier - b.tier;
+        });
+        
+        if (filteredSpells.length === 0) {
+            searchResults.innerHTML = '<div class="search-item">No matching spells found.</div>';
+        } else {
+            filteredSpells.forEach(spell => {
+                const spellElement = UIFactory.createSpellSearchResult(spell, (selectedSpell) => {
+                    StateManager.setSelectedSpell(selectedSpell);
+                    this.updateSpellDisplay();
+                    this.closeItemSearch();
+                    DOMUtils.showNotification(`Selected ${selectedSpell.Name}`, 'success');
+                });
+                
+                searchResults.appendChild(spellElement);
+            });
+        }
+    },
+    
+    /**
+     * Restore saved page
+     */
+    restoreSavedPage() {
+        const savedPage = StateManager.state.ui.currentPage;
+        const targetButton = document.querySelector(`.nav-button[data-page="${savedPage}"]`);
+        const targetPageElement = document.getElementById(`${savedPage}-page`);
+        
+        if (targetButton && targetPageElement) {
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            targetButton.classList.add('active');
+            
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            targetPageElement.classList.add('active');
+            
+            EventSystem.publish('page-changed', { page: savedPage });
         }
     },
     
@@ -4831,135 +5391,6 @@ registerSlotItemRemovedListener() {
     },
 
 };
-// Add spell-related methods to UIController after its definition
-UIController.updateSpellDisplay = function() {
-    const spellSlot = DOMUtils.getElement('spell-slot');
-    const spellInfo = DOMUtils.getElement('spell-info');
-    
-    if (!spellSlot || !spellInfo) return;
-    
-    const selectedSpell = StateManager.state.currentBuild.selectedSpell;
-    
-    // Update spell slot
-    UIFactory.updateSpellSlotContent(spellSlot, selectedSpell);
-    
-    // Update spell info
-    DOMUtils.clearElement(spellInfo);
-    
-    if (selectedSpell) {
-        // Get current crit % from calculated stats
-        const calculatedStats = StateManager.state.currentBuild.calculatedStats;
-        const critPercent = calculatedStats?.finalCrit || 0;
-        
-        // Calculate DPS with crit
-        const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(selectedSpell, critPercent);
-        
-        const nameDiv = DOMUtils.createElement('div', {
-            className: 'spell-name',
-            textContent: `${selectedSpell.Name} (Tier ${selectedSpell.tier})`
-        });
-        
-        const statsDiv = DOMUtils.createElement('div', {
-            className: 'spell-stats'
-        });
-        
-        const dpsDiv = DOMUtils.createElement('div', {
-            innerHTML: `DPS: <span class="spell-dps">${dpsWithCrit}</span> (Base: ${selectedSpell.baseDps})`
-        });
-        
-        const costDiv = DOMUtils.createElement('div', {
-            innerHTML: `Cost: <span class="spell-cost">${selectedSpell.energyPerSecond.toFixed(1)} energy/sec</span>`
-        });
-        
-        statsDiv.appendChild(dpsDiv);
-        statsDiv.appendChild(costDiv);
-        
-        spellInfo.appendChild(nameDiv);
-        spellInfo.appendChild(statsDiv);
-    } else {
-        const placeholderDiv = DOMUtils.createElement('div', {
-            style: 'color: #666; font-style: italic;',
-            textContent: 'Click to select a spell'
-        });
-        
-        spellInfo.appendChild(placeholderDiv);
-    }
-};
-
-UIController.openSpellSearch = function() {
-    const searchModal = DOMUtils.getElement('item-search-modal');
-    const searchTitle = document.getElementById('search-title');
-    const searchInput = DOMUtils.getElement('item-search-input');
-    
-    if (!searchModal) return;
-    
-    // Set search mode to spells
-    StateManager.setCurrentItemSearchSlot('spell');
-    
-    // Update Title
-    if (searchTitle) {
-        searchTitle.textContent = 'Select Spell';
-    }
-    
-    // Show and position modal
-    searchModal.style.display = 'flex';
-    searchModal.style.top = '50%';
-    searchModal.style.left = '50%';
-    searchModal.style.transform = 'translate(-50%, -50%)';
-    
-    if (searchInput) {
-        searchInput.value = '';
-        searchInput.focus();
-    }
-    
-    this.populateSpellSearchResults();
-};
-
-UIController.populateSpellSearchResults = function(query = '') {
-    const searchResults = DOMUtils.getElement('search-results');
-    if (!searchResults) return;
-    
-    DOMUtils.clearElement(searchResults);
-    
-    const spells = StateManager.state.data.spells || [];
-    
-    // Filter by query
-    let filteredSpells = spells;
-    if (query) {
-        const lowerQuery = query.toLowerCase();
-        filteredSpells = spells.filter(spell => 
-            spell.Name.toLowerCase().includes(lowerQuery) ||
-            spell.tier.toString().includes(lowerQuery)
-        );
-    }
-    
-    // Sort alphabetically by name first, then by tier
-    filteredSpells.sort((a, b) => {
-        // First sort by spell name (alphabetical)
-        const nameComparison = a.Name.localeCompare(b.Name);
-        if (nameComparison !== 0) {
-            return nameComparison;
-        }
-        // If names are the same, sort by tier (ascending)
-        return a.tier - b.tier;
-    });
-    
-    // Display results
-    if (filteredSpells.length === 0) {
-        searchResults.innerHTML = '<div class="search-item">No matching spells found.</div>';
-    } else {
-        filteredSpells.forEach(spell => {
-            const spellElement = UIFactory.createSpellSearchResult(spell, (selectedSpell) => {
-                StateManager.setSelectedSpell(selectedSpell);
-                this.updateSpellDisplay();
-                this.closeItemSearch();
-                DOMUtils.showNotification(`Selected ${selectedSpell.Name}`, 'success');
-            });
-            
-            searchResults.appendChild(spellElement);
-        });
-    }
-};
 
 const ItemEditor = {
     /**
@@ -5177,15 +5608,6 @@ const ItemEditor = {
         input.click();
     }
 };
-
-// ------------------------------------------------------------------
-// app.js - Main application initialization
-// ------------------------------------------------------------------
-
-/**
- * Main application entry point - the simplest module, responsible only for initializing
- * the application when the DOM is fully loaded.
- */
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOM Loaded. Starting initialization...");
     try {
