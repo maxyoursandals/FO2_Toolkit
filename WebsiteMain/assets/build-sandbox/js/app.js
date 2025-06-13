@@ -1072,6 +1072,23 @@ const UIFactory = {
     },
 
     /**
+     * Creates a simple set button
+     * @param {Object} setData - Set data
+     * @param {Function} equipHandler - Function to call when equipping set
+     * @returns {HTMLElement} Set button element
+     */
+    createSetItem(setData, equipHandler) {
+        const setButton = DOMUtils.createElement('button', {
+            className: 'set-button action-button',
+            textContent: setData.setName,
+            title: `Click to equip ${setData.setName} set (${setData.items.length} pieces)`,
+            onclick: () => equipHandler(setData)
+        });
+        
+        return setButton;
+    },
+
+    /**
      * Creates a set bonus display element - FIXED to only show active bonuses
      * @param {string} setName - Name of the set
      * @param {number} equippedCount - Number of equipped pieces
@@ -1510,7 +1527,18 @@ canCategorizeItem(itemData) {
         '2,10': true  // 2h Axe
     };
     
-    return typeMapping.hasOwnProperty(typeKey);
+    // Check if item type is valid
+    if (!typeMapping.hasOwnProperty(typeKey)) {
+        return false;
+    }
+    
+    // Check if item has a name and exclude UNUSED items
+    const itemName = itemData.t?.en?.n || '';
+    if (itemName.includes('(UNUSED)')) {
+        return false;
+    }
+    
+    return true;
 },
 
 /**
@@ -1559,11 +1587,11 @@ convertAPIItemsToInternalFormat(apiData) {
         
         // Convert API format to our internal format
         const convertedItem = {
-            'Item ID': itemId,
-            'Name': itemData.t?.en?.n || `Item ${itemId}`, // Fixed: Name is nested under t.en.n
-            'Level': itemData.lr || 0,
-            'Type': typeInfo.Type,
-            'Subtype': typeInfo.Subtype,
+        'Item ID': itemId,
+        'Name': itemData.t?.en?.n || `Item ${itemId}`,
+        'Level': itemData.lr || 0,
+        'Type': typeInfo.Type,
+        'Subtype': typeInfo.Subtype,
             
             // Stats from API - handle missing values as 0
             'STA': this.getStatValue(itemData.sta, 'sta') || 0,
@@ -1590,8 +1618,9 @@ convertAPIItemsToInternalFormat(apiData) {
             'Sprite-Link': itemData.sfn ? `https://art.fantasyonline2.com/textures/icons/items/${itemData.sfn}-icon.png` : null,
             
             // Set information (if available)
-            'setName': itemData.s?.sn || null,
-            'setData': itemData.s || null
+            'setName': itemData.t?.en?.sn || null,
+            'setData': itemData.s || null,
+            'setId': itemData.s?.sid || null
         };
         
         items.push(convertedItem);
@@ -1709,8 +1738,10 @@ formatDamageFromAPI(itemData) {
                         // Convert API set format to our internal format
                         const setData = {
                             setName: item.setName,
+                            description: item.setData.d || '', // Set description if available
                             bonuses: this.convertAPISetBonuses(item.setData),
-                            itemIds: []
+                            itemIds: [],
+                            items: [] // Store actual item references for easy access
                         };
                         setsByName.set(item.setName, setData);
                     }
@@ -1718,6 +1749,7 @@ formatDamageFromAPI(itemData) {
                     // Add this item to the set's item list
                     const setData = setsByName.get(item.setName);
                     setData.itemIds.push(item['Item ID']);
+                    setData.items.push(item); // Add item reference
                 }
             });
             
@@ -1759,10 +1791,12 @@ formatDamageFromAPI(itemData) {
      * @returns {Object} Converted set bonuses
      */
     convertAPISetBonuses(apiSetData) {
+        console.log('Converting API set bonuses:', apiSetData);
+        
         const bonuses = {};
         
-        // Based on your API structure, adjust this as needed
-        if (apiSetData.sb) {
+        // Set bonuses are under sb object, with piece counts as keys
+        if (apiSetData && apiSetData.sb) {
             for (const [pieceCount, bonus] of Object.entries(apiSetData.sb)) {
                 bonuses[pieceCount] = {
                     CRIT: bonus.crit || 0,
@@ -1770,12 +1804,13 @@ formatDamageFromAPI(itemData) {
                     STR: bonus.str || 0,
                     INT: bonus.int || 0,
                     STA: bonus.sta || 0,
-                    ATKP: bonus.atkr || 0,  // Attack power from API
+                    ATKP: bonus.atkp || 0,
                     ARMOR: bonus.arm || 0
                 };
             }
         }
         
+        console.log('Converted bonuses:', bonuses);
         return bonuses;
     },
     /**
@@ -2602,6 +2637,9 @@ const StateManager = {
             if (!stateLoaded) {
                 this.triggerRecalculationAndUpdateUI();
             }
+            
+            // Publish that data is loaded - ADD THIS
+            EventSystem.publish('data-loaded');
             
             console.log('State manager initialized successfully.');
             return true;
@@ -3505,6 +3543,7 @@ const UIController = {
     initialize() {
         this.setupTabbedNavigation();
         this.populateBuffGrid();
+        this.populateSetsList();
         this.updateDisplayFromState();
         this.setupEventListeners();
         this.addPerformanceTableSortListeners(); // Make sure this is called
@@ -3678,6 +3717,7 @@ const UIController = {
             });
         }
         
+        /*
         // Performance table sorting
         document.querySelectorAll('.performance-table th[data-sort]').forEach(header => {
             header.addEventListener('click', () => {
@@ -3722,6 +3762,8 @@ const UIController = {
                 this.handleFilterSliderChange();
             });
         }
+
+        */
         
         // Save build button
         const saveBuildButton = DOMUtils.getElement('save-build-button');
@@ -3809,6 +3851,10 @@ const UIController = {
             this.updateDisplay(calculatedStats);
         });
         
+        EventSystem.subscribe('data-loaded', () => {
+            this.populateSetsList();
+        });
+
         EventSystem.subscribe('performance-updated', (data) => {
             this.updatePerformanceTable(data.data);
         });
@@ -4079,15 +4125,20 @@ registerSlotItemRemovedListener() {
         this.updateSortButtonsDisplay();
         
         // Performance Filters
+
+        /*
         const hideBossesCheckbox = DOMUtils.getElement('hide-bosses-checkbox');
         const minLevelSlider = DOMUtils.getElement('mob-level-min-slider');
         const maxLevelSlider = DOMUtils.getElement('mob-level-max-slider');
+        */
+
         const minLevelDisplay = DOMUtils.getElement('min-level-display');
         const maxLevelDisplay = DOMUtils.getElement('max-level-display');
         
-        if (hideBossesCheckbox) hideBossesCheckbox.checked = uiPerf.hideBosses;
+        /* if (hideBossesCheckbox) hideBossesCheckbox.checked = uiPerf.hideBosses; 
         if (minLevelSlider) minLevelSlider.value = uiPerf.minLevel;
         if (maxLevelSlider) maxLevelSlider.value = uiPerf.maxLevel;
+        */
         if (minLevelDisplay) minLevelDisplay.textContent = uiPerf.minLevel;
         if (maxLevelDisplay) maxLevelDisplay.textContent = uiPerf.maxLevel;
         
@@ -4215,6 +4266,273 @@ registerSlotItemRemovedListener() {
         });
         
         this.updateBuffCount();
+    },
+    
+        /**
+         * Populate the sets list
+         */
+        populateSetsList() {
+        const setsList = DOMUtils.getElement('sets-list');
+        const setsCount = DOMUtils.getElement('available-sets-count');
+        
+        if (!setsList) return;
+        
+        DOMUtils.clearElement(setsList);
+        
+        const sets = StateManager.state.data.sets || [];
+        
+        if (setsCount) {
+            setsCount.textContent = `(${sets.length})`;
+        }
+        
+        if (sets.length === 0) {
+            setsList.innerHTML = '<div class="no-sets">No sets available</div>';
+            return;
+        }
+        
+        // Categorize sets by tier
+        const setCategories = {
+            dragon: [],
+            bastion: [],
+            knight: [],
+            mage: [],
+            misc: []
+        };
+        
+        sets.forEach(setData => {
+            const setName = setData.setName.toLowerCase();
+            
+            if (setName.includes('dragon')) {
+                setCategories.dragon.push(setData);
+            } else if (setName.includes('bastion')) {
+                setCategories.bastion.push(setData);
+            } else if (setName.includes('knight')) {
+                setCategories.knight.push(setData);
+            } else if (setName.includes('mage')) {
+                setCategories.mage.push(setData);
+            } else {
+                setCategories.misc.push(setData);
+            }
+        });
+        
+        // Sort each category by tier (extract numbers from set names)
+        Object.keys(setCategories).forEach(category => {
+            setCategories[category].sort((a, b) => {
+                const getTier = (name) => {
+                    const match = name.match(/(\d+)/);
+                    return match ? parseInt(match[1]) : 999; // Put non-numbered sets at end
+                };
+                return getTier(a.setName) - getTier(b.setName);
+            });
+        });
+        
+        // Create grid container
+        const gridContainer = DOMUtils.createElement('div', {
+            className: 'sets-grid-container'
+        });
+        
+        // Create columns in order: mage, knight, bastion, dragon, misc
+        const columnOrder = ['mage', 'knight', 'bastion', 'dragon', 'misc'];
+        
+        columnOrder.forEach(category => {
+            if (setCategories[category].length > 0) {
+                const column = DOMUtils.createElement('div', {
+                    className: 'sets-column'
+                });
+                
+                setCategories[category].forEach(setData => {
+                    const setButton = UIFactory.createSetItem(setData, (set) => {
+                        this.handleEquipSet(set);
+                    });
+                    column.appendChild(setButton);
+                });
+                
+                gridContainer.appendChild(column);
+            }
+        });
+        
+        setsList.appendChild(gridContainer);
+    },
+
+/**
+ * Handle equipping a complete set - duplicate ring/trinket to both slots
+ * @param {Object} setData - Set data to equip
+ */
+handleEquipSet(setData) {
+    console.log(`Equipping set: ${setData.setName}`);
+    console.log('Set items:', setData.items.map(item => `${item.Subtype}: ${item.Name}`));
+    
+    let equippedCount = 0;
+    let failedItems = [];
+    
+    // Direct slot assignment
+    const slotAssignments = {
+        'head': 'head',
+        'face': 'face', 
+        'shoulder': 'shoulder',
+        'chest': 'chest',
+        'legs': 'legs',
+        'back': 'back',
+        'offhand': 'offhand',
+        'guild': 'guild',
+        'faction': 'faction'
+    };
+    
+    // Separate items by type
+    const weapons = setData.items.filter(item => 
+        ['sword', 'bow', 'wand', 'staff', 'hammer', 'axe', '2h sword'].includes(item.Subtype)
+    );
+    
+    const rings = setData.items.filter(item => item.Subtype === 'ring');
+    const trinkets = setData.items.filter(item => item.Subtype === 'trinket');
+    const otherItems = setData.items.filter(item => 
+        !['sword', 'bow', 'wand', 'staff', 'hammer', 'axe', '2h sword', 'ring', 'trinket'].includes(item.Subtype)
+    );
+    
+    console.log('Weapons found:', weapons.map(w => `${w.Subtype}: ${w.Name}`));
+    console.log('Rings found:', rings.map(r => r.Name));
+    console.log('Trinkets found:', trinkets.map(t => t.Name));
+    console.log('Other items:', otherItems.map(item => `${item.Subtype}: ${item.Name}`));
+    
+    // BATCH EQUIP: Temporarily disable UI updates
+    const originalTriggerRecalc = StateManager.triggerRecalculationAndUpdateUI;
+    StateManager.triggerRecalculationAndUpdateUI = () => {}; // Temporarily disable
+    
+    // Equip one weapon (prefer 1h over 2h)
+    if (weapons.length > 0) {
+        const sortedWeapons = weapons.sort((a, b) => {
+            const aIs2h = a.Subtype.includes('2h') || a.Subtype === 'bow' || a.Subtype === 'staff';
+            const bIs2h = b.Subtype.includes('2h') || b.Subtype === 'bow' || b.Subtype === 'staff';
+            
+            if (aIs2h && !bIs2h) return -1;
+            if (!aIs2h && bIs2h) return 1;   // prefer 2h over 1h
+            return 0;
+        });
+        
+        const weaponToEquip = sortedWeapons[0];
+        console.log(`Equipping weapon: ${weaponToEquip.Name} (${weaponToEquip.Subtype})`);
+        StateManager.state.currentBuild.equipment.weapon = weaponToEquip;
+        equippedCount++;
+    }
+    
+    // Equip the SAME ring to BOTH ring slots
+    if (rings.length > 0) {
+        const ringToEquip = rings[0]; // Take the first (should be only one)
+        console.log(`Equipping ring to both slots: ${ringToEquip.Name}`);
+        StateManager.state.currentBuild.equipment.ring1 = ringToEquip;
+        StateManager.state.currentBuild.equipment.ring2 = ringToEquip;
+        equippedCount += 2; // Count as 2 since we equipped to 2 slots
+    }
+    
+    // Equip the SAME trinket to BOTH trinket slots
+    if (trinkets.length > 0) {
+        const trinketToEquip = trinkets[0]; // Take the first (should be only one)
+        console.log(`Equipping trinket to both slots: ${trinketToEquip.Name}`);
+        StateManager.state.currentBuild.equipment.trinket1 = trinketToEquip;
+        StateManager.state.currentBuild.equipment.trinket2 = trinketToEquip;
+        equippedCount += 2; // Count as 2 since we equipped to 2 slots
+    }
+    
+    // Equip other single-slot items
+    otherItems.forEach(item => {
+        const targetSlot = slotAssignments[item.Subtype];
+        
+        console.log(`Assigning ${item.Name} (${item.Subtype}) to slot: ${targetSlot}`);
+        
+        if (targetSlot) {
+            StateManager.state.currentBuild.equipment[targetSlot] = item;
+            equippedCount++;
+            console.log(`Equipped ${item.Name} to ${targetSlot}`);
+        } else {
+            failedItems.push(item.Name);
+            console.log(`Failed to find slot for: ${item.Name}`);
+        }
+    });
+    
+    // Restore the original function and trigger update once
+    StateManager.triggerRecalculationAndUpdateUI = originalTriggerRecalc;
+    StateManager.triggerRecalculationAndUpdateUI();
+    
+    // Update UI
+    this.updateEquipmentSlots();
+    
+    console.log(`Final equipped count: ${equippedCount}`);
+    console.log('Current equipment after set equip:', StateManager.state.currentBuild.equipment);
+    
+    // Expected total: other items + 1 weapon + 2 rings + 2 trinkets = 10 pieces for full sets
+    const expectedTotal = otherItems.length + (weapons.length > 0 ? 1 : 0) + (rings.length > 0 ? 2 : 0) + (trinkets.length > 0 ? 2 : 0);
+    
+    if (equippedCount > 0) {
+        if (failedItems.length > 0) {
+            DOMUtils.showNotification(
+                `Equipped ${equippedCount}/${expectedTotal} items from ${setData.setName}. Failed: ${failedItems.join(', ')}`, 
+                'info'
+            );
+        } else {
+            DOMUtils.showNotification(`Equipped complete ${setData.setName} set! (${equippedCount} pieces)`, 'success');
+        }
+    } else {
+        DOMUtils.showNotification(`Could not equip any items from ${setData.setName}`, 'error');
+    }
+},
+
+    /**
+     * Get the appropriate slot for an item
+     * @param {Object} item - Item to find slot for
+     * @returns {string|null} Slot name or null
+     */
+    getSlotForItem(item) {
+        const currentEquipment = StateManager.state.currentBuild.equipment;
+        
+        const slotMapping = {
+            'head': 'head',
+            'face': 'face',
+            'shoulder': 'shoulder',
+            'chest': 'chest',
+            'legs': 'legs',
+            'back': 'back',
+            'offhand': 'offhand',
+            'guild': 'guild',
+            'faction': 'faction',
+            'sword': 'weapon',
+            'bow': 'weapon',
+            'wand': 'weapon',
+            'staff': 'weapon',
+            'hammer': 'weapon',
+            'axe': 'weapon',
+            '2h sword': 'weapon'
+        };
+        
+        // Handle single-slot items
+        if (slotMapping[item.Subtype]) {
+            return slotMapping[item.Subtype];
+        }
+        
+        // Handle rings - try ring1 first, then ring2
+        if (item.Subtype === 'ring') {
+            if (!currentEquipment.ring1) {
+                return 'ring1';
+            } else if (!currentEquipment.ring2) {
+                return 'ring2';
+            } else {
+                // Both slots occupied, replace ring1
+                return 'ring1';
+            }
+        }
+        
+        // Handle trinkets - try trinket1 first, then trinket2
+        if (item.Subtype === 'trinket') {
+            if (!currentEquipment.trinket1) {
+                return 'trinket1';
+            } else if (!currentEquipment.trinket2) {
+                return 'trinket2';
+            } else {
+                // Both slots occupied, replace trinket1
+                return 'trinket1';
+            }
+        }
+        
+        return null;
     },
     
     /**
