@@ -37,7 +37,7 @@ const FO2Config = {
         // Level caps
         LEVEL: {
             NORMAL_CAP: 60,
-            REBIRTH_CAP: 90,
+            REBIRTH_CAP: 91,
             BASE_STAT_POINTS: 20,
             INITIAL_POINTS: 2,
             POINTS_PER_LEVEL: 2,
@@ -2569,7 +2569,7 @@ const StateManager = {
                 sortColumn: 'name',
                 sortAscending: true,
                 minLevel: 1,
-                maxLevel: 90,
+                maxLevel: 91,
                 hideBosses: false
             },
             itemDictionary: {
