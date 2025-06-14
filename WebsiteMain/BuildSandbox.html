@@ -1,395 +1,395 @@
 <!DOCTYPE HTML>
 <html>
-	<head>
-		<title>FO2 Toolkit - Build Sandbox</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="assets/css/main.css" />
-		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
-		<link rel="stylesheet" href="assets/build-sandbox/css/style.css" />
-	</head>
-	<body class="is-preload">
-		<!-- Wrapper -->
-			<div id="wrapper">
+    <head>
+        <title>FO2 Toolkit - Build Sandbox</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <link rel="stylesheet" href="assets/css/main.css" />
+        <noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+        <link rel="stylesheet" href="assets/build-sandbox/css/style.css" />
+    </head>
+    <body class="is-preload">
+        <!-- Wrapper -->
+            <div id="wrapper">
 
-				<!-- Header -->
-					<header id="header">
-						<div class="inner">
+                <!-- Header -->
+                    <header id="header">
+                        <div class="inner">
 
-							<!-- Logo -->
-								<a href="index.html" class="logo">
-									<span class="symbol"><img src="images/FOToolkit_HeaderIcon.png" alt=""/></span><span class="title">FO2 Toolkit</span>
-								</a>
+                            <!-- Logo -->
+                                <a href="index.html" class="logo">
+                                    <span class="symbol"><img src="images/FOToolkit_HeaderIcon.png" alt=""/></span><span class="title">FO2 Toolkit</span>
+                                </a>
 
-							<!-- Nav -->
-								<nav>
-									<ul>
-										<li><a href="#menu">Menu</a></li>
-									</ul>
-								</nav>
+                            <!-- Nav -->
+                                <nav>
+                                    <ul>
+                                        <li><a href="#menu">Menu</a></li>
+                                    </ul>
+                                </nav>
 
-						</div>
-					</header>
+                        </div>
+                    </header>
 
-				<!-- Menu -->
-					<nav id="menu">
-						<h2>Menu</h2>
-						<ul>
-							<li><a href="index.html">Home</a></li>
-							<li><a href="generic.html">Ipsum veroeros</a></li>
-							<li><a href="generic.html">Tempus etiam</a></li>
-							<li><a href="generic.html">Consequat dolor</a></li>
-							<li><a href="elements.html">Elements</a></li>
-						</ul>
-					</nav>
+                <!-- Menu -->
+                    <nav id="menu">
+                        <h2>Menu</h2>
+                        <ul>
+                            <li><a href="index.html">Home</a></li>
+                            <li><a href="generic.html">Ipsum veroeros</a></li>
+                            <li><a href="generic.html">Tempus etiam</a></li>
+                            <li><a href="generic.html">Consequat dolor</a></li>
+                            <li><a href="elements.html">Elements</a></li>
+                        </ul>
+                    </nav>
 
-				<!-- Main -->
-					<div id="main">
-						<div class="inner">
-							<div id="app-container">   
-								<div class="top-nav">
-									<button class="nav-button" data-page="build-editor">Editor</button>
-									<button class="nav-button" data-page="build-management">Saved Builds</button>
-									<button class="nav-button" data-page="item-dictionary">Item Dictionary</button>
-								</div>
-							
-								<div class="page-content">
-							
-									<div id="build-editor-page" class="page active">
-										<div class="container">
-											<div class="panel left-panel">
-												<div class="level-select">
-													<label for="level">Level</label>
-													<div style="display: flex; align-items: center;">
-														<input type="number" id="level" min="1" max="90" value="1">
-													<div class="rebirth-icon-container" id="rebirth-icon-clickable" title="Toggle Rebirth">
-														<img src="assets/build-sandbox/icons/rebirth-icon.png" alt="Rebirth" id="rebirth-status-icon">
-													</div>
-													<div class="action-buttons">
-														<button class="action-button" id="reset-button">Reset Stats</button>
-														<button class="action-button" id="reset-buffs-button">Reset Buffs</button>
-													</div>
-													</div>
-													<input type="range" id="level-slider" min="1" max="60" value="1">
-												</div>
+                <!-- Main -->
+                    <div id="main">
+                        <div class="inner">
+                            <div id="app-container">   
+                                <div class="top-nav">
+                                    <button class="nav-button" data-page="build-editor">Editor</button>
+                                    <button class="nav-button" data-page="build-management">Saved Builds</button>
+                                    <button class="nav-button" data-page="item-dictionary">Item Dictionary</button>
+                                </div>
+                            
+                                <div class="page-content">
+                            
+                                    <div id="build-editor-page" class="page active">
+                                        <div class="container">
+                                            <div class="panel left-panel">
+                                                <div class="level-select">
+                                                    <label for="level">Level</label>
+                                                    <div style="display: flex; align-items: center;">
+                                                        <input type="number" id="level" min="1" max="90" value="1">
+                                                    <div class="rebirth-icon-container" id="rebirth-icon-clickable" title="Toggle Rebirth">
+                                                        <img src="assets/build-sandbox/icons/rebirth-icon.png" alt="Rebirth" id="rebirth-status-icon">
+                                                    </div>
+                                                    <div class="action-buttons">
+                                                        <button class="action-button" id="reset-button">Reset Stats</button>
+                                                        <button class="action-button" id="reset-buffs-button">Reset Buffs</button>
+                                                    </div>
+                                                    </div>
+                                                    <input type="range" id="level-slider" min="1" max="60" value="1">
+                                                </div>
 
-												<div class="mode-toggle-container">
-													<div class="toggle-label">Mode: <span id="mode-display">Sandbox Mode</span></div>
-													<label class="toggle-switch">
-														<input type="checkbox" id="mode-toggle">
-														<span class="toggle-slider"></span>
-													</label>
-												</div>
-							
-												<div class="stat-points">
-													<div class="stat-row">
-														<div class="stat-label STA">STA</div>
-														<input type="number" class="stat-value" id="sta-value" value="20" min="20">
-														<div class="stat-buttons">
-															<button class="stat-button decrease" data-stat="sta" title="Min">-</button>
-															<button class="stat-button increase" data-stat="sta" title="Max (All points)">+</button>
-															<button class="stat-button reset" data-stat="sta" title="Reset to base">↺</button>
-														</div>
-													</div>
-													<div class="stat-row">
-														<div class="stat-label STR">STR</div>
-														<input type="number" class="stat-value" id="str-value" value="20" min="20">
-														<div class="stat-buttons">
-															<button class="stat-button decrease" data-stat="str" title="Min">-</button>
-															<button class="stat-button increase" data-stat="str" title="Max (All points)">+</button>
-															<button class="stat-button reset" data-stat="str" title="Reset to base">↺</button>
-														</div>
-													</div>
-													<div class="stat-row">
-														<div class="stat-label AGI">AGI</div>
-														<input type="number" class="stat-value" id="agi-value" value="20" min="20">
-														<div class="stat-buttons">
-															<button class="stat-button decrease" data-stat="agi" title="Min">-</button>
-															<button class="stat-button increase" data-stat="agi" title="Max (All points)">+</button>
-															<button class="stat-button reset" data-stat="agi" title="Reset to base">↺</button>
-														</div>
-													</div>
-													<div class="stat-row">
-														<div class="stat-label INT">INT</div>
-														<input type="number" class="stat-value" id="int-value" value="20" min="20">
-														<div class="stat-buttons">
-															<button class="stat-button decrease" data-stat="int" title="Min">-</button>
-															<button class="stat-button increase" data-stat="int" title="Max (All points)">+</button>
-															<button class="stat-button reset" data-stat="int" title="Reset to base">↺</button>
-														</div>
-													</div>
-													<div class="remaining-points">
-														Remaining: <span id="remaining-points">2</span>
-													</div>
-													<div class="buff-section">
-														<h3>Active Buffs <span id="active-buffs-count">(0/5)</span></h3>
-														<div class="buff-grid" id="buff-grid">
-														</div>
-													</div>
-												</div>
-											</div>
-											<div class="panel middle-panel">
-												<div class="derived-stats">
+                                                <div class="mode-toggle-container">
+                                                    <div class="toggle-label">Mode: <span id="mode-display">Sandbox Mode</span></div>
+                                                    <label class="toggle-switch">
+                                                        <input type="checkbox" id="mode-toggle">
+                                                        <span class="toggle-slider"></span>
+                                                    </label>
+                                                </div>
+                            
+                                                <div class="stat-points">
+                                                    <div class="stat-row">
+                                                        <div class="stat-label STA">STA</div>
+                                                        <input type="number" class="stat-value" id="sta-value" value="20" min="20">
+                                                        <div class="stat-buttons">
+                                                            <button class="stat-button decrease" data-stat="sta" title="Min">-</button>
+                                                            <button class="stat-button increase" data-stat="sta" title="Max (All points)">+</button>
+                                                            <button class="stat-button reset" data-stat="sta" title="Reset to base">↺</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="stat-row">
+                                                        <div class="stat-label STR">STR</div>
+                                                        <input type="number" class="stat-value" id="str-value" value="20" min="20">
+                                                        <div class="stat-buttons">
+                                                            <button class="stat-button decrease" data-stat="str" title="Min">-</button>
+                                                            <button class="stat-button increase" data-stat="str" title="Max (All points)">+</button>
+                                                            <button class="stat-button reset" data-stat="str" title="Reset to base">↺</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="stat-row">
+                                                        <div class="stat-label AGI">AGI</div>
+                                                        <input type="number" class="stat-value" id="agi-value" value="20" min="20">
+                                                        <div class="stat-buttons">
+                                                            <button class="stat-button decrease" data-stat="agi" title="Min">-</button>
+                                                            <button class="stat-button increase" data-stat="agi" title="Max (All points)">+</button>
+                                                            <button class="stat-button reset" data-stat="agi" title="Reset to base">↺</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="stat-row">
+                                                        <div class="stat-label INT">INT</div>
+                                                        <input type="number" class="stat-value" id="int-value" value="20" min="20">
+                                                        <div class="stat-buttons">
+                                                            <button class="stat-button decrease" data-stat="int" title="Min">-</button>
+                                                            <button class="stat-button increase" data-stat="int" title="Max (All points)">+</button>
+                                                            <button class="stat-button reset" data-stat="int" title="Reset to base">↺</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="remaining-points">
+                                                        Remaining: <span id="remaining-points">2</span>
+                                                    </div>
+                                                    <div class="buff-section">
+                                                        <h3>Active Buffs <span id="active-buffs-count">(0/5)</span></h3>
+                                                        <div class="buff-grid" id="buff-grid">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="panel middle-panel">
+                                                <div class="derived-stats">
 
-													<div class="equipment-slots left-slots">
-														<div class="slot" data-slot="face"><img src="assets/build-sandbox/icons/face-icon.png" alt="Face"></div>
-														<div class="slot" data-slot="head"><img src="assets/build-sandbox/icons/head-icon.png" alt="Head"></div>
-														<div class="slot" data-slot="shoulder"><img src="assets/build-sandbox/icons/shoulder-icon.png" alt="Shoulder"></div>
-														<div class="slot" data-slot="back"><img src="assets/build-sandbox/icons/back-icon.png" alt="Back"></div>
-														<div class="slot" data-slot="legs"><img src="assets/build-sandbox/icons/legs-icon.png" alt="Legs"></div>
-														<div class="slot" data-slot="chest"><img src="assets/build-sandbox/icons/chest-icon.png" alt="Chest"></div>
-														<div class="slot" data-slot="weapon"><img src="assets/build-sandbox/icons/weapon-icon.png" alt="Weapon"></div>
-														<div class="slot" data-slot="offhand"><img src="assets/build-sandbox/icons/offhand-icon.png" alt="Offhand"></div>
-													</div>
-									
-													<div class="character-display">
-													</div>
-									
-													<div class="equipment-slots right-slots">
-														<div class="slot" data-slot="ring1"><img src="assets/build-sandbox/icons/ring-icon.png" alt="Ring 1"></div>
-														<div class="slot" data-slot="ring2"><img src="assets/build-sandbox/icons/ring-icon.png" alt="Ring 2"></div>
-														<div class="slot" data-slot="trinket1"><img src="assets/build-sandbox/icons/trinket-icon.png" alt="Trinket 1"></div>
-														<div class="slot" data-slot="trinket2"><img src="assets/build-sandbox/icons/trinket-icon.png" alt="Trinket 2"></div>
-														<div class="slot placeholder"></div>
-														<div class="slot placeholder"></div>
-														<div class="slot" data-slot="guild"><img src="assets/build-sandbox/icons/guild-icon.png" alt="Guild"></div>
-														<div class="slot" data-slot="faction"><img src="assets/build-sandbox/icons/faction-icon.png" alt="Faction"></div>
-													</div>
-									
-												</div>
+                                                    <div class="equipment-slots left-slots">
+                                                        <div class="slot" data-slot="face"><img src="assets/build-sandbox/icons/face-icon.png" alt="Face"></div>
+                                                        <div class="slot" data-slot="head"><img src="assets/build-sandbox/icons/head-icon.png" alt="Head"></div>
+                                                        <div class="slot" data-slot="shoulder"><img src="assets/build-sandbox/icons/shoulder-icon.png" alt="Shoulder"></div>
+                                                        <div class="slot" data-slot="back"><img src="assets/build-sandbox/icons/back-icon.png" alt="Back"></div>
+                                                        <div class="slot" data-slot="legs"><img src="assets/build-sandbox/icons/legs-icon.png" alt="Legs"></div>
+                                                        <div class="slot" data-slot="chest"><img src="assets/build-sandbox/icons/chest-icon.png" alt="Chest"></div>
+                                                        <div class="slot" data-slot="weapon"><img src="assets/build-sandbox/icons/weapon-icon.png" alt="Weapon"></div>
+                                                        <div class="slot" data-slot="offhand"><img src="assets/build-sandbox/icons/offhand-icon.png" alt="Offhand"></div>
+                                                    </div>
+                                    
+                                                    <div class="character-display">
+                                                    </div>
+                                    
+                                                    <div class="equipment-slots right-slots">
+                                                        <div class="slot" data-slot="ring1"><img src="assets/build-sandbox/icons/ring-icon.png" alt="Ring 1"></div>
+                                                        <div class="slot" data-slot="ring2"><img src="assets/build-sandbox/icons/ring-icon.png" alt="Ring 2"></div>
+                                                        <div class="slot" data-slot="trinket1"><img src="assets/build-sandbox/icons/trinket-icon.png" alt="Trinket 1"></div>
+                                                        <div class="slot" data-slot="trinket2"><img src="assets/build-sandbox/icons/trinket-icon.png" alt="Trinket 2"></div>
+                                                        <div class="slot placeholder"></div>
+                                                        <div class="slot placeholder"></div>
+                                                        <div class="slot" data-slot="guild"><img src="assets/build-sandbox/icons/guild-icon.png" alt="Guild"></div>
+                                                        <div class="slot" data-slot="faction"><img src="assets/build-sandbox/icons/faction-icon.png" alt="Faction"></div>
+                                                    </div>
+                                    
+                                                </div>
 
-												<div class="spell-section">
-													<div class="spell-slot" id="spell-slot">
-														<div class="spell-slot-fallback">⚡</div>
-													</div>
-													<div class="spell-info" id="spell-info">
-														<div style="color: #666; font-style: italic;">Click to select a spell</div>
-													</div>
-												</div>
-												
-												<div class="stats-display">
-													<div class="status-bars">
-														<div class="bar health-bar">Health: <span id="health-value">18/18</span></div> 
-														<div class="bar energy-bar">Energy: <span id="energy-value">20/20</span></div>
-													</div>
-													<div class="stat-item"> <div class="STA">STA</div> <div id="sta-display">20</div> </div>
-													<div class="stat-item"> <div>AtkPower</div> <div id="atkpower-display">40</div> </div>
-													<div class="stat-item"> <div class="STR">STR</div> <div id="str-display">20</div> </div>
-													<div class="stat-item"> <div>Crit</div> <div id="crit-display">6.43 %</div> </div>
-													<div class="stat-item"> <div class="AGI">AGI</div> <div id="agi-display">20</div> </div>
-													<div class="stat-item"> <div>Dodge</div> <div id="dodge-display">5.00 %</div> </div>
-													<div class="stat-item"> <div class="INT">INT</div> <div id="int-display">20</div> </div>													
-													<div class="stat-item"> <div>AtkSpeed</div> <div id="atkspeed-display">1.4</div> </div>
-													<div class="stat-item"> <div>Armor</div> <div id="armor-display">0</div> </div>
-													<div class="stat-item"> <div>Damage</div> <div id="damage-display">(7-10)</div> </div>
-												</div>
-												<div class="build-section-buttons">
-													<button class="action-button positive" id="save-build-button">Save Build</button>
-													<button class="action-button negative" id="reset-equipment-button">Clear Equips</button>
-												</div>
-											</div>
-											<div class="panel right-panel">
-												<div class="stat-item dps-row"> <div>Damage Per Second</div>
-													<div id="dps-display">0.00</div>
-												</div>
-												
-												<div class="stat-item mitigation-row"> <div>Damage Mitigation</div>
-													<div id="mitigation-display">0.00 %</div>
-												</div>
+                                                <div class="spell-section">
+                                                    <div class="spell-slot" id="spell-slot">
+                                                        <div class="spell-slot-fallback">⚡</div>
+                                                    </div>
+                                                    <div class="spell-info" id="spell-info">
+                                                        <div style="color: #666; font-style: italic;">Click to select a spell</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="stats-display">
+                                                    <div class="status-bars">
+                                                        <div class="bar health-bar">Health: <span id="health-value">18/18</span></div> 
+                                                        <div class="bar energy-bar">Energy: <span id="energy-value">20/20</span></div>
+                                                    </div>
+                                                    <div class="stat-item"> <div class="STA">STA</div> <div id="sta-display">20</div> </div>
+                                                    <div class="stat-item"> <div>AtkPower</div> <div id="atkpower-display">40</div> </div>
+                                                    <div class="stat-item"> <div class="STR">STR</div> <div id="str-display">20</div> </div>
+                                                    <div class="stat-item"> <div>Crit</div> <div id="crit-display">6.43 %</div> </div>
+                                                    <div class="stat-item"> <div class="AGI">AGI</div> <div id="agi-display">20</div> </div>
+                                                    <div class="stat-item"> <div>Dodge</div> <div id="dodge-display">5.00 %</div> </div>
+                                                    <div class="stat-item"> <div class="INT">INT</div> <div id="int-display">20</div> </div>													
+                                                    <div class="stat-item"> <div>AtkSpeed</div> <div id="atkspeed-display">1.4</div> </div>
+                                                    <div class="stat-item"> <div>Armor</div> <div id="armor-display">0</div> </div>
+                                                    <div class="stat-item"> <div>Damage</div> <div id="damage-display">(7-10)</div> </div>
+                                                </div>
+                                                <div class="build-section-buttons">
+                                                    <button class="action-button positive" id="save-build-button">Save Build</button>
+                                                    <button class="action-button negative" id="reset-equipment-button">Clear Equips</button>
+                                                </div>
+                                            </div>
+                                            <div class="panel right-panel">
+                                                <div class="stat-item dps-row"> <div>Damage Per Second</div>
+                                                    <div id="dps-display">0.00</div>
+                                                </div>
+                                                
+                                                <div class="stat-item mitigation-row"> <div>Damage Mitigation</div>
+                                                    <div id="mitigation-display">0.00 %</div>
+                                                </div>
 
-												<div class="stat-item regen-row"> <div>HP Regen/Sec</div>
-													<div id="hp-regen-display">0.0</div>
-												</div>
+                                                <div class="stat-item regen-row"> <div>HP Regen/Sec</div>
+                                                    <div id="hp-regen-display">0.0</div>
+                                                </div>
 
-												<div class="stat-item regen-row"> <div>Energy Regen/Sec</div>
-													<div id="energy-regen-display">0.0</div>
-												</div>
-							
-												    <!-- MOVED: Available Sets Section -->
-													<div class="sets-section">
-														<h3>Available Sets <span id="available-sets-count">(0)</span></h3>
-														<div class="sets-list" id="sets-list">
-															<!-- Sets will be populated here -->
-														</div>
-													</div>
+                                                <div class="stat-item regen-row"> <div>Energy Regen/Sec</div>
+                                                    <div id="energy-regen-display">0.0</div>
+                                                </div>
+                            
+                                                    <!-- MOVED: Available Sets Section -->
+                                                    <div class="sets-section">
+                                                        <h3>Available Sets <span id="available-sets-count">(0)</span></h3>
+                                                        <div class="sets-list" id="sets-list">
+                                                            <!-- Sets will be populated here -->
+                                                        </div>
+                                                    </div>
 
-													<!-- MOVED: Active Set Bonuses Section -->
-													<div class="sets-section">
-														<h3>Set Bonuses</h3>
-														<div id="active-set-bonuses" class="active-sets-container">
-															<div class="no-sets">No set bonuses active</div>
-														</div>
-													</div>
+                                                    <!-- MOVED: Active Set Bonuses Section -->
+                                                    <div class="sets-section">
+                                                        <h3>Set Bonuses</h3>
+                                                        <div id="active-set-bonuses" class="active-sets-container">
+                                                            <div class="no-sets">No set bonuses active</div>
+                                                        </div>
+                                                    </div>
 
-													<!-- COMMENTED OUT: Performance Section -->
-													<!-- 
-													<div class="performance-section">
-														<div class="performance-header"> <h3>Performance Against Mobs</h3>
-															<div class="performance-header-controls">
-																<input type="checkbox" id="hide-bosses-checkbox" style="cursor: pointer;">
-																<label for="hide-bosses-checkbox" style="cursor: pointer; font-size: 0.9em;">Hide Bosses</label>
-															</div>
-														</div>
-														<div class="level-filter-section">
-															<div class="slider-container">
-																<span>Min: <span id="min-level-display">1</span></span>
-																<input type="range" id="mob-level-min-slider" min="1" max="110" value="1">
-															</div>
-															<div class="slider-container">
-																<span>Max: <span id="max-level-display">100</span></span>
-																<input type="range" id="mob-level-max-slider" min="1" max="110" value="100">
-															</div>
-														</div>
-														<div class="performance-table-container">
-															<table class="performance-table">
-																<thead>
-																	<tr>
-																		<th data-sort="name">Mob Name <span class="sort-indicator"></span></th>
-																		<th data-sort="level">Level <span class="sort-indicator"></span></th>
-																		<th data-sort="ttk">Kill In <span class="sort-indicator"></span></th>
-																		<th data-sort="gph">Gold/hr <span class="sort-indicator"></span></th>
-																		<th data-sort="xph">XP/hr <span class="sort-indicator"></span></th>
-																	</tr>
-																</thead>
-																<tbody id="performance-tbody">
-																</tbody>
-															</table>
-														</div>
-													</div>
-													-->
-											</div>
-										</div>
-									</div>
-							
-									<div id="build-management-page" class="page">
-										<div class="panel saved-builds-panel">
-											<div class="saved-builds-section">
-												<h3>Saved Builds</h3>
-												<div class="saved-builds-list" id="saved-builds-list">
-												</div>
-												<div class="build-section-buttons">
-													
-												</div>
-											</div>
-										</div>
-									</div>
+                                                    <!-- COMMENTED OUT: Performance Section -->
+                                                    <!-- 
+                                                    <div class="performance-section">
+                                                        <div class="performance-header"> <h3>Performance Against Mobs</h3>
+                                                            <div class="performance-header-controls">
+                                                                <input type="checkbox" id="hide-bosses-checkbox" style="cursor: pointer;">
+                                                                <label for="hide-bosses-checkbox" style="cursor: pointer; font-size: 0.9em;">Hide Bosses</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="level-filter-section">
+                                                            <div class="slider-container">
+                                                                <span>Min: <span id="min-level-display">1</span></span>
+                                                                <input type="range" id="mob-level-min-slider" min="1" max="110" value="1">
+                                                            </div>
+                                                            <div class="slider-container">
+                                                                <span>Max: <span id="max-level-display">100</span></span>
+                                                                <input type="range" id="mob-level-max-slider" min="1" max="110" value="100">
+                                                            </div>
+                                                        </div>
+                                                        <div class="performance-table-container">
+                                                            <table class="performance-table">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th data-sort="name">Mob Name <span class="sort-indicator"></span></th>
+                                                                        <th data-sort="level">Level <span class="sort-indicator"></span></th>
+                                                                        <th data-sort="ttk">Kill In <span class="sort-indicator"></span></th>
+                                                                        <th data-sort="gph">Gold/hr <span class="sort-indicator"></span></th>
+                                                                        <th data-sort="xph">XP/hr <span class="sort-indicator"></span></th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody id="performance-tbody">
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    -->
+                                            </div>
+                                        </div>
+                                    </div>
+                            
+                                    <div id="build-management-page" class="page">
+                                        <div class="panel saved-builds-panel">
+                                            <div class="saved-builds-section">
+                                                <h3>Saved Builds</h3>
+                                                <div class="saved-builds-list" id="saved-builds-list">
+                                                </div>
+                                                <div class="build-section-buttons">
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-									<div id="item-dictionary-page" class="page">
-										<div class="item-dictionary-container panel">
-											<!-- New Left Column for Filters -->
-											<div class="item-filters-panel">
-												<h3>Filters</h3>
-												<div class="filter-sections-wrapper">
-													<div class="filter-section">
-														<label for="item-dictionary-search">Search:</label>
-														<input type="text" id="item-dictionary-search" placeholder="Search by name...">
-													</div>
-													<div class="filter-section">
-														<label for="item-dictionary-category-filter">Category:</label>
-														<select id="item-dictionary-category-filter">
-															<option value="all">All Categories</option>
-														</select>
-													</div>
-													<div class="filter-section">
-														<label>Sort By:</label>
-														<div class="sort-buttons-grid">
-															<button class="sort-button" data-sort="level">
-																Level<span class="sort-indicator"></span>
-															</button>
-															<button class="sort-button" data-sort="name">
-																Name<span class="sort-indicator"></span>
-															</button>
-															<button class="sort-button" data-sort="STR">
-																STR<span class="sort-indicator"></span>
-															</button>
-															<button class="sort-button" data-sort="AGI">
-																AGI<span class="sort-indicator"></span>
-															</button>
-															<button class="sort-button" data-sort="STA">
-																STA<span class="sort-indicator"></span>
-															</button>
-															<button class="sort-button" data-sort="INT">
-																INT<span class="sort-indicator"></span>
-															</button>
-														</div>
-													</div>
-												</div>
-											</div>
-											
-											<!-- Middle Column for Item Grid -->
-											<div class="item-grid-panel">
-												<h3>Items</h3>
-												<div id="item-dictionary-grid" class="item-grid-content">
-													<!-- Item grid content will be populated here -->
-												</div>
-											</div>
-											
-											<!-- Right Column for Item Details (unchanged) -->
-											<div class="item-viewer-panel">
-												<h3>Item Details</h3>
-												<div id="item-dictionary-viewer" class="item-viewer-content">
-													Select an item from the grid to see details.
-												</div>
-											</div>
-										</div>
-									</div>
-							
-								</div>
-							
-								<div id="build-details-modal" class="modal" style="display: none;">
-									<div class="modal-content panel">
-										<span class="close-button" onclick="closeBuildModal()">&times;</span>
-										<h3 id="modal-title">Build Details</h3>
-										<input type="hidden" id="modal-build-id">
-										<div>
-											<label for="modal-build-name">Name:</label>
-											<input type="text" id="modal-build-name" class="search-input">
-										</div>
-										<div>
-											<label for="modal-build-creator">Creator:</label>
-											<input type="text" id="modal-build-creator" class="search-input">
-										</div>
-										<div>
-											<label for="modal-build-description">Description (max 100 chars):</label>
-											<textarea id="modal-build-description" class="search-input" maxlength="100" rows="3"></textarea>
-										</div>
-										<button class="action-button" id="modal-save-button">Save</button>
-									</div>
-								</div>
-							
-								<div class="item-search" id="item-search-modal">
-									<div id="search-title">Select Item</div>
-									<input type="text" class="search-input" id="item-search-input" placeholder="Search items...">
-									<div class="search-results" id="search-results"></div>
-									<div class="search-buttons">
-										<button class="action-button" id="cancel-search">Cancel</button>
-									</div>
-								</div>
+                                    <div id="item-dictionary-page" class="page">
+                                        <div class="item-dictionary-container panel">
+                                            <!-- New Left Column for Filters -->
+                                            <div class="item-filters-panel">
+                                                <h3>Filters</h3>
+                                                <div class="filter-sections-wrapper">
+                                                    <div class="filter-section">
+                                                        <label for="item-dictionary-search">Search:</label>
+                                                        <input type="text" id="item-dictionary-search" placeholder="Search by name...">
+                                                    </div>
+                                                    <div class="filter-section">
+                                                        <label for="item-dictionary-category-filter">Category:</label>
+                                                        <select id="item-dictionary-category-filter">
+                                                            <option value="all">All Categories</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="filter-section">
+                                                        <label>Sort By:</label>
+                                                        <div class="sort-buttons-grid">
+                                                            <button class="sort-button" data-sort="level">
+                                                                Level<span class="sort-indicator"></span>
+                                                            </button>
+                                                            <button class="sort-button" data-sort="name">
+                                                                Name<span class="sort-indicator"></span>
+                                                            </button>
+                                                            <button class="sort-button" data-sort="STR">
+                                                                STR<span class="sort-indicator"></span>
+                                                            </button>
+                                                            <button class="sort-button" data-sort="AGI">
+                                                                AGI<span class="sort-indicator"></span>
+                                                            </button>
+                                                            <button class="sort-button" data-sort="STA">
+                                                                STA<span class="sort-indicator"></span>
+                                                            </button>
+                                                            <button class="sort-button" data-sort="INT">
+                                                                INT<span class="sort-indicator"></span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Middle Column for Item Grid -->
+                                            <div class="item-grid-panel">
+                                                <h3>Items</h3>
+                                                <div id="item-dictionary-grid" class="item-grid-content">
+                                                    <!-- Item grid content will be populated here -->
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Right Column for Item Details (unchanged) -->
+                                            <div class="item-viewer-panel">
+                                                <h3>Item Details</h3>
+                                                <div id="item-dictionary-viewer" class="item-viewer-content">
+                                                    Select an item from the grid to see details.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                            
+                                </div>
+                            
+                                <div id="build-details-modal" class="modal" style="display: none;">
+                                    <div class="modal-content panel">
+                                        <span class="close-button" onclick="closeBuildModal()">&times;</span>
+                                        <h3 id="modal-title">Build Details</h3>
+                                        <input type="hidden" id="modal-build-id">
+                                        <div>
+                                            <label for="modal-build-name">Name:</label>
+                                            <input type="text" id="modal-build-name" class="search-input">
+                                        </div>
+                                        <div>
+                                            <label for="modal-build-creator">Creator:</label>
+                                            <input type="text" id="modal-build-creator" class="search-input">
+                                        </div>
+                                        <div>
+                                            <label for="modal-build-description">Description (max 100 chars):</label>
+                                            <textarea id="modal-build-description" class="search-input" maxlength="100" rows="3"></textarea>
+                                        </div>
+                                        <button class="action-button" id="modal-save-button">Save</button>
+                                    </div>
+                                </div>
+                            
+                                <div class="item-search" id="item-search-modal">
+                                    <div id="search-title">Select Item</div>
+                                    <input type="text" class="search-input" id="item-search-input" placeholder="Search items...">
+                                    <div class="search-results" id="search-results"></div>
+                                    <div class="search-buttons">
+                                        <button class="action-button" id="cancel-search">Cancel</button>
+                                    </div>
+                                </div>
 
-								<div class="notification" id="notification"></div>
-							
-							</div>
-						</div>
-					</div>
+                                <div class="notification" id="notification"></div>
+                            
+                            </div>
+                        </div>
+                    </div>
 
-				<!-- Footer -->
-					<footer id="footer">
-						<div class="inner">
-							<ul class="copyright">
-								<li>&copy; FO2 Toolkit. All rights reserved</li><li>Not affiliated with Fantasy Online 2.</li>
-							</ul>
-						</div>
-					</footer>
+                <!-- Footer -->
+                    <footer id="footer">
+                        <div class="inner">
+                            <ul class="copyright">
+                                <li>&copy; FO2 Toolkit. All rights reserved</li><li>Not affiliated with Fantasy Online 2.</li>
+                            </ul>
+                        </div>
+                    </footer>
 
-			</div>
+            </div>
 
-		<!-- Scripts -->
-			<script src="assets/js/jquery.min.js"></script>
-			<script src="assets/js/browser.min.js"></script>
-			<script src="assets/js/breakpoints.min.js"></script>
-			<script src="assets/js/util.js"></script>
-			<script src="assets/js/main.js"></script>
-			<script src="assets/build-sandbox/js/app.js"></script>
+        <!-- Scripts -->
+            <script src="assets/js/jquery.min.js"></script>
+            <script src="assets/js/browser.min.js"></script>
+            <script src="assets/js/breakpoints.min.js"></script>
+            <script src="assets/js/util.js"></script>
+            <script src="assets/js/main.js"></script>
+            <script src="assets/build-sandbox/js/app.js"></script>
 
-	</body>
+    </body>
 </html>
