@@ -1468,7 +1468,7 @@ canCategorizeItem(itemData) {
         '2,5': true,  // 2h Hammer
         '2,6': true,  // 2h Staff
         '2,9': true,  // 2h Sword
-        '2,10': true  // 2h Axe
+        '2,10': true,  // 2h Axe
         '2,12': true, // 2h Spear
         '2,13': true, // 1h Hammer
         '2,14': true  // 2h Hammer
