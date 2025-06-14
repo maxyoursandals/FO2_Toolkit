@@ -753,13 +753,13 @@ const UIFactory = {
         if (item["Direct Crit"] && item["Direct Crit"] !== 0) {
             const value = item["Direct Crit"];
             const cssClass = value > 0 ? 'stat-positive' : 'stat-negative';
-            statsHtml.push(`<div class="${cssClass}">Direct Crit: ${value > 0 ? '+' : ''}${value}%</div>`);
+            statsHtml.push(`<div class="${cssClass}">Crit: ${value > 0 ? '+' : ''}${value}%</div>`);
         }
         
         if (item["Direct ATK Power"] && item["Direct ATK Power"] !== 0) {
             const value = item["Direct ATK Power"];
             const cssClass = value > 0 ? 'stat-positive' : 'stat-negative';
-            statsHtml.push(`<div class="${cssClass}">Direct ATK Power: ${value > 0 ? '+' : ''}${value}</div>`);
+            statsHtml.push(`<div class="${cssClass}">Attack Power: ${value > 0 ? '+' : ''}${value}</div>`);
         }
         
         if (item.Damage) statsHtml.push(`<div>Damage: ${item.Damage}</div>`);
@@ -1515,8 +1515,11 @@ convertAPIItemsToInternalFormat(apiData) {
         '2,4': { Type: 'weapon', Subtype: 'axe' },
         '2,5': { Type: 'weapon', Subtype: 'hammer' },
         '2,6': { Type: 'weapon', Subtype: 'staff' },
-        '2,9': { Type: 'weapon', Subtype: '2h sword' },
-        '2,10': { Type: 'weapon', Subtype: 'axe' }
+        '2,9': { Type: 'weapon', Subtype: 'sword' },
+        '2,10': { Type: 'weapon', Subtype: 'axe' },
+        '2,12': { Type: 'weapon', Subtype: 'spear' },
+        '2,13': { Type: 'weapon', Subtype: 'mace' },
+        '2,14': { Type: 'weapon', Subtype: 'hammer' }
     };
     
     // Process each item in the API response
