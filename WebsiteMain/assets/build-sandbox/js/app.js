@@ -1469,6 +1469,9 @@ canCategorizeItem(itemData) {
         '2,6': true,  // 2h Staff
         '2,9': true,  // 2h Sword
         '2,10': true  // 2h Axe
+        '2,12': true, // 2h Spear
+        '2,13': true, // 1h Hammer
+        '2,14': true  // 2h Hammer
     };
     
     // Check if item type is valid
@@ -1518,7 +1521,7 @@ convertAPIItemsToInternalFormat(apiData) {
         '2,9': { Type: 'weapon', Subtype: 'sword' },
         '2,10': { Type: 'weapon', Subtype: 'axe' },
         '2,12': { Type: 'weapon', Subtype: 'spear' },
-        '2,13': { Type: 'weapon', Subtype: 'mace' },
+        '2,13': { Type: 'weapon', Subtype: 'hammer' },
         '2,14': { Type: 'weapon', Subtype: 'hammer' }
     };
     
