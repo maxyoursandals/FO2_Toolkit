@@ -1516,7 +1516,7 @@ convertAPIItemsToInternalFormat(apiData) {
         '2,5': { Type: 'weapon', Subtype: 'hammer' },
         '2,6': { Type: 'weapon', Subtype: 'staff' },
         '2,9': { Type: 'weapon', Subtype: '2h sword' },
-        '2,10': { Type: 'weapon', Subtype: 'axe' } // Note: 2h axe, might want to distinguish
+        '2,10': { Type: 'weapon', Subtype: 'axe' }
     };
     
     // Process each item in the API response
@@ -1531,11 +1531,11 @@ convertAPIItemsToInternalFormat(apiData) {
         
         // Convert API format to our internal format
         const convertedItem = {
-        'Item ID': itemId,
-        'Name': itemData.t?.en?.n || `Item ${itemId}`,
-        'Level': itemData.lr || 0,
-        'Type': typeInfo.Type,
-        'Subtype': typeInfo.Subtype,
+            'Item ID': itemId,
+            'Name': itemData.t?.en?.n || `Item ${itemId}`,
+            'Level': itemData.lr || 0,
+            'Type': typeInfo.Type,
+            'Subtype': typeInfo.Subtype,
             
             // Stats from API - handle missing values as 0
             'STA': this.getStatValue(itemData.sta, 'sta') || 0,
@@ -1549,13 +1549,19 @@ convertAPIItemsToInternalFormat(apiData) {
             'Req INT': this.getStatValue(itemData.sr, 'int') || 0,
             'Req AGI': this.getStatValue(itemData.sr, 'agi') || 0,
             
-            // Other properties - handle missing values as 0
+            // Other properties - BE MORE CAREFUL HERE
             'Armor': itemData.sta?.arm || 0,
-            'Direct Crit': itemData.sta?.crit || 0,
-            'Direct ATK Power': itemData.sta?.atkr || 0,
-            'Atk Spd': itemData.sta?.atks || 0,
             
-            // Damage from weapon example
+            // FIXED: Only set Direct Crit if it actually exists and is meaningful
+            'Direct Crit': (itemData.sta?.crit && itemData.sta.crit > 0) ? itemData.sta.crit : 0,
+            
+            // FIXED: Use correct API field - atkp is Direct ATK Power, not atkr
+            'Direct ATK Power': itemData.sta?.atkp || 0,
+            
+            // Attack Speed - only for weapons
+            'Atk Spd': this.getAttackSpeed(itemData, typeInfo),
+            
+            // Damage from weapon
             'Damage': this.formatDamageFromAPI(itemData),
             
             // Sprite URL
@@ -1573,6 +1579,7 @@ convertAPIItemsToInternalFormat(apiData) {
     return items;
 },
 
+
 /**
  * Helper to extract stat values from API stat objects
  * @param {Object} statObj - API stat object
@@ -1582,6 +1589,21 @@ convertAPIItemsToInternalFormat(apiData) {
 getStatValue(statObj, statName) {
     if (!statObj || typeof statObj !== 'object') return 0;
     return parseInt(statObj[statName]) || 0;  // Ensure integer conversion
+},
+
+/**
+ * Helper to get Attack Speed more carefully
+ * @param {Object} itemData - API item data  
+ * @param {Object} typeInfo - Type information
+ * @returns {number} Attack Speed value
+ */
+getAttackSpeed(itemData, typeInfo) {
+    // Attack speed should only be on weapons
+    if (typeInfo.Type !== 'weapon') {
+        return 0;
+    }
+    
+    return itemData.sta?.atks || 0;
 },
 
 /**
