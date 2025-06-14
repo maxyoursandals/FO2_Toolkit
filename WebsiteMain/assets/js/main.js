@@ -1,185 +1,185 @@
 /*
-	Phantom by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+    Phantom by HTML5 UP
+    html5up.net | @ajlkn
+    Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
 (function($) {
 
-	var	$window = $(window),
-		$body = $('body');
+    var	$window = $(window),
+        $body = $('body');
 
-	// Breakpoints.
-		breakpoints({
-			xlarge:   [ '1281px',  '1680px' ],
-			large:    [ '981px',   '1280px' ],
-			medium:   [ '737px',   '980px'  ],
-			small:    [ '481px',   '736px'  ],
-			xsmall:   [ '361px',   '480px'  ],
-			xxsmall:  [ null,      '360px'  ]
-		});
+    // Breakpoints.
+        breakpoints({
+            xlarge:   [ '1281px',  '1680px' ],
+            large:    [ '981px',   '1280px' ],
+            medium:   [ '737px',   '980px'  ],
+            small:    [ '481px',   '736px'  ],
+            xsmall:   [ '361px',   '480px'  ],
+            xxsmall:  [ null,      '360px'  ]
+        });
 
-	// Play initial animations on page load.
-		$window.on('load', function() {
-			window.setTimeout(function() {
-				$body.removeClass('is-preload');
-			}, 100);
-		});
+    // Play initial animations on page load.
+        $window.on('load', function() {
+            window.setTimeout(function() {
+                $body.removeClass('is-preload');
+            }, 100);
+        });
 
-	// Touch?
-		if (browser.mobile)
-			$body.addClass('is-touch');
+    // Touch?
+        if (browser.mobile)
+            $body.addClass('is-touch');
 
-	// Forms.
-		var $form = $('form');
+    // Forms.
+        var $form = $('form');
 
-		// Auto-resizing textareas.
-			$form.find('textarea').each(function() {
+        // Auto-resizing textareas.
+            $form.find('textarea').each(function() {
 
-				var $this = $(this),
-					$wrapper = $('<div class="textarea-wrapper"></div>'),
-					$submits = $this.find('input[type="submit"]');
+                var $this = $(this),
+                    $wrapper = $('<div class="textarea-wrapper"></div>'),
+                    $submits = $this.find('input[type="submit"]');
 
-				$this
-					.wrap($wrapper)
-					.attr('rows', 1)
-					.css('overflow', 'hidden')
-					.css('resize', 'none')
-					.on('keydown', function(event) {
+                $this
+                    .wrap($wrapper)
+                    .attr('rows', 1)
+                    .css('overflow', 'hidden')
+                    .css('resize', 'none')
+                    .on('keydown', function(event) {
 
-						if (event.keyCode == 13
-						&&	event.ctrlKey) {
+                        if (event.keyCode == 13
+                        &&	event.ctrlKey) {
 
-							event.preventDefault();
-							event.stopPropagation();
+                            event.preventDefault();
+                            event.stopPropagation();
 
-							$(this).blur();
+                            $(this).blur();
 
-						}
+                        }
 
-					})
-					.on('blur focus', function() {
-						$this.val($.trim($this.val()));
-					})
-					.on('input blur focus --init', function() {
+                    })
+                    .on('blur focus', function() {
+                        $this.val($.trim($this.val()));
+                    })
+                    .on('input blur focus --init', function() {
 
-						$wrapper
-							.css('height', $this.height());
+                        $wrapper
+                            .css('height', $this.height());
 
-						$this
-							.css('height', 'auto')
-							.css('height', $this.prop('scrollHeight') + 'px');
+                        $this
+                            .css('height', 'auto')
+                            .css('height', $this.prop('scrollHeight') + 'px');
 
-					})
-					.on('keyup', function(event) {
+                    })
+                    .on('keyup', function(event) {
 
-						if (event.keyCode == 9)
-							$this
-								.select();
+                        if (event.keyCode == 9)
+                            $this
+                                .select();
 
-					})
-					.triggerHandler('--init');
+                    })
+                    .triggerHandler('--init');
 
-				// Fix.
-					if (browser.name == 'ie'
-					||	browser.mobile)
-						$this
-							.css('max-height', '10em')
-							.css('overflow-y', 'auto');
+                // Fix.
+                    if (browser.name == 'ie'
+                    ||	browser.mobile)
+                        $this
+                            .css('max-height', '10em')
+                            .css('overflow-y', 'auto');
 
-			});
+            });
 
-	// Menu.
-		var $menu = $('#menu');
+    // Menu.
+        var $menu = $('#menu');
 
-		$menu.wrapInner('<div class="inner"></div>');
+        $menu.wrapInner('<div class="inner"></div>');
 
-		$menu._locked = false;
+        $menu._locked = false;
 
-		$menu._lock = function() {
+        $menu._lock = function() {
 
-			if ($menu._locked)
-				return false;
+            if ($menu._locked)
+                return false;
 
-			$menu._locked = true;
+            $menu._locked = true;
 
-			window.setTimeout(function() {
-				$menu._locked = false;
-			}, 350);
+            window.setTimeout(function() {
+                $menu._locked = false;
+            }, 350);
 
-			return true;
+            return true;
 
-		};
+        };
 
-		$menu._show = function() {
+        $menu._show = function() {
 
-			if ($menu._lock())
-				$body.addClass('is-menu-visible');
+            if ($menu._lock())
+                $body.addClass('is-menu-visible');
 
-		};
+        };
 
-		$menu._hide = function() {
+        $menu._hide = function() {
 
-			if ($menu._lock())
-				$body.removeClass('is-menu-visible');
+            if ($menu._lock())
+                $body.removeClass('is-menu-visible');
 
-		};
+        };
 
-		$menu._toggle = function() {
+        $menu._toggle = function() {
 
-			if ($menu._lock())
-				$body.toggleClass('is-menu-visible');
+            if ($menu._lock())
+                $body.toggleClass('is-menu-visible');
 
-		};
+        };
 
-		$menu
-			.appendTo($body)
-			.on('click', function(event) {
-				event.stopPropagation();
-			})
-			.on('click', 'a', function(event) {
+        $menu
+            .appendTo($body)
+            .on('click', function(event) {
+                event.stopPropagation();
+            })
+            .on('click', 'a', function(event) {
 
-				var href = $(this).attr('href');
+                var href = $(this).attr('href');
 
-				event.preventDefault();
-				event.stopPropagation();
+                event.preventDefault();
+                event.stopPropagation();
 
-				// Hide.
-					$menu._hide();
+                // Hide.
+                    $menu._hide();
 
-				// Redirect.
-					if (href == '#menu')
-						return;
+                // Redirect.
+                    if (href == '#menu')
+                        return;
 
-					window.setTimeout(function() {
-						window.location.href = href;
-					}, 350);
+                    window.setTimeout(function() {
+                        window.location.href = href;
+                    }, 350);
 
-			})
-			.append('<a class="close" href="#menu">Close</a>');
+            })
+            .append('<a class="close" href="#menu">Close</a>');
 
-		$body
-			.on('click', 'a[href="#menu"]', function(event) {
+        $body
+            .on('click', 'a[href="#menu"]', function(event) {
 
-				event.stopPropagation();
-				event.preventDefault();
+                event.stopPropagation();
+                event.preventDefault();
 
-				// Toggle.
-					$menu._toggle();
+                // Toggle.
+                    $menu._toggle();
 
-			})
-			.on('click', function(event) {
+            })
+            .on('click', function(event) {
 
-				// Hide.
-					$menu._hide();
+                // Hide.
+                    $menu._hide();
 
-			})
-			.on('keydown', function(event) {
+            })
+            .on('keydown', function(event) {
 
-				// Hide on escape.
-					if (event.keyCode == 27)
-						$menu._hide();
+                // Hide on escape.
+                    if (event.keyCode == 27)
+                        $menu._hide();
 
-			});
+            });
 
 })(jQuery);
