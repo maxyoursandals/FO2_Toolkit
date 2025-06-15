@@ -57,7 +57,7 @@ const FO2Config = {
             TIER2_RATE: 0.125,
             TIER3_CAP: 640,
             TIER3_RATE: 0.0625,
-            TIER4_RATE: 0.03125
+            TIER4_RATE: 0.00625
         },
         // Health and Energy calculation
         RESOURCES: {
@@ -1520,7 +1520,7 @@ convertAPIItemsToInternalFormat(apiData) {
         '2,6': { Type: 'weapon', Subtype: 'staff' },
         '2,9': { Type: 'weapon', Subtype: 'sword' },
         '2,10': { Type: 'weapon', Subtype: 'axe' },
-        '2,12': { Type: 'weapon', Subtype: 'spear' },
+        '2,12': { Type: 'weapon', Subtype: 'bow' },
         '2,13': { Type: 'weapon', Subtype: 'hammer' },
         '2,14': { Type: 'weapon', Subtype: 'hammer' }
     };
@@ -2254,28 +2254,26 @@ const StatsCalculator = {
         finalAP += totalDirectAPBonus; // Add direct AP bonus from items/buffs
         finalAP = Math.max(0, finalAP);
         
-        // Critical Chance - UPDATED to include direct crit bonus
+        // Critical Chance - Calculate all sources first, then apply diminishing returns to total
         let critFromStats = this.calculateCritical(finalCharacterStats, base.critical);
-        let finalCrit = critFromStats;
-        
-        // Add direct crit bonus from items BEFORE applying buff crit with diminishing returns
-        finalCrit += totalDirectCritBonus;
-        
-        // Apply buff crit with diminishing returns
-        if (rawBuffCritPercentContribution !== 0) {
-            const critConfig = gameConfig.GAME.CRITICAL;
-            
-            if (finalCrit + rawBuffCritPercentContribution <= critConfig.SOFT_CAP) {
-                finalCrit += rawBuffCritPercentContribution;
-            } else if (finalCrit < critConfig.SOFT_CAP) {
-                const fullValue = critConfig.SOFT_CAP - finalCrit;
-                const reducedValue = (rawBuffCritPercentContribution - fullValue) * critConfig.REDUCTION_FACTOR;
-                finalCrit = critConfig.SOFT_CAP + reducedValue;
-            } else {
-                finalCrit += rawBuffCritPercentContribution * critConfig.REDUCTION_FACTOR;
-            }
+
+        // Sum all crit sources before applying diminishing returns
+        let totalRawCrit = critFromStats + totalDirectCritBonus + rawBuffCritPercentContribution;
+
+        // Apply diminishing returns to the total crit amount
+        let finalCrit;
+        const critConfig = gameConfig.GAME.CRITICAL;
+
+        if (totalRawCrit <= critConfig.SOFT_CAP) {
+            // Below soft cap - no diminishing returns
+            finalCrit = totalRawCrit;
+        } else {
+            // Above soft cap - apply diminishing returns to the excess
+            const excessCrit = totalRawCrit - critConfig.SOFT_CAP;
+            const reducedExcess = excessCrit * critConfig.REDUCTION_FACTOR;
+            finalCrit = critConfig.SOFT_CAP + reducedExcess;
         }
-        
+
         finalCrit = Math.max(0, finalCrit);
         
         // Dodge Chance
