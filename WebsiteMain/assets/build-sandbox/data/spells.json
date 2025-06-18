@@ -11,5 +11,6 @@
     { "Name": "Energy Orbs", "Tier": 3, "Energy Cost": 920, "Cast Time": 1.8, "Damage": "1800-3000", "Cooldown": 8, "Level Required": 84 },
     { "Name": "Twilightning Bolt", "Tier": 2, "Energy Cost": 50, "Cast Time": 1.8, "Damage": "75-75", "Cooldown": "", "Level Required": 20 },
     { "Name": "Twilightning Bolt", "Tier": 3, "Energy Cost": 200, "Cast Time": 1.8, "Damage": "150-150", "Cooldown": "", "Level Required": 50 },
-    { "Name": "Reckless Strike", "Tier": 3, "Energy Cost": 55, "Cast Time": 1.2, "Damage": "350-600", "Cooldown": "", "Level Required": 56 }
+    { "Name": "Reckless Strike", "Tier": 3, "Energy Cost": 55, "Cast Time": 1.2, "Damage": "350-600", "Cooldown": "", "Level Required": 56 },
+    { "Name": "Reckless Strike", "Tier": 4, "Energy Cost": 100, "Cast Time": 1.2, "Damage": "550-950", "Cooldown": "", "Level Required": 84 }
 ]
