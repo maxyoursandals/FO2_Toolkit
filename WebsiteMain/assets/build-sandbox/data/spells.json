@@ -7,6 +7,7 @@
     { "Name": "Boom Headshot", "Tier": 5, "Energy Cost": 376, "Cast Time": 2, "Damage": "480-920", "Cooldown": "", "Level Required": 65 },
     { "Name": "Boom Headshot", "Tier": 4, "Energy Cost": 132, "Cast Time": 2, "Damage": "300-400", "Cooldown": "", "Level Required": 50 },
     { "Name": "Arrow Barrage", "Tier": 2, "Energy Cost": 200, "Cast Time": 2, "Damage": "220-500", "Cooldown": "", "Level Required": 56 },
+    { "Name": "Arrow Barrage", "Tier": 3, "Energy Cost": 800, "Cast Time": 2, "Damage": "1000-3000", "Cooldown": 8, "Level Required": 84 },
     { "Name": "Energy Orbs", "Tier": 2, "Energy Cost": 340, "Cast Time": 1.8, "Damage": "400-620", "Cooldown": "", "Level Required": 56 },
     { "Name": "Energy Orbs", "Tier": 3, "Energy Cost": 920, "Cast Time": 1.8, "Damage": "1800-3000", "Cooldown": 8, "Level Required": 84 },
     { "Name": "Twilightning Bolt", "Tier": 2, "Energy Cost": 50, "Cast Time": 1.8, "Damage": "75-75", "Cooldown": "", "Level Required": 20 },
