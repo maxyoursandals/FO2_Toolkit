@@ -556,10 +556,11 @@ const UIFactory = {
     /**
      * Updates spell slot content
      */
-    updateSpellSlotContent(spellSlot, spell) {
+    updateSpellSlotContent: function(spellSlot, spell) {
         DOMUtils.clearElement(spellSlot);
         
         if (spell) {
+            // Spell equipped - show spell icon or fallback
             const spellIconName = spell.Name.toLowerCase()
                 .replace(/\s+/g, '-')
                 .replace(/[^a-z0-9-]/g, '');
@@ -581,6 +582,16 @@ const UIFactory = {
             
             spellSlot.appendChild(img);
             
+            // Add tier indicator if spell has tier
+            if (spell.tier) {
+                const tierSpan = DOMUtils.createElement('span', {
+                    className: 'spell-tier',
+                    textContent: spell.tier
+                });
+                spellSlot.appendChild(tierSpan);
+            }
+            
+            // Add clear button
             const clearButton = DOMUtils.createElement('div', {
                 className: 'spell-clear',
                 textContent: '×',
@@ -589,12 +600,15 @@ const UIFactory = {
             
             clearButton.addEventListener('click', (e) => {
                 e.stopPropagation();
-                StateManager.setSelectedSpell(null);
+                const slotId = spellSlot.id;
+                const slot = slotId === 'spell-slot-primary' ? 'primary' : 'secondary';
+                StateManager.setSelectedSpell(null, slot);
                 UIController.updateSpellDisplay();
             });
             
             spellSlot.appendChild(clearButton);
         } else {
+            // No spell - show default icon
             const defaultIcon = DOMUtils.createElement('div', {
                 className: 'spell-slot-fallback',
                 textContent: '⚡'
@@ -2461,6 +2475,113 @@ calculatePerformance(currentDPS, mobList, filters) {
         return Math.round(spell.baseDps * critMultiplier);
     },
 
+    calculateComboDPS: function(primarySpell, secondarySpell, critPercent) {
+        if (!primarySpell && !secondarySpell) return 0;
+        
+        // Single spell case
+        if (!secondarySpell) {
+            return this.calculateSpellDpsWithCrit(primarySpell, critPercent);
+        }
+        if (!primarySpell) {
+            return this.calculateSpellDpsWithCrit(secondarySpell, critPercent);
+        }
+        
+        // Both spells selected - calculate combo DPS
+        const critMultiplier = 1.0 + (critPercent / 100.0);
+        
+        // Check if either spell has a cooldown
+        const primaryHasCooldown = primarySpell.cooldown > 0;
+        const secondaryHasCooldown = secondarySpell.cooldown > 0;
+        
+        if (primaryHasCooldown || secondaryHasCooldown) {
+            // Cooldown rotation case
+            const cooldownSpell = primaryHasCooldown ? primarySpell : secondarySpell;
+            const fillerSpell = primaryHasCooldown ? secondarySpell : primarySpell;
+            
+            // Calculate damage and timing for cooldown spell
+            const cooldownAvgDamage = (cooldownSpell.minDamage + cooldownSpell.maxDamage) / 2 * critMultiplier;
+            const cooldownCastTime = cooldownSpell.castTime;
+            const cooldownCooldown = cooldownSpell.cooldown;
+            
+            // Calculate how many filler spells can be cast during cooldown
+            const fillerCastTime = Math.max(fillerSpell.castTime, fillerSpell.cooldown) || 1;
+            const cooldownDuration = cooldownCooldown - cooldownCastTime; // Time remaining after cast
+            const fillerCastsInCooldown = Math.floor(cooldownDuration / fillerCastTime);
+            
+            // Calculate total damage and time for one rotation
+            const fillerAvgDamage = (fillerSpell.minDamage + fillerSpell.maxDamage) / 2 * critMultiplier;
+            const totalDamage = cooldownAvgDamage + (fillerCastsInCooldown * fillerAvgDamage);
+            const totalTime = cooldownCooldown; // Full cooldown cycle
+            
+            return Math.round((totalDamage / totalTime) * 100) / 100;
+        } else {
+            // No cooldowns - alternating cast sequence
+            const primaryAvgDamage = (primarySpell.minDamage + primarySpell.maxDamage) / 2 * critMultiplier;
+            const secondaryAvgDamage = (secondarySpell.minDamage + secondarySpell.maxDamage) / 2 * critMultiplier;
+            
+            const primaryCastTime = primarySpell.castTime || 1;
+            const secondaryCastTime = secondarySpell.castTime || 1;
+            
+            // Calculate DPS as alternating between the two spells
+            const totalDamage = primaryAvgDamage + secondaryAvgDamage;
+            const totalTime = primaryCastTime + secondaryCastTime;
+            
+            return Math.round((totalDamage / totalTime) * 100) / 100;
+        }
+    },
+
+    calculateComboEnergyPerSecond: function(primarySpell, secondarySpell) {
+        if (!primarySpell && !secondarySpell) return 0;
+        
+        // Single spell case
+        if (!secondarySpell) {
+            return primarySpell.energyPerSecond || 0;
+        }
+        if (!primarySpell) {
+            return secondarySpell.energyPerSecond || 0;
+        }
+        
+        // Both spells selected - calculate combo energy/sec
+        const primaryHasCooldown = primarySpell.cooldown > 0;
+        const secondaryHasCooldown = secondarySpell.cooldown > 0;
+        
+        if (primaryHasCooldown || secondaryHasCooldown) {
+            // Cooldown rotation case
+            const cooldownSpell = primaryHasCooldown ? primarySpell : secondarySpell;
+            const fillerSpell = primaryHasCooldown ? secondarySpell : primarySpell;
+            
+            // Calculate energy costs
+            const cooldownEnergyCost = cooldownSpell.energyCost;
+            const cooldownCastTime = cooldownSpell.castTime;
+            const cooldownCooldown = cooldownSpell.cooldown;
+            
+            // Calculate how many filler spells can be cast during cooldown
+            const fillerCastTime = Math.max(fillerSpell.castTime, fillerSpell.cooldown) || 1;
+            const cooldownDuration = cooldownCooldown - cooldownCastTime; // Time remaining after cast
+            const fillerCastsInCooldown = Math.floor(cooldownDuration / fillerCastTime);
+            
+            // Calculate total energy and time for one rotation
+            const fillerEnergyCost = fillerSpell.energyCost;
+            const totalEnergy = cooldownEnergyCost + (fillerCastsInCooldown * fillerEnergyCost);
+            const totalTime = cooldownCooldown; // Full cooldown cycle
+            
+            return Math.round((totalEnergy / totalTime) * 100) / 100;
+        } else {
+            // No cooldowns - alternating cast sequence
+            const primaryEnergyCost = primarySpell.energyCost;
+            const secondaryEnergyCost = secondarySpell.energyCost;
+            
+            const primaryCastTime = primarySpell.castTime || 1;
+            const secondaryCastTime = secondarySpell.castTime || 1;
+            
+            // Calculate energy/sec as alternating between the two spells
+            const totalEnergy = primaryEnergyCost + secondaryEnergyCost;
+            const totalTime = primaryCastTime + secondaryCastTime;
+            
+            return Math.round((totalEnergy / totalTime) * 100) / 100;
+        }
+    },
+
     /**
      * Calculate active set bonuses from equipped items
      * @param {Object} equipment - Equipped items
@@ -2556,7 +2677,10 @@ const StateManager = {
             equipment: {},
             activeBuffs: [],
             calculatedStats: {},
-            selectedSpell: null
+            selectedSpells: {
+                primary: null,
+                secondary: null
+            }
 
         },
         
@@ -2874,19 +2998,32 @@ const StateManager = {
     /**
      * Set selected spell
      */
-    setSelectedSpell(spellObject) {
-        this.state.currentBuild.selectedSpell = spellObject;
+    setSelectedSpell: function(spellObject, slot = 'primary') {
+        if (slot !== 'primary' && slot !== 'secondary') {
+            console.error('Invalid spell slot:', slot);
+            return;
+        }
+        
+        this.state.currentBuild.selectedSpells[slot] = spellObject;
         this.saveCurrentStateToLocalStorage();
-        EventSystem.publish('spell-updated', spellObject);
+        EventSystem.publish('spells-updated', this.state.currentBuild.selectedSpells);
     },
     
     /**
      * Reset spell
      */
-    resetSpell() {
-        this.setSelectedSpell(null);
+    resetSpell: function(slot = 'primary') {
+        this.setSelectedSpell(null, slot);
     },
     
+    resetSpells: function() {
+        this.state.currentBuild.selectedSpells = {
+            primary: null,
+            secondary: null
+        };
+        this.saveCurrentStateToLocalStorage();
+        EventSystem.publish('spells-updated', this.state.currentBuild.selectedSpells);
+    },
     /**
      * Update performance filters
      * @param {Object} filters - New filter values
@@ -2984,7 +3121,10 @@ const StateManager = {
             stats: this.state.currentBuild.statPoints,
             equipment: {},
             activeBuffNames: this.state.currentBuild.activeBuffs.map(buff => buff.Name),
-            selectedSpellName: this.state.currentBuild.selectedSpell ? this.state.currentBuild.selectedSpell.Name : null,
+            selectedSpells: {
+                primary: this.state.currentBuild.selectedSpells.primary ? this.state.currentBuild.selectedSpells.primary.Name : null,
+                secondary: this.state.currentBuild.selectedSpells.secondary ? this.state.currentBuild.selectedSpells.secondary.Name : null
+            },
             uiPerformance: this.state.ui.performance,
             uiMode: this.state.ui.mode,
             currentPage: this.state.ui.currentPage
@@ -3054,7 +3194,7 @@ const StateManager = {
         // Reset equipment, buffs, and spell before loading
         this.state.currentBuild.equipment = {};
         this.state.currentBuild.activeBuffs = [];
-        this.state.currentBuild.selectedSpell = null; // ADD: spell support
+        this.state.currentBuild.selectedSpells = { primary: null, secondary: null };
 
         // Load equipment
         if (savedData.equipment && this.state.data.itemsById.size > 0) {
@@ -3090,12 +3230,25 @@ const StateManager = {
         }
 
         // Load selected spell
-        if (savedData.selectedSpellName && this.state.data.spells && this.state.data.spells.length > 0) {
+        if (savedData.selectedSpells && this.state.data.spells && this.state.data.spells.length > 0) {
+            // New dual spell format
+            if (savedData.selectedSpells.primary) {
+                const primarySpell = this.state.data.spells.find(s => s.Name === savedData.selectedSpells.primary);
+                if (primarySpell) {
+                    this.state.currentBuild.selectedSpells.primary = primarySpell;
+                }
+            }
+            if (savedData.selectedSpells.secondary) {
+                const secondarySpell = this.state.data.spells.find(s => s.Name === savedData.selectedSpells.secondary);
+                if (secondarySpell) {
+                    this.state.currentBuild.selectedSpells.secondary = secondarySpell;
+                }
+            }
+        } else if (savedData.selectedSpellName && this.state.data.spells && this.state.data.spells.length > 0) {
+            // Legacy single spell format - load into primary slot
             const spellToSelect = this.state.data.spells.find(s => s.Name === savedData.selectedSpellName);
             if (spellToSelect) {
-                this.state.currentBuild.selectedSpell = spellToSelect;
-            } else {
-                console.warn(`Spell data missing for ${savedData.selectedSpellName} during load.`);
+                this.state.currentBuild.selectedSpells.primary = spellToSelect;
             }
         }
 
@@ -3798,29 +3951,51 @@ const UIController = {
             }
         });
 
-    const spellSlot = DOMUtils.getElement('spell-slot');
-    if (spellSlot) {
-        spellSlot.addEventListener('click', (event) => {
-            if (!event.target.classList.contains('spell-clear')) {
-                this.openSpellSearch();
-            }
-        });
-        
-        spellSlot.addEventListener('mouseenter', () => {
-            const selectedSpell = StateManager.state.currentBuild.selectedSpell;
-            if (selectedSpell) {
-                const content = UIFactory.generateSpellTooltipContent(selectedSpell);
-                UIFactory.createTooltip(spellSlot, content, 'spell-tooltip', 'item-tooltip');
-            }
-        });
-        
-        spellSlot.addEventListener('mouseleave', () => {
-            UIFactory.hideTooltip('spell-tooltip');
-        });
-    }
+    const primarySpellSlot = DOMUtils.getElement('spell-slot-primary');
+const secondarySpellSlot = DOMUtils.getElement('spell-slot-secondary');
+
+if (primarySpellSlot) {
+    primarySpellSlot.addEventListener('click', (event) => {
+        if (!event.target.classList.contains('spell-clear')) {
+            this.openSpellSearch('primary');
+        }
+    });
+    
+    primarySpellSlot.addEventListener('mouseenter', () => {
+        const selectedSpell = StateManager.state.currentBuild.selectedSpells.primary;
+        if (selectedSpell) {
+            const content = UIFactory.generateSpellTooltipContent(selectedSpell);
+            UIFactory.createTooltip(primarySpellSlot, content, 'spell-tooltip', 'item-tooltip');
+        }
+    });
+    
+    primarySpellSlot.addEventListener('mouseleave', () => {
+        UIFactory.hideTooltip('spell-tooltip');
+    });
+}
+
+if (secondarySpellSlot) {
+    secondarySpellSlot.addEventListener('click', (event) => {
+        if (!event.target.classList.contains('spell-clear')) {
+            this.openSpellSearch('secondary');
+        }
+    });
+    
+    secondarySpellSlot.addEventListener('mouseenter', () => {
+        const selectedSpell = StateManager.state.currentBuild.selectedSpells.secondary;
+        if (selectedSpell) {
+            const content = UIFactory.generateSpellTooltipContent(selectedSpell);
+            UIFactory.createTooltip(secondarySpellSlot, content, 'spell-tooltip', 'item-tooltip');
+        }
+    });
+    
+    secondarySpellSlot.addEventListener('mouseleave', () => {
+        UIFactory.hideTooltip('spell-tooltip');
+    });
+}
     
     // Subscribe to spell update events
-    EventSystem.subscribe('spell-updated', () => {
+    EventSystem.subscribe('spells-updated', () => {
         this.updateSpellDisplay();
     });
 
@@ -4454,49 +4629,99 @@ handleEquipSet(setData) {
     /**
      * Update spell display
      */
-    updateSpellDisplay() {
-        const spellSlot = DOMUtils.getElement('spell-slot');
+    updateSpellDisplay: function() {
+        const primarySlot = DOMUtils.getElement('spell-slot-primary');
+        const secondarySlot = DOMUtils.getElement('spell-slot-secondary');
         const spellInfo = DOMUtils.getElement('spell-info');
         
-        if (!spellSlot || !spellInfo) return;
+        if (!primarySlot || !secondarySlot || !spellInfo) return;
         
-        const selectedSpell = StateManager.state.currentBuild.selectedSpell;
+        const selectedSpells = StateManager.state.currentBuild.selectedSpells;
         
-        UIFactory.updateSpellSlotContent(spellSlot, selectedSpell);
+        // Update spell slots
+        UIFactory.updateSpellSlotContent(primarySlot, selectedSpells.primary);
+        UIFactory.updateSpellSlotContent(secondarySlot, selectedSpells.secondary);
         
+        // Update spell info
         DOMUtils.clearElement(spellInfo);
         
-        if (selectedSpell) {
+        if (selectedSpells.primary || selectedSpells.secondary) {
+            // Get current crit % from calculated stats
             const calculatedStats = StateManager.state.currentBuild.calculatedStats;
             const critPercent = calculatedStats?.finalCrit || 0;
-            const dpsWithCrit = StatsCalculator.calculateSpellDpsWithCrit(selectedSpell, critPercent);
             
-            const nameDiv = DOMUtils.createElement('div', {
-                className: 'spell-name',
-                textContent: `${selectedSpell.Name} (Tier ${selectedSpell.tier})`
+            // Calculate combo DPS
+            const comboDps = StatsCalculator.calculateComboDPS(
+                selectedSpells.primary, 
+                selectedSpells.secondary, 
+                critPercent
+            );
+            
+            // Create display content
+            const comboDiv = DOMUtils.createElement('div', {
+                className: 'spell-combo-info'
             });
             
-            const statsDiv = DOMUtils.createElement('div', {
-                className: 'spell-stats'
-            });
+            if (selectedSpells.primary && selectedSpells.secondary) {
+                // Both spells selected
+                const nameDiv = DOMUtils.createElement('div', {
+                    className: 'spell-names',
+                    innerHTML: `${selectedSpells.primary.Name} + ${selectedSpells.secondary.Name}`
+                });
+                
+                const dpsDiv = DOMUtils.createElement('div', {
+                    className: 'spell-combo-dps',
+                    innerHTML: `Combo DPS: <span class="spell-dps">${comboDps}</span>`
+                });
+                
+                // Calculate combined energy cost
+                const comboEnergyPerSec = StatsCalculator.calculateComboEnergyPerSecond(
+                    selectedSpells.primary, 
+                    selectedSpells.secondary
+                );
+
+                let energyDisplay = '';
+                if (selectedSpells.primary.cooldown > 0 || selectedSpells.secondary.cooldown > 0) {
+                    energyDisplay = `${comboEnergyPerSec.toFixed(1)} energy/sec (rotation)`;
+                } else {
+                    energyDisplay = `${comboEnergyPerSec.toFixed(1)} energy/sec`;
+                }
+                
+                const costDiv = DOMUtils.createElement('div', {
+                    innerHTML: `Cost: <span class="spell-cost">${energyDisplay}</span>`
+                });
+                
+                comboDiv.appendChild(nameDiv);
+                comboDiv.appendChild(dpsDiv);
+                comboDiv.appendChild(costDiv);
+            } else {
+                // Single spell selected
+                const spell = selectedSpells.primary || selectedSpells.secondary;
+                const slot = selectedSpells.primary ? 'Primary' : 'Secondary';
+                
+                const nameDiv = DOMUtils.createElement('div', {
+                    className: 'spell-name',
+                    textContent: `${slot}: ${spell.Name} (Tier ${spell.tier})`
+                });
+                
+                const dpsDiv = DOMUtils.createElement('div', {
+                    innerHTML: `DPS: <span class="spell-dps">${comboDps}</span> (Base: ${spell.baseDps})`
+                });
+                
+                const costDiv = DOMUtils.createElement('div', {
+                    innerHTML: `Cost: <span class="spell-cost">${spell.energyPerSecond.toFixed(1)} energy/sec</span>`
+                });
+                
+                comboDiv.appendChild(nameDiv);
+                comboDiv.appendChild(dpsDiv);
+                comboDiv.appendChild(costDiv);
+            }
             
-            const dpsDiv = DOMUtils.createElement('div', {
-                innerHTML: `DPS: <span class="spell-dps">${dpsWithCrit}</span> (Base: ${selectedSpell.baseDps})`
-            });
-            
-            const costDiv = DOMUtils.createElement('div', {
-                innerHTML: `Cost: <span class="spell-cost">${selectedSpell.energyPerSecond.toFixed(1)} energy/sec</span>`
-            });
-            
-            statsDiv.appendChild(dpsDiv);
-            statsDiv.appendChild(costDiv);
-            
-            spellInfo.appendChild(nameDiv);
-            spellInfo.appendChild(statsDiv);
+            spellInfo.appendChild(comboDiv);
         } else {
             const placeholderDiv = DOMUtils.createElement('div', {
                 style: 'color: #666; font-style: italic;',
-                textContent: 'Click to select a spell'
+                textContent: 'Click slots to select spells'
             });
             
             spellInfo.appendChild(placeholderDiv);
@@ -4506,31 +4731,34 @@ handleEquipSet(setData) {
     /**
      * Open spell search
      */
-    openSpellSearch() {
-        const searchModal = DOMUtils.getElement('item-search-modal');
-        const searchTitle = document.getElementById('search-title');
-        const searchInput = DOMUtils.getElement('item-search-input');
-        
-        if (!searchModal) return;
-        
-        StateManager.setCurrentItemSearchSlot('spell');
-        
-        if (searchTitle) {
-            searchTitle.textContent = 'Select Spell';
-        }
-        
-        searchModal.style.display = 'flex';
-        searchModal.style.top = '50%';
-        searchModal.style.left = '50%';
-        searchModal.style.transform = 'translate(-50%, -50%)';
-        
-        if (searchInput) {
-            searchInput.value = '';
-            searchInput.focus();
-        }
-        
-        this.populateSpellSearchResults();
-    },
+    openSpellSearch: function(slot = 'primary') {
+    const searchModal = DOMUtils.getElement('item-search-modal');
+    const searchTitle = document.getElementById('search-title');
+    const searchInput = DOMUtils.getElement('item-search-input');
+    
+    if (!searchModal) return;
+    
+    // Set search mode to spells with slot info
+    StateManager.setCurrentItemSearchSlot(`spell-${slot}`);
+    
+    // Update Title
+    if (searchTitle) {
+        searchTitle.textContent = `Select ${slot.charAt(0).toUpperCase() + slot.slice(1)} Spell`;
+    }
+    
+    // Show and position modal
+    searchModal.style.display = 'flex';
+    searchModal.style.top = '50%';
+    searchModal.style.left = '50%';
+    searchModal.style.transform = 'translate(-50%, -50%)';
+    
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+    
+    this.populateSpellSearchResults();
+},
     
     /**
      * Populate spell search results
@@ -4565,10 +4793,13 @@ handleEquipSet(setData) {
         } else {
             filteredSpells.forEach(spell => {
                 const spellElement = UIFactory.createSpellSearchResult(spell, (selectedSpell) => {
-                    StateManager.setSelectedSpell(selectedSpell);
-                    this.updateSpellDisplay();
-                    this.closeItemSearch();
-                    DOMUtils.showNotification(`Selected ${selectedSpell.Name}`, 'success');
+                    const currentSlot = StateManager.state.ui.currentItemSearchSlot;
+                        const slot = currentSlot?.replace('spell-', '') || 'primary';
+
+                        StateManager.setSelectedSpell(selectedSpell, slot);
+                        this.updateSpellDisplay();
+                        this.closeItemSearch();
+                        DOMUtils.showNotification(`Selected ${selectedSpell.Name} for ${slot} slot`, 'success');
                 });
                 
                 searchResults.appendChild(spellElement);
@@ -4678,17 +4909,19 @@ handleEquipSet(setData) {
      * Populate the search results in the item search modal
      * @param {string} [query=''] - Search query
      */
-    populateSearchResults(query = '') {
-    const searchResults = DOMUtils.getElement('search-results');
-    if (!searchResults) return;
-    
-    DOMUtils.clearElement(searchResults);
-    
-    const currentSlot = StateManager.state.ui.currentItemSearchSlot;
-    if (currentSlot === 'spell') {
-        this.populateSpellSearchResults(query);
-        return;
-    }
+    populateSearchResults: function(query = '') {
+        const searchResults = DOMUtils.getElement('search-results');
+        if (!searchResults) return;
+        
+        DOMUtils.clearElement(searchResults);
+        
+        const currentSlot = StateManager.state.ui.currentItemSearchSlot;
+        
+        // NEW: Check if this is a spell search
+        if (currentSlot && currentSlot.startsWith('spell-')) {
+            this.populateSpellSearchResults(query);
+            return;
+        }
     if (!currentSlot) return;
     
     const itemsState = StateManager.state.data.items;
