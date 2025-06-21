@@ -1200,16 +1200,26 @@ const UIFactory = {
      * @param {Function} equipHandler - Function to call when equipping set
      * @returns {HTMLElement} Set button element
      */
-    createSetItem(setData, equipHandler) {
-        const setButton = DOMUtils.createElement('button', {
-            className: 'set-button action-button',
-            textContent: setData.setName,
-            title: `Click to equip ${setData.setName} set (${setData.items.length} pieces)`,
-            onclick: () => equipHandler(setData)
-        });
-        
-        return setButton;
-    },
+    createSetItem(setData, equipHandler, statName = null) {
+    let buttonText;
+    
+    if (statName && setData.tier) {
+        // Use stat shortname and tier format
+        buttonText = `${statName} T${setData.tier}`;
+    } else {
+        // Fallback to original set name
+        buttonText = setData.setName;
+    }
+    
+    const setButton = DOMUtils.createElement('button', {
+        className: 'set-button action-button',
+        textContent: buttonText,
+        title: `Click to equip ${setData.setName} set (${setData.items.length} pieces)`,
+        onclick: () => equipHandler(setData)
+    });
+    
+    return setButton;
+},
 
     /**
      * Creates a set bonus display element - FIXED to only show active bonuses
@@ -2328,6 +2338,74 @@ const StatsCalculator = {
             finalEnergyRegenPerSecond: totalEnergyRegenPerSecond
         };
     },
+
+    calculateComboDpsPerEnergy: function(primarySpell, secondarySpell, critPercent) {
+    const comboDps = this.calculateComboDPS(primarySpell, secondarySpell, critPercent);
+    const comboEnergyPerSec = this.calculateComboEnergyPerSecond(primarySpell, secondarySpell);
+    
+    if (comboEnergyPerSec === 0) return 0;
+    
+    return Math.round((comboDps / comboEnergyPerSec) * 100) / 100;
+},
+
+calculateComboMaxDamage: function(primarySpell, secondarySpell, critPercent) {
+    if (!primarySpell && !secondarySpell) return 0;
+    
+    // Single spell case
+    if (!secondarySpell) {
+        return this.calculateSpellMaxDamageWithCrit(primarySpell, critPercent);
+    }
+    if (!primarySpell) {
+        return this.calculateSpellMaxDamageWithCrit(secondarySpell, critPercent);
+    }
+    
+    // Both spells selected - calculate combo max damage
+    const cappedCritPercent = Math.min(critPercent, 100); // Cap crit at 100%
+    const critMultiplier = 1.0 + (cappedCritPercent / 100.0);
+    
+    // Check if either spell has a cooldown
+    const primaryHasCooldown = primarySpell.cooldown > 0;
+    const secondaryHasCooldown = secondarySpell.cooldown > 0;
+    
+    if (primaryHasCooldown || secondaryHasCooldown) {
+        // Cooldown rotation case - max damage in one rotation cycle
+        const cooldownSpell = primaryHasCooldown ? primarySpell : secondarySpell;
+        const fillerSpell = primaryHasCooldown ? secondarySpell : primarySpell;
+        
+        // Calculate max damage for cooldown spell
+        const cooldownMaxDamage = cooldownSpell.maxDamage * critMultiplier;
+        const cooldownCastTime = cooldownSpell.castTime;
+        const cooldownCooldown = cooldownSpell.cooldown;
+        
+        // Calculate how many filler spells can be cast during cooldown
+        const fillerCastTime = Math.max(fillerSpell.castTime, fillerSpell.cooldown) || 1;
+        const cooldownDuration = cooldownCooldown - cooldownCastTime;
+        const fillerCastsInCooldown = Math.floor(cooldownDuration / fillerCastTime);
+        
+        // Calculate total max damage for one rotation
+        const fillerMaxDamage = fillerSpell.maxDamage * critMultiplier;
+        const totalMaxDamage = cooldownMaxDamage + (fillerCastsInCooldown * fillerMaxDamage);
+        
+        return Math.round(totalMaxDamage);
+    } else {
+        // No cooldowns - alternating cast sequence max damage
+        const primaryMaxDamage = primarySpell.maxDamage * critMultiplier;
+        const secondaryMaxDamage = secondarySpell.maxDamage * critMultiplier;
+        
+        // Return sum of both max damages in one cycle
+        return Math.round(primaryMaxDamage + secondaryMaxDamage);
+    }
+},
+
+calculateSpellMaxDamageWithCrit: function(spell, critPercent) {
+    if (!spell || !spell.maxDamage) return 0;
+    
+    // Apply crit multiplier to max damage: (1 + crit% / 100)
+    const cappedCritPercent = Math.min(critPercent, 100); // Cap crit at 100%
+    const critMultiplier = 1.0 + (cappedCritPercent / 100.0);
+    return Math.round(spell.maxDamage * critMultiplier);
+},
+
     
     /**
  * Calculate performance against mobs using current build's DPS
@@ -2471,7 +2549,8 @@ calculatePerformance(currentDPS, mobList, filters) {
         if (!spell || !spell.baseDps) return 0;
         
         // Apply crit multiplier: (1 + crit% / 100)
-        const critMultiplier = 1.0 + (critPercent / 100.0);
+        const cappedCritPercent = Math.min(critPercent, 100); // Cap crit at 100%
+        const critMultiplier = 1.0 + (cappedCritPercent / 100.0);
         return Math.round(spell.baseDps * critMultiplier);
     },
 
@@ -2487,7 +2566,8 @@ calculatePerformance(currentDPS, mobList, filters) {
         }
         
         // Both spells selected - calculate combo DPS
-        const critMultiplier = 1.0 + (critPercent / 100.0);
+        const cappedCritPercent = Math.min(critPercent, 100); // Cap crit at 100%
+        const critMultiplier = 1.0 + (cappedCritPercent / 100.0);
         
         // Check if either spell has a cooldown
         const primaryHasCooldown = primarySpell.cooldown > 0;
@@ -3122,8 +3202,14 @@ const StateManager = {
             equipment: {},
             activeBuffNames: this.state.currentBuild.activeBuffs.map(buff => buff.Name),
             selectedSpells: {
-                primary: this.state.currentBuild.selectedSpells.primary ? this.state.currentBuild.selectedSpells.primary.Name : null,
-                secondary: this.state.currentBuild.selectedSpells.secondary ? this.state.currentBuild.selectedSpells.secondary.Name : null
+                primary: this.state.currentBuild.selectedSpells.primary ? {
+                    name: this.state.currentBuild.selectedSpells.primary.Name,
+                    tier: this.state.currentBuild.selectedSpells.primary.tier || this.state.currentBuild.selectedSpells.primary.Tier
+                } : null,
+                secondary: this.state.currentBuild.selectedSpells.secondary ? {
+                    name: this.state.currentBuild.selectedSpells.secondary.Name,
+                    tier: this.state.currentBuild.selectedSpells.secondary.tier || this.state.currentBuild.selectedSpells.secondary.Tier
+                } : null
             },
             uiPerformance: this.state.ui.performance,
             uiMode: this.state.ui.mode,
@@ -3231,15 +3317,40 @@ const StateManager = {
 
         // Load selected spell
         if (savedData.selectedSpells && this.state.data.spells && this.state.data.spells.length > 0) {
-            // New dual spell format
+    // New dual spell format with tier support
             if (savedData.selectedSpells.primary) {
-                const primarySpell = this.state.data.spells.find(s => s.Name === savedData.selectedSpells.primary);
+                let primarySpell = null;
+                
+                if (typeof savedData.selectedSpells.primary === 'object' && savedData.selectedSpells.primary.name) {
+                    // New format with name and tier
+                    primarySpell = this.state.data.spells.find(s => 
+                        s.Name === savedData.selectedSpells.primary.name && 
+                        (s.tier || s.Tier) === savedData.selectedSpells.primary.tier
+                    );
+                } else if (typeof savedData.selectedSpells.primary === 'string') {
+                    // Legacy format - try exact name match first
+                    primarySpell = this.state.data.spells.find(s => s.Name === savedData.selectedSpells.primary);
+                }
+                
                 if (primarySpell) {
                     this.state.currentBuild.selectedSpells.primary = primarySpell;
                 }
             }
+            
             if (savedData.selectedSpells.secondary) {
-                const secondarySpell = this.state.data.spells.find(s => s.Name === savedData.selectedSpells.secondary);
+                let secondarySpell = null;
+                
+                if (typeof savedData.selectedSpells.secondary === 'object' && savedData.selectedSpells.secondary.name) {
+                    // New format with name and tier
+                    secondarySpell = this.state.data.spells.find(s => 
+                        s.Name === savedData.selectedSpells.secondary.name && 
+                        (s.tier || s.Tier) === savedData.selectedSpells.secondary.tier
+                    );
+                } else if (typeof savedData.selectedSpells.secondary === 'string') {
+                    // Legacy format - try exact name match first
+                    secondarySpell = this.state.data.spells.find(s => s.Name === savedData.selectedSpells.secondary);
+                }
+                
                 if (secondarySpell) {
                     this.state.currentBuild.selectedSpells.secondary = secondarySpell;
                 }
@@ -4310,88 +4421,150 @@ registerSlotItemRemovedListener() {
         /**
          * Populate the sets list
          */
-        populateSetsList() {
-        const setsList = DOMUtils.getElement('sets-list');
-        const setsCount = DOMUtils.getElement('available-sets-count');
+    populateSetsList() {
+    const setsList = DOMUtils.getElement('sets-list');
+    const setsCount = DOMUtils.getElement('available-sets-count');
+    
+    if (!setsList) return;
+    
+    DOMUtils.clearElement(setsList);
+    
+    const sets = StateManager.state.data.sets || [];
+    
+    if (setsCount) {
+        setsCount.textContent = `(${sets.length})`;
+    }
+    
+    if (sets.length === 0) {
+        setsList.innerHTML = '<div class="no-sets">No sets available</div>';
+        return;
+    }
+    
+    // Categorize sets by family and extract tier
+    const setCategories = {
+        dragon: [],   // AGI sets
+        bastion: [],  // STA sets  
+        knight: [],   // STR sets
+        mage: [],     // INT sets
+        misc: []
+    };
+    
+    // Helper function to extract tier from set name
+    const extractTier = (setName) => {
+        const name = setName.toLowerCase();
         
-        if (!setsList) return;
+        // Check for explicit tier indicators first
+        if (/\bt5\b|\btier\s*5\b/i.test(name)) return 5;
+        if (/\bt4\b|\btier\s*4\b/i.test(name)) return 4;
+        if (/\bt3\b|\btier\s*3\b/i.test(name)) return 3;
+        if (/\bt2\b|\btier\s*2\b/i.test(name)) return 2;
+        if (/\bt1\b|\btier\s*1\b/i.test(name)) return 1;
         
-        DOMUtils.clearElement(setsList);
+        // Exact set name mappings for each tier
         
-        const sets = StateManager.state.data.sets || [];
+        // Tier 5 sets
+        if (name.includes('archmage')) return 5;        // INT T5
+        if (name.includes('paladin')) return 5;         // STR T5  
+        if (name.includes('colossus')) return 5;        // STA T5
+        if (name.includes('tiamat')) return 5;          // AGI T5
         
-        if (setsCount) {
-            setsCount.textContent = `(${sets.length})`;
-        }
+        // Tier 4 sets
+        if (name.includes('divine') && name.includes('mage')) return 4;           // INT T4
+        if (name.includes('crucified') && name.includes('knight')) return 4;     // STR T4
+        if (name.includes('impenetrable') && name.includes('bastion')) return 4; // STA T4
+        if (name.includes('crystal') && name.includes('dragon')) return 4;       // AGI T4
         
-        if (sets.length === 0) {
-            setsList.innerHTML = '<div class="no-sets">No sets available</div>';
-            return;
-        }
+        // Tier 3 sets
+        if (name.includes('ancient') && name.includes('mage')) return 3;         // INT T3
+        if (name.includes('ancient') && name.includes('knight')) return 3;       // STR T3
+        if (name.includes('ancient') && name.includes('bastion')) return 3;      // STA T3
+        if (name.includes('ancient') && name.includes('dragon')) return 3;       // AGI T3
         
-        // Categorize sets by tier
-        const setCategories = {
-            dragon: [],
-            bastion: [],
-            knight: [],
-            mage: [],
-            misc: []
+        // Tier 2 sets
+        if (name.includes('adept') && name.includes('mage')) return 2;           // INT T2
+        if (name.includes('crimson') && name.includes('knight')) return 2;       // STR T2
+        if (name.includes('fortified') && name.includes('bastion')) return 2;    // STA T2
+        if (name.includes('mighty') && name.includes('dragon')) return 2;        // AGI T2
+        
+        // Tier 1 sets (base names)
+        if (name === 'mage' || name === 'mage set') return 1;        // INT T1
+        if (name === 'knight' || name === 'knight set') return 1;    // STR T1
+        if (name === 'bastion' || name === 'bastion set') return 1;  // STA T1
+        if (name === 'dragon' || name === 'dragon set') return 1;    // AGI T1
+        
+        // Fallback - if none of the above match, try to guess based on keywords
+        console.warn(`Unknown set tier for: ${setName}`);
+        return 1; // Default to tier 1
+    };
+    
+    sets.forEach(setData => {
+        const setName = setData.setName.toLowerCase();
+        const tier = extractTier(setData.setName);
+        
+        const setWithTier = {
+            ...setData,
+            tier: tier
         };
-        
-        sets.forEach(setData => {
-            const setName = setData.setName.toLowerCase();
-            
-            if (setName.includes('dragon')) {
-                setCategories.dragon.push(setData);
-            } else if (setName.includes('bastion')) {
-                setCategories.bastion.push(setData);
-            } else if (setName.includes('knight')) {
-                setCategories.knight.push(setData);
-            } else if (setName.includes('mage')) {
-                setCategories.mage.push(setData);
-            } else {
-                setCategories.misc.push(setData);
-            }
-        });
-        
-        // Sort each category by tier (extract numbers from set names)
-        Object.keys(setCategories).forEach(category => {
-            setCategories[category].sort((a, b) => {
-                const getTier = (name) => {
-                    const match = name.match(/(\d+)/);
-                    return match ? parseInt(match[1]) : 999; // Put non-numbered sets at end
-                };
-                return getTier(a.setName) - getTier(b.setName);
+    
+        // Dragon family: Dragon, Mighty Dragon, Ancient Dragon, Crystal Dragon, Tiamat
+        if (setName.includes('dragon') || setName.includes('tiamat')) {
+            setCategories.dragon.push(setWithTier);
+        } 
+        // Bastion family: Bastion, Fortified Bastion, Ancient Bastion, Impenetrable Bastion, Colossus
+        else if (setName.includes('bastion') || setName.includes('colossus')) {
+            setCategories.bastion.push(setWithTier);
+        } 
+        // Knight family: Knight, Crimson Knight, Ancient Knight, Crucified Knight, Paladin
+        else if (setName.includes('knight') || setName.includes('paladin')) {
+            setCategories.knight.push(setWithTier);
+        } 
+        // Mage family: Various mage sets + Archmage
+        else if (setName.includes('mage') || setName.includes('archmage')) {
+            setCategories.mage.push(setWithTier);
+        } 
+        else {
+            setCategories.misc.push(setWithTier);
+        }
+    });
+    
+    // Sort each category by tier (highest first)
+    Object.keys(setCategories).forEach(category => {
+        setCategories[category].sort((a, b) => b.tier - a.tier);
+    });
+    
+    // Create grid container
+    const gridContainer = DOMUtils.createElement('div', {
+        className: 'sets-grid-container'
+    });
+    
+    // Create columns with stat mappings - order: mage, knight, bastion, dragon, misc
+    const columnOrder = [
+        { category: 'mage', statName: 'INT' },
+        { category: 'knight', statName: 'STR' },
+        { category: 'bastion', statName: 'STA' },
+        { category: 'dragon', statName: 'AGI' },
+        { category: 'misc', statName: null }
+    ];
+    
+    columnOrder.forEach(({ category, statName }) => {
+        if (setCategories[category].length > 0) {
+            const column = DOMUtils.createElement('div', {
+                className: 'sets-column'
             });
-        });
-        
-        // Create grid container
-        const gridContainer = DOMUtils.createElement('div', {
-            className: 'sets-grid-container'
-        });
-        
-        // Create columns in order: mage, knight, bastion, dragon, misc
-        const columnOrder = ['mage', 'knight', 'bastion', 'dragon', 'misc'];
-        
-        columnOrder.forEach(category => {
-            if (setCategories[category].length > 0) {
-                const column = DOMUtils.createElement('div', {
-                    className: 'sets-column'
-                });
-                
-                setCategories[category].forEach(setData => {
-                    const setButton = UIFactory.createSetItem(setData, (set) => {
-                        this.handleEquipSet(set);
-                    });
-                    column.appendChild(setButton);
-                });
-                
-                gridContainer.appendChild(column);
-            }
-        });
-        
-        setsList.appendChild(gridContainer);
-    },
+            
+            setCategories[category].forEach(setData => {
+                const setButton = UIFactory.createSetItem(setData, (set) => {
+                    this.handleEquipSet(set);
+                }, statName); // Pass the stat name to the factory
+                column.appendChild(setButton);
+            });
+            
+            gridContainer.appendChild(column);
+        }
+    });
+    
+    setsList.appendChild(gridContainer);
+},
 
 /**
  * Handle equipping a complete set - duplicate ring/trinket to both slots
@@ -4673,27 +4846,56 @@ handleEquipSet(setData) {
                     className: 'spell-combo-dps',
                     innerHTML: `Combo DPS: <span class="spell-dps">${comboDps}</span>`
                 });
+
+                // Calculate DPS per energy efficiency
+                const dpsPerEnergy = StatsCalculator.calculateComboDpsPerEnergy(
+                    selectedSpells.primary, 
+                    selectedSpells.secondary, 
+                    critPercent
+                );
+
+                const efficiencyDiv = DOMUtils.createElement('div', {
+                    className: 'spell-efficiency',
+                    innerHTML: `DPS/nrg: <span class="spell-efficiency-value">${dpsPerEnergy.toFixed(2)}</span>`
+                });
+
+                // Calculate max damage potential
+                const maxDamage = StatsCalculator.calculateComboMaxDamage(
+                    selectedSpells.primary, 
+                    selectedSpells.secondary, 
+                    critPercent
+                );
+
+                const maxDamageDiv = DOMUtils.createElement('div', {
+                    className: 'spell-max-damage',
+                    innerHTML: `Max DMG: <span class="spell-max-damage-value">${FO2Utils.formatNumber(maxDamage)}</span>`
+                });
                 
-                // Calculate combined energy cost
                 const comboEnergyPerSec = StatsCalculator.calculateComboEnergyPerSecond(
                     selectedSpells.primary, 
                     selectedSpells.secondary
                 );
 
+                // Get current energy regen from calculated stats
+                const energyRegen = calculatedStats?.finalEnergyRegenPerSecond || 0;
+                const netEnergyUsage = comboEnergyPerSec - energyRegen;
+
                 let energyDisplay = '';
                 if (selectedSpells.primary.cooldown > 0 || selectedSpells.secondary.cooldown > 0) {
-                    energyDisplay = `${comboEnergyPerSec.toFixed(1)} energy/sec (rotation)`;
+                    energyDisplay = `${netEnergyUsage.toFixed(1)}/s`;
                 } else {
-                    energyDisplay = `${comboEnergyPerSec.toFixed(1)} energy/sec`;
+                    energyDisplay = `${netEnergyUsage.toFixed(1)}/s`;
                 }
-                
+
                 const costDiv = DOMUtils.createElement('div', {
-                    innerHTML: `Cost: <span class="spell-cost">${energyDisplay}</span>`
+                    innerHTML: `Usage: <span class="spell-cost">${energyDisplay}</span>`
                 });
                 
                 comboDiv.appendChild(nameDiv);
                 comboDiv.appendChild(dpsDiv);
+                comboDiv.appendChild(maxDamageDiv);
                 comboDiv.appendChild(costDiv);
+                comboDiv.appendChild(efficiencyDiv);
             } else {
                 // Single spell selected
                 const spell = selectedSpells.primary || selectedSpells.secondary;
@@ -4705,16 +4907,44 @@ handleEquipSet(setData) {
                 });
                 
                 const dpsDiv = DOMUtils.createElement('div', {
-                    innerHTML: `DPS: <span class="spell-dps">${comboDps}</span> (Base: ${spell.baseDps})`
+                    innerHTML: `DPS: <span class="spell-dps">${comboDps}</span>`
+                });
+
+                // Calculate DPS per energy efficiency for single spell
+                const dpsPerEnergy = StatsCalculator.calculateComboDpsPerEnergy(
+                    selectedSpells.primary, 
+                    selectedSpells.secondary, 
+                    critPercent
+                );
+
+                const efficiencyDiv = DOMUtils.createElement('div', {
+                    innerHTML: `DPS/nrg: <span class="spell-efficiency-value">${dpsPerEnergy.toFixed(2)}</span>`
+                });
+
+                // Calculate max damage for single spell
+                const maxDamage = StatsCalculator.calculateComboMaxDamage(
+                    selectedSpells.primary, 
+                    selectedSpells.secondary, 
+                    critPercent
+                );
+
+                const maxDamageDiv = DOMUtils.createElement('div', {
+                    innerHTML: `Max DMG: <span class="spell-max-damage-value">${FO2Utils.formatNumber(maxDamage)}</span>`
                 });
                 
+                const spellEnergyPerSec = spell.energyPerSecond;
+                const energyRegen = calculatedStats?.finalEnergyRegenPerSecond || 0;
+                const netEnergyUsage = spellEnergyPerSec - energyRegen;
+
                 const costDiv = DOMUtils.createElement('div', {
-                    innerHTML: `Cost: <span class="spell-cost">${spell.energyPerSecond.toFixed(1)} energy/sec</span>`
+                    innerHTML: `Usage: <span class="spell-cost">${netEnergyUsage.toFixed(1)}/s</span>`
                 });
                 
                 comboDiv.appendChild(nameDiv);
                 comboDiv.appendChild(dpsDiv);
+                comboDiv.appendChild(maxDamageDiv);
                 comboDiv.appendChild(costDiv);
+                comboDiv.appendChild(efficiencyDiv);
             }
             
             spellInfo.appendChild(comboDiv);

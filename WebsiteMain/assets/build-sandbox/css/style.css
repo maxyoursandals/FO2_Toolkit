@@ -1679,8 +1679,34 @@ input:checked + .toggle-slider:before {
 .spell-combo-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px; /* Reduced from 4px to accommodate new lines */
     align-items: center;
+}
+
+.spell-combo-dps,
+.spell-efficiency,
+.spell-max-damage {
+    font-size: 0.85em;
+    color: #ccc;
+    text-align: center;
+    margin: 1px 0; /* Consistent small margins */
+    line-height: 1.2;
+}
+
+@media screen and (max-width: 768px) {
+    .spell-efficiency,
+    .spell-max-damage {
+        font-size: 0.8em;
+    }
+    
+    .spell-efficiency-value,
+    .spell-max-damage-value {
+        font-size: 1.05em; /* Slightly smaller on mobile */
+    }
+    
+    .spell-combo-info {
+        gap: 2px; /* Tighter spacing on mobile */
+    }
 }
 
 .spell-names {
@@ -1864,6 +1890,36 @@ input:checked + .toggle-slider:before {
         min-height: 180px; /* More height for vertical layout */
     }
 }
+
+
+/* Spell efficiency display */
+.spell-efficiency {
+    font-size: 0.85em;
+    color: #ccc;
+    text-align: center;
+    margin: 2px 0;
+}
+
+.spell-efficiency-value {
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+/* Spell max damage display */
+.spell-max-damage {
+    font-size: 0.85em;
+    color: #ccc;
+    text-align: center;
+    margin: 2px 0;
+}
+
+.spell-max-damage-value {
+    color: #ff6b6b; /* Distinct color for max damage - light red/orange */
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
 
 /* Item Editor Styles */
 .item-editor-container {
