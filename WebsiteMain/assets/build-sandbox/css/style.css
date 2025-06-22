@@ -1629,6 +1629,10 @@ input:checked + .toggle-slider:before {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.spell-slot .spell-slot-empty {
+    background-color: var(--background); /* Darker background for empty state */
+}
+
 .spell-slot:hover {
     transform: scale(1.05);
     box-shadow: 0 0 8px rgba(var(--accent-rgb, 199, 212, 228), 0.4);
@@ -1642,10 +1646,25 @@ input:checked + .toggle-slider:before {
     image-rendering: pixelated;
 }
 
+.spell-slot-empty {
+    width: 100%;
+    height: 100%;
+    background-color: var(--background); /* Use the darker background color */
+    border-radius: 3px; /* Slightly rounded corners */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle inner border */
+}
+
 .spell-slot-fallback {
     font-size: 24px;
     color: #666;
     user-select: none;
+    background-color: var(--background);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
 }
 
 /* NEW: Spell tier indicator (similar to buff tiers) */
@@ -1725,7 +1744,7 @@ input:checked + .toggle-slider:before {
 }
 
 .spell-combo-dps .spell-dps {
-    color: var(--positive-button);
+    color: var(--accent);
     font-weight: bold;
     font-size: 1.1em;
 }
@@ -1750,15 +1769,6 @@ input:checked + .toggle-slider:before {
 
 .spell-stats div {
     margin-bottom: 2px;
-}
-
-.spell-dps {
-    color: var(--positive-button);
-    font-weight: bold;
-}
-
-.spell-cost {
-    color: var(--energy);
 }
 
 .spell-cost {
@@ -1894,13 +1904,8 @@ input:checked + .toggle-slider:before {
 
 /* Spell efficiency display */
 .spell-efficiency {
-    font-size: 0.85em;
-    color: #ccc;
     text-align: center;
     margin: 2px 0;
-}
-
-.spell-efficiency-value {
     color: var(--accent);
     font-weight: bold;
     font-size: 1.1em;
@@ -1908,18 +1913,16 @@ input:checked + .toggle-slider:before {
 
 /* Spell max damage display */
 .spell-max-damage {
-    font-size: 0.85em;
+    font-size: 1.1em;
     color: #ccc;
     text-align: center;
     margin: 2px 0;
 }
 
 .spell-max-damage-value {
-    color: #ff6b6b; /* Distinct color for max damage - light red/orange */
-    font-weight: bold;
+    color: var(--accent);
     font-size: 1.1em;
 }
-
 
 /* Item Editor Styles */
 .item-editor-container {

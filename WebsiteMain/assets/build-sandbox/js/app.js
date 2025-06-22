@@ -610,8 +610,7 @@ const UIFactory = {
         } else {
             // No spell - show default icon
             const defaultIcon = DOMUtils.createElement('div', {
-                className: 'spell-slot-fallback',
-                textContent: '⚡'
+                className: 'spell-slot-empty'
             });
             
             spellSlot.appendChild(defaultIcon);
@@ -2351,19 +2350,18 @@ const StatsCalculator = {
 calculateComboMaxDamage: function(primarySpell, secondarySpell, critPercent) {
     if (!primarySpell && !secondarySpell) return 0;
     
+    // Always use 100% crit for max damage potential (2x multiplier)
+    const critMultiplier = 2.0; // 100% crit = 2x damage
+    
     // Single spell case
     if (!secondarySpell) {
-        return this.calculateSpellMaxDamageWithCrit(primarySpell, critPercent);
+        return Math.round(primarySpell.maxDamage * critMultiplier);
     }
     if (!primarySpell) {
-        return this.calculateSpellMaxDamageWithCrit(secondarySpell, critPercent);
+        return Math.round(secondarySpell.maxDamage * critMultiplier);
     }
     
     // Both spells selected - calculate combo max damage
-    const cappedCritPercent = Math.min(critPercent, 100); // Cap crit at 100%
-    const critMultiplier = 1.0 + (cappedCritPercent / 100.0);
-    
-    // Check if either spell has a cooldown
     const primaryHasCooldown = primarySpell.cooldown > 0;
     const secondaryHasCooldown = secondarySpell.cooldown > 0;
     
@@ -2400,9 +2398,8 @@ calculateComboMaxDamage: function(primarySpell, secondarySpell, critPercent) {
 calculateSpellMaxDamageWithCrit: function(spell, critPercent) {
     if (!spell || !spell.maxDamage) return 0;
     
-    // Apply crit multiplier to max damage: (1 + crit% / 100)
-    const cappedCritPercent = Math.min(critPercent, 100); // Cap crit at 100%
-    const critMultiplier = 1.0 + (cappedCritPercent / 100.0);
+    // Always use 100% crit for max damage potential (2x multiplier)
+    const critMultiplier = 2.0; // 100% crit = 2x damage
     return Math.round(spell.maxDamage * critMultiplier);
 },
 
@@ -4844,7 +4841,7 @@ handleEquipSet(setData) {
                 
                 const dpsDiv = DOMUtils.createElement('div', {
                     className: 'spell-combo-dps',
-                    innerHTML: `Combo DPS: <span class="spell-dps">${comboDps}</span>`
+                    innerHTML: `Combo DPS: <span class="spell-dps">${Math.round(comboDps)}</span>`
                 });
 
                 // Calculate DPS per energy efficiency
@@ -4868,7 +4865,7 @@ handleEquipSet(setData) {
 
                 const maxDamageDiv = DOMUtils.createElement('div', {
                     className: 'spell-max-damage',
-                    innerHTML: `Max DMG: <span class="spell-max-damage-value">${FO2Utils.formatNumber(maxDamage)}</span>`
+                    innerHTML: `Max DMG: <span class="spell-max-damage-value">${maxDamage}</span>`
                 });
                 
                 const comboEnergyPerSec = StatsCalculator.calculateComboEnergyPerSecond(
@@ -4882,13 +4879,14 @@ handleEquipSet(setData) {
 
                 let energyDisplay = '';
                 if (selectedSpells.primary.cooldown > 0 || selectedSpells.secondary.cooldown > 0) {
-                    energyDisplay = `${netEnergyUsage.toFixed(1)}/s`;
+                    energyDisplay = `${Math.round(netEnergyUsage)}/s`;
                 } else {
-                    energyDisplay = `${netEnergyUsage.toFixed(1)}/s`;
+                    energyDisplay = `${Math.round(netEnergyUsage)}/s`;
                 }
 
+                const usageColor = getUsageColor(netEnergyUsage);
                 const costDiv = DOMUtils.createElement('div', {
-                    innerHTML: `Usage: <span class="spell-cost">${energyDisplay}</span>`
+                    innerHTML: `Usage: <span class="spell-usage-value" style="color: ${usageColor}">${Math.round(netEnergyUsage)}/s</span>`
                 });
                 
                 comboDiv.appendChild(nameDiv);
@@ -4907,7 +4905,7 @@ handleEquipSet(setData) {
                 });
                 
                 const dpsDiv = DOMUtils.createElement('div', {
-                    innerHTML: `DPS: <span class="spell-dps">${comboDps}</span>`
+                    innerHTML: `DPS: <span class="spell-dps">${Math.round(comboDps)}</span>`
                 });
 
                 // Calculate DPS per energy efficiency for single spell
@@ -4929,15 +4927,16 @@ handleEquipSet(setData) {
                 );
 
                 const maxDamageDiv = DOMUtils.createElement('div', {
-                    innerHTML: `Max DMG: <span class="spell-max-damage-value">${FO2Utils.formatNumber(maxDamage)}</span>`
+                    innerHTML: `Max DMG: <span class="spell-max-damage-value">${maxDamage}</span>`
                 });
                 
                 const spellEnergyPerSec = spell.energyPerSecond;
                 const energyRegen = calculatedStats?.finalEnergyRegenPerSecond || 0;
                 const netEnergyUsage = spellEnergyPerSec - energyRegen;
 
+                const usageColor = getUsageColor(netEnergyUsage);
                 const costDiv = DOMUtils.createElement('div', {
-                    innerHTML: `Usage: <span class="spell-cost">${netEnergyUsage.toFixed(1)}/s</span>`
+                    innerHTML: `Usage: <span class="spell-usage-value" style="color: ${usageColor}">${Math.round(netEnergyUsage)}/s</span>`
                 });
                 
                 comboDiv.appendChild(nameDiv);
@@ -4955,6 +4954,28 @@ handleEquipSet(setData) {
             });
             
             spellInfo.appendChild(placeholderDiv);
+        }
+
+        function getUsageColor(netUsage) {
+            if (netUsage <= 0) {
+                // 0 or negative (gaining energy) = green
+                return 'var(--positive-button)'; // Green
+            } else if (netUsage <= 40) {
+                // 1-40 energy/sec = low drain (yellow to orange)
+                const intensity = netUsage / 40; // 0 to 1
+                const red = Math.round(255 * (0.8 + 0.2 * intensity)); // 204-255
+                const green = Math.round(255 * (0.8 - 0.3 * intensity)); // 204-153
+                return `rgb(${red}, ${green}, 0)`; // Yellow to orange
+            } else if (netUsage <= 81) {
+                // 41-81 energy/sec = medium drain (orange to red)
+                const intensity = (netUsage - 40) / 41; // 0 to 1
+                const red = 255;
+                const green = Math.round(153 * (1 - intensity)); // 153-0
+                return `rgb(${red}, ${green}, 0)`; // Orange to red
+            } else {
+                // 82+ energy/sec = high drain (deep red)
+                return '#cc0000'; // Deep red
+            }
         }
     },
     
