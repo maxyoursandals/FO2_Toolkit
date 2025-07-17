@@ -2103,6 +2103,39 @@ const StatsCalculator = {
         
         return critical;
     },
+
+    calculateCritMultiplier(critPercent) {
+        if (critPercent <= 0) return 1.0;
+        
+        // 10% flat chance for any crit to fail
+        const critFailRate = 0.1;
+        const critSuccessRate = 1 - critFailRate;
+        
+        if (critPercent <= 90) {
+            // Up to 90% crit: that % chance for 2x damage
+            const chance2x = critPercent / 100;
+            const chanceNormal = 1 - chance2x;
+            
+            // Apply 10% fail rate to crit attempts
+            const effective2x = chance2x * critSuccessRate;
+            const effectiveFailedCrit = chance2x * critFailRate; // Failed crits do 1x damage
+            
+            return (chanceNormal * 1.0) + (effective2x * 2.0) + (effectiveFailedCrit * 1.0);
+        } else {
+            // Over 90% crit: 90% for 2x, remainder for 3x
+            const chance2x = 0.9; // Fixed 90% for 2x
+            const chance3x = (critPercent - 90) / 100; // Everything above 90% for 3x
+            const chanceNormal = Math.max(0, 1 - 0.9 - chance3x); // Remaining for normal hits
+            
+            // Apply 10% fail rate to all crit attempts
+            const totalCritChance = chance2x + chance3x;
+            const effective2x = chance2x * critSuccessRate;
+            const effective3x = chance3x * critSuccessRate;
+            const effectiveFailedCrit = totalCritChance * critFailRate; // Failed crits do 1x damage
+            
+            return (chanceNormal * 1.0) + (effective2x * 2.0) + (effective3x * 3.0) + (effectiveFailedCrit * 1.0);
+        }
+    },
     
     /**
      * Calculates mitigation percentage from armor
@@ -2314,8 +2347,8 @@ const StatsCalculator = {
         if (finalAttackSpeed > 0) {
             const avgHit = (finalMinDamage + finalMaxDamage) / 2;
             const attacksPerSec = 1000.0 / finalAttackSpeed;
-            // Assuming crit adds 100% bonus damage (multiplier = 1 + crit_chance)
-            const critMultiplier = 1.0 + (finalCrit / 100.0);
+            // Use new crit multiplier calculation instead of simple addition
+            const critMultiplier = this.calculateCritMultiplier(finalCrit);
             finalDPS = avgHit * attacksPerSec * critMultiplier;
         }
         
@@ -2350,15 +2383,15 @@ const StatsCalculator = {
 calculateComboMaxDamage: function(primarySpell, secondarySpell, critPercent) {
     if (!primarySpell && !secondarySpell) return 0;
     
-    // Always use 100% crit for max damage potential (2x multiplier)
-    const critMultiplier = 2.0; // 100% crit = 2x damage
+    // For max damage, assume best case scenario (3x multiplier if over 90% crit, 2x if under)
+    const maxMultiplier = critPercent > 90 ? 3.0 : 2.0;
     
     // Single spell case
     if (!secondarySpell) {
-        return Math.round(primarySpell.maxDamage * critMultiplier);
+        return Math.round(primarySpell.maxDamage * maxMultiplier);
     }
     if (!primarySpell) {
-        return Math.round(secondarySpell.maxDamage * critMultiplier);
+        return Math.round(secondarySpell.maxDamage * maxMultiplier);
     }
     
     // Both spells selected - calculate combo max damage
@@ -2371,7 +2404,7 @@ calculateComboMaxDamage: function(primarySpell, secondarySpell, critPercent) {
         const fillerSpell = primaryHasCooldown ? secondarySpell : primarySpell;
         
         // Calculate max damage for cooldown spell
-        const cooldownMaxDamage = cooldownSpell.maxDamage * critMultiplier;
+        const cooldownMaxDamage = cooldownSpell.maxDamage * maxMultiplier;
         const cooldownCastTime = cooldownSpell.castTime;
         const cooldownCooldown = cooldownSpell.cooldown;
         
@@ -2381,14 +2414,14 @@ calculateComboMaxDamage: function(primarySpell, secondarySpell, critPercent) {
         const fillerCastsInCooldown = Math.floor(cooldownDuration / fillerCastTime);
         
         // Calculate total max damage for one rotation
-        const fillerMaxDamage = fillerSpell.maxDamage * critMultiplier;
+        const fillerMaxDamage = fillerSpell.maxDamage * maxMultiplier;
         const totalMaxDamage = cooldownMaxDamage + (fillerCastsInCooldown * fillerMaxDamage);
         
         return Math.round(totalMaxDamage);
     } else {
         // No cooldowns - alternating cast sequence max damage
-        const primaryMaxDamage = primarySpell.maxDamage * critMultiplier;
-        const secondaryMaxDamage = secondarySpell.maxDamage * critMultiplier;
+        const primaryMaxDamage = primarySpell.maxDamage * maxMultiplier;
+        const secondaryMaxDamage = secondarySpell.maxDamage * maxMultiplier;
         
         // Return sum of both max damages in one cycle
         return Math.round(primaryMaxDamage + secondaryMaxDamage);
@@ -2398,9 +2431,9 @@ calculateComboMaxDamage: function(primarySpell, secondarySpell, critPercent) {
 calculateSpellMaxDamageWithCrit: function(spell, critPercent) {
     if (!spell || !spell.maxDamage) return 0;
     
-    // Always use 100% crit for max damage potential (2x multiplier)
-    const critMultiplier = 2.0; // 100% crit = 2x damage
-    return Math.round(spell.maxDamage * critMultiplier);
+    // For max damage, assume best case scenario
+    const maxMultiplier = critPercent > 90 ? 3.0 : 2.0;
+    return Math.round(spell.maxDamage * maxMultiplier);
 },
 
     
@@ -2545,9 +2578,8 @@ calculatePerformance(currentDPS, mobList, filters) {
     calculateSpellDpsWithCrit: function(spell, critPercent) {
         if (!spell || !spell.baseDps) return 0;
         
-        // Apply crit multiplier: (1 + crit% / 100)
-        const cappedCritPercent = Math.min(critPercent, 100); // Cap crit at 100%
-        const critMultiplier = 1.0 + (cappedCritPercent / 100.0);
+        // Use new crit multiplier calculation
+        const critMultiplier = this.calculateCritMultiplier(critPercent);
         return Math.round(spell.baseDps * critMultiplier);
     },
 
@@ -2563,8 +2595,7 @@ calculatePerformance(currentDPS, mobList, filters) {
         }
         
         // Both spells selected - calculate combo DPS
-        const cappedCritPercent = Math.min(critPercent, 100); // Cap crit at 100%
-        const critMultiplier = 1.0 + (cappedCritPercent / 100.0);
+        const critMultiplier = this.calculateCritMultiplier(critPercent);
         
         // Check if either spell has a cooldown
         const primaryHasCooldown = primarySpell.cooldown > 0;
@@ -5099,7 +5130,7 @@ handleEquipSet(setData) {
         
         // Update Title
         if (searchTitle) {
-            searchTitle.textContent = `Select for ${slotName.charAt(0).toUpperCase() + slotName.slice(1)}`;
+            searchTitle.textContent = `Select ${slotName.charAt(0).toUpperCase() + slotName.slice(1)} Item`;
         }
         
         // Position the modal
