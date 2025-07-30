@@ -472,7 +472,7 @@ const UIFactory = {
             if (slotName === 'trinket1' || slotName === 'trinket2') iconName = 'trinket';
             
             const defaultIcon = DOMUtils.createElement('img', {
-                src: `assets/build-sandbox/icons/${iconName}-icon.png`,
+                src: `assets/icons/${iconName}-icon.png`,
                 alt: slotName.charAt(0).toUpperCase() + slotName.slice(1),
                 onerror: function() {
                     this.parentNode.innerHTML = `<div class="slot-text-fallback">${this.alt.substring(0, 3)}</div>`;
@@ -500,7 +500,7 @@ const UIFactory = {
             .trim()
             .replace(/\s+/g, '-');
         
-        const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
+        const iconFileName = `assets/icons/${baseName}-icon.png`;
         
         const buffDiv = DOMUtils.createElement('div', {
             className: isActive ? 'buff-icon active' : 'buff-icon',
@@ -565,7 +565,7 @@ const UIFactory = {
                 .replace(/\s+/g, '-')
                 .replace(/[^a-z0-9-]/g, '');
             
-            const iconFileName = `assets/build-sandbox/icons/${spellIconName}-icon.png`;
+            const iconFileName = `assets/icons/${spellIconName}-icon.png`;
             
             const img = DOMUtils.createElement('img', {
                 src: iconFileName,
@@ -866,7 +866,7 @@ const UIFactory = {
             DOMUtils.createElement('div', { className: 'build-item-details' }, [
                 `By: ${build.creator || 'Unknown'} | Lvl: ${build.level}`,
                 build.rebirth ? DOMUtils.createElement('img', {
-                    src: 'assets/build-sandbox/icons/rebirth-icon.png',
+                    src: 'assets/icons/rebirth-icon.png',
                     className: 'rebirth-inline-icon',
                     alt: 'R',
                     title: 'Rebirth'
@@ -976,7 +976,7 @@ const UIFactory = {
                         .trim()
                         .replace(/\s+/g, '-');
                     
-                    const iconFileName = `assets/build-sandbox/icons/${baseName}-icon.png`;
+                    const iconFileName = `assets/icons/${baseName}-icon.png`;
                     
                     // Create the image element
                     const img = DOMUtils.createElement('img', {
@@ -1984,15 +1984,15 @@ formatDamageFromAPI(itemData) {
             
             // Still fetch other data from local files (mobs, buffs, spells for now)
             const [mobsResponse, buffsResponse, spellsResponse] = await Promise.all([
-                fetch('assets/build-sandbox/data/mobs.json').catch(e => {
+                fetch('assets/data/mobs.json').catch(e => {
                     console.error("Fetch mobs failed:", e);
                     return { ok: false, json: () => null };
                 }),
-                fetch('assets/build-sandbox/data/buffs.json').catch(e => {
+                fetch('assets/data/buffs.json').catch(e => {
                     console.error("Fetch buffs failed:", e);
                     return { ok: false, json: () => null };
                 }),
-                fetch('assets/build-sandbox/data/spells.json').catch(e => {
+                fetch('assets/data/spells.json').catch(e => {
                     console.error("Fetch spells failed:", e);
                     return { ok: false, json: () => null };
                 })
